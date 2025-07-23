@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Timer } from './Timer';
+import { AIAssistant } from './AIAssistant';
 
 export function BestPossibleSelfForm() {
   const [content, setContent] = useState('');
@@ -64,9 +65,11 @@ export function BestPossibleSelfForm() {
           className="w-full h-64 p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        <div className="mt-4 text-sm text-gray-600">
+        <div className="mt-4 text-sm text-gray-600 mb-6">
           Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
         </div>
+
+        <AIAssistant content={content} />
 
         <div className="bg-gray-50 rounded-lg p-6 text-center mt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">📝 Keep a Record</h3>
