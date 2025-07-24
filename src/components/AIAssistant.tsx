@@ -102,7 +102,7 @@ export function AIAssistant({ content }: AIAssistantProps) {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`max-w-[80%] p-3 rounded-lg ${
+                className={`max-w-[80%] p-3 rounded-lg whitespace-pre-wrap ${
                   message.role === 'user'
                     ? 'ml-auto bg-blue-100'
                     : 'bg-gray-100'

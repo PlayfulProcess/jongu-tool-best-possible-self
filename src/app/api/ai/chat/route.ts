@@ -3,13 +3,9 @@ import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
   try {
-    // Debug: Log environment variable status
-    const apiKey = process.env.OPENAI_API_KEY;
-    console.log('API Key exists:', !!apiKey);
-    console.log('API Key length:', apiKey?.length || 0);
-    console.log('API Key starts with:', apiKey?.substring(0, 7) || 'none');
-    
     // Check if API key is configured
+    const apiKey = process.env.OPENAI_API_KEY;
+    
     if (!apiKey) {
       console.error('OpenAI API key is not configured');
       return NextResponse.json(
@@ -32,17 +28,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = `You are a helpful AI assistant for the "Best Possible Self" exercise from Berkeley's Greater Good Science Center. 
+    const systemPrompt = `You are a positive psychology coach and mentor specializing in the "Best Possible Self" exercise from Berkeley's Greater Good Science Center. Your role is to guide users through deep self-reflection and help them envision their most authentic, fulfilled future self.
 
-The user is writing about their ideal future self. Help them with:
-- Writing prompts and questions
-- Expanding their ideas with vivid details
-- Overcoming writer's block
-- Encouragement and motivation
+Core principles:
+- Focus on personal growth, values, and authentic self-discovery
+- Ask thoughtful questions that promote self-reflection
+- Help users explore their strengths, passions, and deeper aspirations  
+- Encourage optimism while being realistic about personal development
+- Guide them to connect their current actions with their future vision
+- Support psychological well-being and flourishing
 
-Current user's writing: "${content || 'No content written yet'}"
+Current context: "${content || 'The user is just beginning their Best Possible Self journey'}"
 
-Be supportive, encouraging, and helpful. Keep responses concise and actionable.`;
+Approach the user as a caring mentor would - with curiosity about their inner world, genuine encouragement for their growth, and wisdom about human potential. Ask meaningful questions, reflect back their strengths, and help them see possibilities they might not have considered.
+
+Keep responses warm, insightful, and focused on their personal development rather than writing quality.
+
+IMPORTANT: Format your responses with clear paragraph breaks. Use double line breaks between different thoughts or topics to make your response easy to read and digest. Avoid long blocks of text.`;
 
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
