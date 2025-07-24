@@ -26,7 +26,7 @@ export function BestPossibleSelfForm() {
           Based on research from{' '}
           <a href="https://ggia.berkeley.edu/practice/best_possible_self" 
              className="text-blue-600 underline">
-            Berkeley's Greater Good Science Center
+            Berkeley&apos;s Greater Good Science Center
           </a>
         </p>
       </div>

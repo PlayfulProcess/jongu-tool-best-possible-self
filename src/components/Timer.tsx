@@ -10,7 +10,7 @@ export function Timer({ onTimeUpdate }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes
   const [isRunning, setIsRunning] = useState(false);
   const [totalTime] = useState(15 * 60);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -21,10 +21,16 @@ export function Timer({ onTimeUpdate }: TimerProps) {
         });
       }, 1000);
     } else {
-      clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     }
 
-    return () => clearInterval(intervalRef.current);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [isRunning, timeLeft]);
 
   // Update parent state when timeLeft changes

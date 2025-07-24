@@ -30,21 +30,40 @@ export function AIAssistant({ content }: AIAssistantProps) {
     setIsLoading(true);
 
     try {
-      // Simulate AI response
-      setTimeout(() => {
-        const aiMessage: Message = {
-          role: 'assistant',
-          content: 'I can help you with your Best Possible Self exercise. What would you like to know?'
-        };
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: input,
+          content: content
+        }),
+      });
 
-        setMessages(prev => [...prev, aiMessage]);
-        setIsLoading(false);
-      }, 1000);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: data.response || 'I apologize, but I couldn\'t generate a response. Please try again.'
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+      setIsLoading(false);
 
     } catch (error) {
+      console.error('Error sending message:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your internet connection and try again.`
       }]);
       setIsLoading(false);
     }
