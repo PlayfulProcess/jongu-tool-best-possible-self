@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-export type DataSavingSetting = 'private' | 'save_private' | 'public_blog'
+export type DataSavingSetting = 'private' | 'save_private'
 
 interface PrivacySettingsProps {
   defaultDataSetting?: DataSavingSetting
@@ -33,18 +33,13 @@ export function PrivacySettings({
   const dataSavingOptions = [
     {
       value: 'private' as const,
-      label: 'Private Mode',
+      label: 'Do Not Save',
       description: 'Nothing gets saved - completely private session'
     },
     {
       value: 'save_private' as const,
-      label: 'Save Privately',
-      description: 'Save for your personal use only - never shared'
-    },
-    {
-      value: 'public_blog' as const,
-      label: 'Public Blog Post',
-      description: 'Make available for others to read and comment on'
+      label: 'Save',
+      description: 'Save for your personal use - securely stored and private'
     }
   ]
 

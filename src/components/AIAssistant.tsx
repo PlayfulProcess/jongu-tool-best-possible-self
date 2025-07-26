@@ -125,8 +125,13 @@ export function AIAssistant({ content, privacySetting = 'private', entryId }: AI
           {/* Messages */}
           <div className="h-64 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
-              <div className="text-center text-gray-500 text-sm">
-                Ask me anything about your Best Possible Self exercise!
+              <div className="text-center space-y-3">
+                <div className="text-gray-500 text-sm">
+                  Ask me anything about your Best Possible Self exercise!
+                </div>
+                <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border">
+                  ⚠️ <strong>Privacy Note:</strong> When you use the AI assistant, your messages are sent to OpenAI to generate responses. Your data is not stored by OpenAI for training unless you specifically consent to research.
+                </div>
               </div>
             )}
             

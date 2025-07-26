@@ -40,7 +40,7 @@ export type Database = {
           user_id: string
           title?: string
           content: string
-          privacy_setting: 'private' | 'save_private' | 'public_blog' | 'research_consent'
+          privacy_setting: 'private' | 'save_private' | 'research_consent'
           created_at: string
           updated_at: string
         }
@@ -49,7 +49,7 @@ export type Database = {
           user_id: string
           title?: string
           content: string
-          privacy_setting: 'private' | 'save_private' | 'public_blog' | 'research_consent'
+          privacy_setting: 'private' | 'save_private' | 'research_consent'
           created_at?: string
           updated_at?: string
         }
@@ -70,7 +70,7 @@ export type Database = {
           journal_entry_id?: string
           message: string
           role: 'user' | 'assistant'
-          privacy_setting: 'private' | 'save_private' | 'public_blog' | 'research_consent'
+          privacy_setting: 'private' | 'save_private' | 'research_consent'
           created_at: string
         }
         Insert: {
@@ -79,7 +79,7 @@ export type Database = {
           journal_entry_id?: string
           message: string
           role: 'user' | 'assistant'
-          privacy_setting: 'private' | 'save_private' | 'public_blog' | 'research_consent'
+          privacy_setting: 'private' | 'save_private' | 'research_consent'
           created_at?: string
         }
         Update: {

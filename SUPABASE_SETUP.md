@@ -39,7 +39,21 @@ This will create:
 
 1. In your Supabase dashboard, go to Authentication > Settings
 2. Configure email authentication (enabled by default)
-3. Optionally enable OAuth providers (Google, GitHub, etc.)
+3. **Enable OAuth providers** (to fix "provider is not enabled" errors):
+   
+   **For GitHub:**
+   - Go to Authentication > Providers in your Supabase dashboard
+   - Toggle GitHub to "Enabled"
+   - Create a GitHub OAuth app at https://github.com/settings/developers
+   - Add your GitHub Client ID and Client Secret
+   - Set redirect URL to: `https://YOUR_PROJECT_ID.supabase.co/auth/v1/callback`
+   
+   **For Google:**
+   - Toggle Google to "Enabled" 
+   - Create Google OAuth credentials at https://console.cloud.google.com/
+   - Add your Google Client ID and Client Secret
+   - Set redirect URL to: `https://YOUR_PROJECT_ID.supabase.co/auth/v1/callback`
+
 4. Set up custom SMTP for email sending (recommended for production)
 
 ### Email Templates (Optional)
@@ -48,8 +62,11 @@ Customize the email templates in Authentication > Templates:
 - Magic link
 - Password recovery
 
-## 5. Set Up HIPAA Compliance (For Production)
+## 5. HIPAA Compliance (Future Enhancement)
 
+**Note: HIPAA compliance is not enabled in the current beta version.**
+
+For future production use with HIPAA compliance:
 1. Contact Supabase support for HIPAA compliance enablement
 2. This requires a Pro plan or higher
 3. Sign Business Associate Agreement (BAA) with Supabase

@@ -1,6 +1,8 @@
 # Privacy Policy
 
-**Effective Date:** [Date] - not yet functional in beta version, but working towards that
+**Effective Date:** [Date]
+
+**Note: This is a beta version. Full privacy features are still in development.**
 
 ## Overview
 
@@ -30,6 +32,12 @@ Best Possible Self is a journaling application that helps users envision their b
 - Provide personalized journaling experience
 - Save and sync your content across devices
 - Enable AI-powered coaching features
+
+### AI Assistant Data Sharing
+- **When you use the AI assistant**, your messages are sent to OpenAI to generate responses
+- **If you don't use the AI assistant**, no data is shared with OpenAI
+- OpenAI does not use your data for training their models unless you specifically consent to research
+- See OpenAI's privacy policy at https://openai.com/privacy for more details
 
 ### For Improvement
 - Analyze usage patterns (anonymized data only)
@@ -63,9 +71,10 @@ You have four privacy levels for your content:
 ## Data Security
 
 - All data encrypted in transit and at rest
-- HIPAA-compliant infrastructure through Supabase
+- Secure cloud infrastructure through Supabase
 - Regular security audits and monitoring
 - Secure authentication with industry standards
+- **Note: HIPAA compliance not yet enabled in beta version**
 
 ## Your Rights
 
@@ -111,4 +120,4 @@ We use essential cookies for authentication and optional analytics cookies (with
 
 ---
 
-*This policy complies with GDPR, CCPA, and HIPAA requirements where applicable.*
+*This policy is designed to comply with GDPR and CCPA requirements. HIPAA compliance is planned for future versions.*

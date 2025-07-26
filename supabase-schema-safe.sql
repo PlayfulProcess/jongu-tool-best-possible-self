@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.journal_entries (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   title TEXT,
   content TEXT NOT NULL,
-  privacy_setting TEXT CHECK (privacy_setting IN ('private', 'save_private', 'public_blog', 'research_consent')) DEFAULT 'private',
+  privacy_setting TEXT CHECK (privacy_setting IN ('private', 'save_private', 'research_consent')) DEFAULT 'private',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.chat_messages (
   journal_entry_id UUID REFERENCES public.journal_entries(id) ON DELETE SET NULL,
   message TEXT NOT NULL,
   role TEXT CHECK (role IN ('user', 'assistant')) NOT NULL,
-  privacy_setting TEXT CHECK (privacy_setting IN ('private', 'save_private', 'public_blog', 'research_consent')) DEFAULT 'private',
+  privacy_setting TEXT CHECK (privacy_setting IN ('private', 'save_private', 'research_consent')) DEFAULT 'private',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

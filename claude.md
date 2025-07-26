@@ -1,6 +1,4 @@
-1) the color of the text when I type is too light of a grey, the same color used for the text there before I start writing. Same apply to AI chatbot, where I write, it is too light, as well as where it is rendered. 
-2) Research consent should be a Toggle independent of the others, as it is independent of view. But maybe just enabled outside of PRivate mode?
-3) where do people choose to save? Where is the call to save data in Supabase?
-4) should I enable auth in SUpabase, the HIPAA version?
-a) Auth failed with github: {"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}
-b) auth failed with Google: {"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}
+1) Delete this footer or say something like "if using private mode, remember to save your writing in a safe place. It might be helpful to go back and read it every now and then. Sometimes we see that we are closer than we realize to our best possible self, or at least it remind us to keep in the direction we feel right under so many life distractions". 📝 Keep a Record
+Print this page or copy your text to keep a record of your best possible self vision and insights.
+
+2) Create a dashboard where users can retrieve their saved files. Maybe it can be the same page but that retrieves the data from Supabase, so they can keep chatting with AI about it?
