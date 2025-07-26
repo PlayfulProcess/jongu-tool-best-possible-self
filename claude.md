@@ -1,6 +1,4 @@
-1) I think the delete function is not deleting the data in supabase. 
-2) State in this footer that people can choose to delete the form at any time in their admin panel.
-3) If possible, let's also enable the option for people to automaticaaly opt out of enabling their past data to future research. Keep a Record
-Your writing has been saved securely. You can return anytime to continue reflecting on your best possible self.
-4) I think this note is not true? Privacy Note: When you use the AI assistant, your messages are sent to OpenAI to generate responses. Your data is not stored by OpenAI for training unless you specifically consent to research. I dont change anything in openAI with current code based on user settings. Plus it is not only the messages, but anything the person ahve written. 
-5) make sure you have all the changes in new SQL  schema for me to run in Supabase and make everything work
+1) Debug API call. so, what would my text mean in best possible self terms?
+Sorry, I encountered an error: HTTP error! status: 500. Please check your internet connection and try again. Maybe there was a problem in the databse change that is preventing context sending or calling?
+
+2) Considering I believe Christ should come back in 2025 and that my main goal in life is to help his spirit find human hearts, what projects should I be dedicating myself to? Consider I am working full time for PepsiCo, am married to a Stanford professsor who I love, have a 4 year old, and I am developing www.abmin.io with a technical cofounder, www.playfulprocess.com (maybe a kids book publisher with AI tools I am developing by building community - https://jongu-books3.onrender.com/?ref=playfulprocess.com - maybe a therapist, and now this https://claude-app-store3.vercel.app/ . PepsiCo seems to be ok apparently with me working less than 2 hours a day. Also consider that we might want to move to Brazil next year, but I would rather be where I think I can help Christ work the most.)

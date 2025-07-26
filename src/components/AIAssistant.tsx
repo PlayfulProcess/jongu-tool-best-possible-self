@@ -59,6 +59,8 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     await saveChatMessage(input, 'user');
 
     try {
+      console.log('Sending request to AI API:', { message: input, content: content });
+      
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
@@ -70,11 +72,17 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         }),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (data.error) {
         throw new Error(data.error);
