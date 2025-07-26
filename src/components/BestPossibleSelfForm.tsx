@@ -3,17 +3,103 @@
 import { useState } from 'react';
 import { Timer } from './Timer';
 import { AIAssistant } from './AIAssistant';
+import { PrivacySettings, type PrivacySetting } from './PrivacySettings';
+import { useAuth } from './AuthProvider';
+import { createClient } from '@/lib/supabase-client';
 
 export function BestPossibleSelfForm() {
   const [content, setContent] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
+  const [privacySetting, setPrivacySetting] = useState<PrivacySetting>('private');
+  const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  
+  const { user, signOut } = useAuth();
+  const supabase = createClient();
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
+    // Auto-save after content changes (debounced)
+    if (privacySetting !== 'private') {
+      setSaveStatus('saving');
+      saveJournalEntry(newContent);
+    }
+  };
+
+  const handlePrivacyChange = (newSetting: PrivacySetting) => {
+    setPrivacySetting(newSetting);
+    if (newSetting !== 'private' && content.trim()) {
+      saveJournalEntry(content);
+    }
+  };
+
+  const saveJournalEntry = async (contentToSave: string) => {
+    if (!user || privacySetting === 'private' || !contentToSave.trim()) {
+      setSaveStatus('idle');
+      return;
+    }
+
+    try {
+      if (currentEntryId) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('journal_entries')
+          .update({
+            content: contentToSave,
+            privacy_setting: privacySetting,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentEntryId);
+
+        if (error) throw error;
+      } else {
+        // Create new entry
+        const { data, error } = await supabase
+          .from('journal_entries')
+          .insert({
+            user_id: user.id,
+            content: contentToSave,
+            privacy_setting: privacySetting,
+            title: 'Best Possible Self - ' + new Date().toLocaleDateString()
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) setCurrentEntryId(data.id);
+      }
+
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* User Header */}
+      <div className="flex justify-between items-center p-4 bg-gray-100 border-b">
+        <div className="text-sm text-gray-600">
+          Welcome, {user?.email}
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-xs text-gray-500">
+            {saveStatus === 'saving' && '💾 Saving...'}
+            {saveStatus === 'saved' && '✅ Saved'}
+            {saveStatus === 'error' && '❌ Save Error'}
+          </div>
+          <button
+            onClick={signOut}
+            className="text-sm text-gray-600 hover:text-gray-800 underline"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+      
       {/* Header Section */}
       <div className="text-center py-10 px-6 border-b border-gray-200">
         <h1 className="text-4xl font-serif text-gray-800 mb-3">
@@ -52,6 +138,14 @@ export function BestPossibleSelfForm() {
         </div>
       </div>
 
+      {/* Privacy Settings */}
+      <div className="p-6 border-b">
+        <PrivacySettings
+          defaultSetting={privacySetting}
+          onChange={handlePrivacyChange}
+        />
+      </div>
+
       {/* Writing Section */}
       <div className="p-6">
         <h2 className="text-2xl font-serif text-gray-800 mb-6">Your Best Possible Future</h2>
@@ -69,7 +163,11 @@ export function BestPossibleSelfForm() {
           Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
         </div>
 
-        <AIAssistant content={content} />
+        <AIAssistant 
+          content={content} 
+          privacySetting={privacySetting}
+          entryId={currentEntryId}
+        />
 
         <div className="bg-gray-50 rounded-lg p-6 text-center mt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">📝 Keep a Record</h3>

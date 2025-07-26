@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from './AuthProvider';
+import { createClient } from '@/lib/supabase-client';
+import type { PrivacySetting } from './PrivacySettings';
 
 interface AIAssistantProps {
   content: string;
+  privacySetting?: PrivacySetting;
+  entryId?: string | null;
 }
 
 interface Message {
@@ -11,11 +16,30 @@ interface Message {
   content: string;
 }
 
-export function AIAssistant({ content }: AIAssistantProps) {
+export function AIAssistant({ content, privacySetting = 'private', entryId }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { user } = useAuth();
+  const supabase = createClient();
+
+  const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
+    if (!user || privacySetting === 'private') return;
+
+    try {
+      await supabase.from('chat_messages').insert({
+        user_id: user.id,
+        journal_entry_id: entryId,
+        message,
+        role,
+        privacy_setting: privacySetting
+      });
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -28,6 +52,9 @@ export function AIAssistant({ content }: AIAssistantProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+
+    // Save user message
+    await saveChatMessage(input, 'user');
 
     try {
       const response = await fetch('/api/ai/chat', {
@@ -57,6 +84,10 @@ export function AIAssistant({ content }: AIAssistantProps) {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Save assistant message
+      await saveChatMessage(aiMessage.content, 'assistant');
+      
       setIsLoading(false);
 
     } catch (error) {
