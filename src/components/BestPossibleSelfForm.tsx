@@ -186,7 +186,17 @@ export function BestPossibleSelfForm() {
 
         <div className="bg-gray-50 rounded-lg p-6 text-center mt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">📝 Keep a Record</h3>
-          <p className="text-gray-600">Print this page or copy your text to keep a record of your best possible self vision and insights.</p>
+          {dataSavingSetting === 'private' ? (
+            <p className="text-gray-600">
+              Since you&apos;re using private mode, remember to save your writing in a safe place. 
+              It might be helpful to go back and read it every now and then. Sometimes we see that we are closer than we realize to our best possible self, 
+              or at least it reminds us to keep moving in the direction we feel is right under so many life distractions.
+            </p>
+          ) : (
+            <p className="text-gray-600">
+              Your writing has been saved securely. You can return anytime to continue reflecting on your best possible self.
+            </p>
+          )}
         </div>
       </div>
     </div>
