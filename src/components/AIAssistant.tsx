@@ -38,7 +38,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
       
       // Only update previousEntryId if it's actually different
       if (previousEntryId !== entryId) {
-        setPreviousEntryId(entryId);
+        setPreviousEntryId(entryId || null);
       }
 
       if (!user || !entryId) {
@@ -48,7 +48,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         if (savedMessages) {
           try {
             setMessages(JSON.parse(savedMessages));
-          } catch (e) {
+          } catch {
             setMessages([]);
           }
         } else {
@@ -93,6 +93,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     };
 
     loadMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, entryId, supabase]);
 
   // Auto-save messages to sessionStorage for persistence
