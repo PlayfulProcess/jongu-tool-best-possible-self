@@ -25,6 +25,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
+  const [previousEntryId, setPreviousEntryId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const supabase = createClient();
@@ -32,6 +33,10 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   // Load existing chat messages when component mounts or entryId changes
   useEffect(() => {
     const loadMessages = async () => {
+      // Track if this is just the first save (null -> actual ID)
+      const isFirstSave = previousEntryId === null && entryId !== null && messages.length > 0;
+      setPreviousEntryId(entryId);
+
       if (!user || !entryId) {
         // For new entries, try to load from sessionStorage first
         const sessionKey = `chat_messages_new_${user?.id || 'anonymous'}`;
@@ -45,6 +50,12 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         } else {
           setMessages([]);
         }
+        setMessagesLoaded(true);
+        return;
+      }
+
+      // If this is just the first save, don't reload - keep existing messages
+      if (isFirstSave) {
         setMessagesLoaded(true);
         return;
       }
@@ -68,7 +79,6 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
           content: msg.message
         }));
 
-        // Always load the saved messages for this entry
         setMessages(loadedMessages);
       } catch (error) {
         console.error('Error loading messages:', error);
@@ -79,7 +89,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     };
 
     loadMessages();
-  }, [user, entryId, supabase]);
+  }, [user, entryId, supabase, previousEntryId, messages.length]);
 
   // Auto-save messages to sessionStorage for persistence
   useEffect(() => {
