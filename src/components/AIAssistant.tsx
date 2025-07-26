@@ -10,6 +10,7 @@ interface AIAssistantProps {
   dataSavingSetting?: DataSavingSetting;
   researchConsent?: boolean;
   entryId?: string | null;
+  onMessage?: () => void;
 }
 
 interface Message {
@@ -17,7 +18,7 @@ interface Message {
   content: string;
 }
 
-export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId }: AIAssistantProps) {
+export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId, onMessage }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -107,6 +108,9 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+
+    // Notify parent component about message exchange
+    onMessage?.();
 
     // Save user message
     await saveChatMessage(input, 'user');
