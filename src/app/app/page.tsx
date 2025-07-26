@@ -262,15 +262,21 @@ export default function AppPage() {
         </div>
 
         {/* Full Screen Textarea */}
-        <div className="flex-1 p-8">
-          <textarea
-            value={content}
-            onChange={(e) => handleContentChange(e.target.value)}
-            placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
-            className="w-full h-full resize-none border-none outline-none text-lg leading-relaxed text-gray-900 placeholder-gray-400"
-            style={{ fontSize: '18px', lineHeight: '1.7' }}
-            autoFocus
-          />
+        <div className="flex-1 flex justify-center">
+          <div className="w-full max-w-4xl px-8 py-12">
+            <textarea
+              value={content}
+              onChange={(e) => handleContentChange(e.target.value)}
+              placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
+              className="w-full h-full resize-none border-none outline-none text-gray-900 placeholder-gray-400 bg-transparent"
+              style={{ 
+                fontSize: '20px', 
+                lineHeight: '1.8',
+                fontFamily: 'system-ui, -apple-system, sans-serif'
+              }}
+              autoFocus
+            />
+          </div>
         </div>
       </div>
     );
