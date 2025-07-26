@@ -126,6 +126,10 @@ export default function AppPage() {
   };
 
   const handleManualSave = () => {
+    if (!user) {
+      alert('Please sign in to save your journal entries. Your work will be preserved during this session.');
+      return;
+    }
     if (dataSavingSetting !== 'private' && content.trim()) {
       setSaveStatus('saving');
       saveJournalEntry(content);
@@ -144,6 +148,10 @@ export default function AppPage() {
   };
 
   const handleDataSavingChange = (newSetting: DataSavingSetting) => {
+    if (!user && newSetting !== 'private') {
+      alert('Please sign in to save your journal entries. Your work will be preserved during this session.');
+      return;
+    }
     setDataSavingSetting(newSetting);
     if (newSetting !== 'private' && content.trim()) {
       saveJournalEntry(content);
@@ -230,13 +238,8 @@ export default function AppPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-gray-50 py-8">
-        <AuthForm />
-      </main>
-    );
-  }
+  // Allow access without auth, but show prompt for saving
+  const showAuthPrompt = !user;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -298,67 +301,97 @@ export default function AppPage() {
               >
                 🏠 Home
               </Link>
-              <button
-                onClick={signOut}
-                className="text-sm text-gray-600 hover:text-gray-800 underline"
-              >
-                Sign Out
-              </button>
+              {user && (
+                <button
+                  onClick={signOut}
+                  className="text-sm text-gray-600 hover:text-gray-800 underline"
+                >
+                  Sign Out
+                </button>
+              )}
             </div>
           </div>
-          <button
-            onClick={handleNewEntry}
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            ✍️ New Entry
-          </button>
+          {user ? (
+            <button
+              onClick={handleNewEntry}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              ✍️ New Entry
+            </button>
+          ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+              <p className="text-sm text-blue-800 mb-2">Sign in to save your work</p>
+              <Link 
+                href="/"
+                className="text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                Go back to sign in
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Entries List */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-sm font-medium text-gray-700">
-                Your Entries ({entries.length})
-              </h2>
-            </div>
-            <div className="text-xs text-gray-500 mb-3 p-2 bg-gray-50 rounded">
-              💡 Entry previews update after page refresh
-            </div>
-            
-            {entriesLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-sm text-gray-500">Loading entries...</p>
-              </div>
-            ) : entries.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-sm text-gray-500">No saved entries yet</p>
-                <p className="text-xs text-gray-400 mt-1">Start writing and save to see entries here</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {entries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    onClick={() => handleEntryClick(entry)}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors border ${
-                      selectedEntry?.id === entry.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-sm font-medium text-gray-900 truncate mb-1">
-                      {entry.title || 'Untitled Entry'}
-                    </div>
-                    <div className="text-xs text-gray-500 mb-2">
-                      {formatDate(entry.created_at)}
-                    </div>
-                    <div className="text-xs text-gray-600 line-clamp-2">
-                      {entry.content.substring(0, 100)}...
-                    </div>
+            {user ? (
+              <>
+                <div className="flex justify-between items-center mb-3">
+                  <h2 className="text-sm font-medium text-gray-700">
+                    Your Entries ({entries.length})
+                  </h2>
+                </div>
+                <div className="text-xs text-gray-500 mb-3 p-2 bg-gray-50 rounded">
+                  💡 Entry previews update after page refresh
+                </div>
+                
+                {entriesLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-500">Loading entries...</p>
                   </div>
-                ))}
+                ) : entries.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-500">No saved entries yet</p>
+                    <p className="text-xs text-gray-400 mt-1">Start writing and save to see entries here</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {entries.map((entry) => (
+                      <div
+                        key={entry.id}
+                        onClick={() => handleEntryClick(entry)}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                          selectedEntry?.id === entry.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="text-sm font-medium text-gray-900 truncate mb-1">
+                          {entry.title || 'Untitled Entry'}
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">
+                          {formatDate(entry.created_at)}
+                        </div>
+                        <div className="text-xs text-gray-600 line-clamp-2">
+                          {entry.content.substring(0, 100)}...
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-6xl mb-4">📝</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Try the Tool</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Experience the Best Possible Self exercise without signing up. 
+                  Your work will be preserved in this session.
+                </p>
+                <p className="text-xs text-gray-500">
+                  Sign in to save your entries permanently and access them across devices.
+                </p>
               </div>
             )}
           </div>
@@ -371,14 +404,15 @@ export default function AppPage() {
         <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600">
-              Welcome, {user.email}
+              {user ? `Welcome, ${user.email}` : 'Try the tool - Sign in to save your work'}
             </div>
             <div className="flex items-center gap-4">
               <div className="text-xs text-gray-500">
                 {saveStatus === 'saving' && '💾 Saving...'}
                 {saveStatus === 'saved' && '✅ Saved'}
                 {saveStatus === 'error' && '❌ Save Error'}
-                {hasUnsavedChanges && saveStatus === 'idle' && '⚠️ Unsaved changes'}
+                {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
+                {hasUnsavedChanges && !user && '📝 Writing in session mode'}
               </div>
             </div>
           </div>

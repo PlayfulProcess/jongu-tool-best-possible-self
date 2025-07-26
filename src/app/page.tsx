@@ -34,7 +34,7 @@ export default function HomePage() {
                 <span className="text-sm text-gray-600">Welcome, {user.email}</span>
               ) : (
                 <div className="text-sm text-gray-600">
-                  Sign in to get started
+                  Sign in to see your dashboard
                 </div>
               )}
             </div>
@@ -47,15 +47,15 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Mindfulness Tools
-              <span className="block text-blue-600">For Personal Growth</span>
+              Interactive Tools
+              <span className="block text-blue-600">for a Better Life</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Discover science-backed wellness practices and reflection tools. 
               Organize and personalize them in ways that make sense to your unique journey.
             </p>
             <div className="text-sm text-gray-500 mb-8">
-              🔓 <a href="https://github.com/jongu-aps/journaling_apps" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Open source</a> - You can review our code and contribute
+              🔓 <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Open source</a> - You can review our code and contribute
             </div>
             
             {user ? (
@@ -76,8 +76,7 @@ export default function HomePage() {
         </div>
 
         {/* Featured Tool Preview */}
-        {user && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
             <div className="bg-white rounded-xl shadow-xl p-8">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Tool</h2>
@@ -113,7 +112,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Features Section */}
         <div className="bg-white py-20">
