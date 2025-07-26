@@ -57,12 +57,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Content */}
-      {currentView === 'form' ? (
+      {/* Content - Keep both components mounted to preserve state */}
+      <div style={{ display: currentView === 'form' ? 'block' : 'none' }}>
         <BestPossibleSelfForm />
-      ) : (
+      </div>
+      <div style={{ display: currentView === 'dashboard' ? 'block' : 'none' }}>
         <JournalDashboard />
-      )}
+      </div>
     </main>
   );
 }

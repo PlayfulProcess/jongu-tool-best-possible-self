@@ -30,8 +30,18 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   // Load existing chat messages when component mounts or entryId changes
   useEffect(() => {
     const loadMessages = async () => {
-      if (!user || !entryId || dataSavingSetting === 'private') {
-        setMessages([]);
+      if (!user || !entryId) {
+        // Only clear messages if we're starting fresh (no entryId and no messages)
+        if (!entryId && messages.length === 0) {
+          setMessages([]);
+        }
+        setMessagesLoaded(true);
+        return;
+      }
+
+      // Only load from database if we can save (not in private mode)
+      if (dataSavingSetting === 'private') {
+        // Keep existing messages in memory but don't load from database
         setMessagesLoaded(true);
         return;
       }
@@ -54,7 +64,11 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
           content: msg.message
         }));
 
-        setMessages(loadedMessages);
+        // Only replace messages if we actually have saved messages to load
+        // This prevents clearing in-memory messages when entryId is first set
+        if (loadedMessages.length > 0) {
+          setMessages(loadedMessages);
+        }
       } catch (error) {
         console.error('Error loading messages:', error);
       } finally {
@@ -63,7 +77,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     };
 
     loadMessages();
-  }, [user, entryId, dataSavingSetting, supabase]);
+  }, [user, entryId, supabase]);
 
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
     if (!user || dataSavingSetting === 'private') return;

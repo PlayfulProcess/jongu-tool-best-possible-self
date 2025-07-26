@@ -20,10 +20,17 @@ export function BestPossibleSelfForm() {
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
-    // Auto-save after content changes (debounced)
-    if (dataSavingSetting !== 'private') {
+    // Only auto-save if user has explicitly saved before
+    if (dataSavingSetting !== 'private' && currentEntryId) {
       setSaveStatus('saving');
       saveJournalEntry(newContent);
+    }
+  };
+
+  const handleManualSave = () => {
+    if (dataSavingSetting !== 'private' && content.trim()) {
+      setSaveStatus('saving');
+      saveJournalEntry(content);
     }
   };
 
@@ -177,8 +184,20 @@ export function BestPossibleSelfForm() {
           className="w-full h-64 p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
         />
 
-        <div className="mt-4 text-sm text-gray-600 mb-6">
-          Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
+        <div className="mt-4 flex justify-between items-center mb-6">
+          <div className="text-sm text-gray-600">
+            Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
+          </div>
+          {dataSavingSetting !== 'private' && (
+            <button
+              onClick={handleManualSave}
+              disabled={!content.trim() || saveStatus === 'saving'}
+              className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {saveStatus === 'saving' ? '💾 Saving...' : 
+               currentEntryId ? '💾 Update' : '💾 Save'}
+            </button>
+          )}
         </div>
 
         <AIAssistant 
