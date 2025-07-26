@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
-import type { PrivacySetting } from './PrivacySettings';
+import type { DataSavingSetting } from './PrivacySettings';
 
 interface AIAssistantProps {
   content: string;
-  privacySetting?: PrivacySetting;
+  privacySetting?: DataSavingSetting | 'research_consent';
   entryId?: string | null;
 }
 
@@ -133,7 +133,7 @@ export function AIAssistant({ content, privacySetting = 'private', entryId }: AI
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`max-w-[80%] p-3 rounded-lg whitespace-pre-wrap ${
+                className={`max-w-[80%] p-3 rounded-lg whitespace-pre-wrap text-gray-900 ${
                   message.role === 'user'
                     ? 'ml-auto bg-blue-100'
                     : 'bg-gray-100'
@@ -163,7 +163,7 @@ export function AIAssistant({ content, privacySetting = 'private', entryId }: AI
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Ask for help..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
                 disabled={isLoading}
               />
               <button

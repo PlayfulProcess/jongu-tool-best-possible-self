@@ -2,22 +2,35 @@
 
 import { useState } from 'react'
 
-export type PrivacySetting = 'private' | 'save_private' | 'public_blog' | 'research_consent'
+export type DataSavingSetting = 'private' | 'save_private' | 'public_blog'
 
 interface PrivacySettingsProps {
-  defaultSetting?: PrivacySetting
-  onChange: (setting: PrivacySetting) => void
+  defaultDataSetting?: DataSavingSetting
+  defaultResearchConsent?: boolean
+  onDataSettingChange: (setting: DataSavingSetting) => void
+  onResearchConsentChange: (consent: boolean) => void
 }
 
-export function PrivacySettings({ defaultSetting = 'private', onChange }: PrivacySettingsProps) {
-  const [selected, setSelected] = useState<PrivacySetting>(defaultSetting)
+export function PrivacySettings({ 
+  defaultDataSetting = 'private', 
+  defaultResearchConsent = false,
+  onDataSettingChange, 
+  onResearchConsentChange 
+}: PrivacySettingsProps) {
+  const [dataSetting, setDataSetting] = useState<DataSavingSetting>(defaultDataSetting)
+  const [researchConsent, setResearchConsent] = useState<boolean>(defaultResearchConsent)
 
-  const handleChange = (setting: PrivacySetting) => {
-    setSelected(setting)
-    onChange(setting)
+  const handleDataSettingChange = (setting: DataSavingSetting) => {
+    setDataSetting(setting)
+    onDataSettingChange(setting)
   }
 
-  const options = [
+  const handleResearchConsentChange = (consent: boolean) => {
+    setResearchConsent(consent)
+    onResearchConsentChange(consent)
+  }
+
+  const dataSavingOptions = [
     {
       value: 'private' as const,
       label: 'Private Mode',
@@ -32,28 +45,27 @@ export function PrivacySettings({ defaultSetting = 'private', onChange }: Privac
       value: 'public_blog' as const,
       label: 'Public Blog Post',
       description: 'Make available for others to read and comment on'
-    },
-    {
-      value: 'research_consent' as const,
-      label: 'Research Consent',
-      description: 'Allow us to use anonymized data to improve the AI model'
     }
   ]
 
   return (
-    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-      <h3 className="text-lg font-semibold text-gray-900">Data Privacy Settings</h3>
-      <p className="text-sm text-gray-600">Choose how you want your writing to be handled:</p>
+    <div className="space-y-6 p-4 bg-gray-50 rounded-lg">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900">Data Privacy Settings</h3>
+        <p className="text-sm text-gray-600">Choose how you want your writing to be handled:</p>
+      </div>
       
+      {/* Data Saving Options */}
       <div className="space-y-3">
-        {options.map((option) => (
+        <h4 className="text-sm font-semibold text-gray-800">Data Saving</h4>
+        {dataSavingOptions.map((option) => (
           <label key={option.value} className="flex items-start space-x-3 cursor-pointer">
             <input
               type="radio"
-              name="privacy-setting"
+              name="data-saving-setting"
               value={option.value}
-              checked={selected === option.value}
-              onChange={() => handleChange(option.value)}
+              checked={dataSetting === option.value}
+              onChange={() => handleDataSettingChange(option.value)}
               className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
             />
             <div className="flex-1">
@@ -63,6 +75,25 @@ export function PrivacySettings({ defaultSetting = 'private', onChange }: Privac
           </label>
         ))}
       </div>
+
+      {/* Research Consent Toggle - Only show if not in Private Mode */}
+      {dataSetting !== 'private' && (
+        <div className="border-t pt-4">
+          <h4 className="text-sm font-semibold text-gray-800 mb-3">Product Improvement</h4>
+          <label className="flex items-start space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={researchConsent}
+              onChange={(e) => handleResearchConsentChange(e.target.checked)}
+              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-gray-900">Research Consent</div>
+              <div className="text-xs text-gray-500">Allow us to use anonymized data to improve the AI (completely separate from your privacy choice above)</div>
+            </div>
+          </label>
+        </div>
+      )}
     </div>
   )
 }

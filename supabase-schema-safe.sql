@@ -1,4 +1,5 @@
--- Note: auth.users already has RLS enabled by default in Supabase
+-- Safe Supabase Schema Setup
+-- Run this in your Supabase SQL Editor
 
 -- Create profiles table
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -80,9 +81,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create trigger for new user signup
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
+-- Create trigger for new user signup (safely)
+CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
@@ -96,8 +96,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for updated_at
-CREATE TRIGGER handle_updated_at BEFORE UPDATE ON public.profiles
+CREATE OR REPLACE TRIGGER handle_updated_at BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
-CREATE TRIGGER handle_updated_at BEFORE UPDATE ON public.journal_entries
+CREATE OR REPLACE TRIGGER handle_updated_at BEFORE UPDATE ON public.journal_entries
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

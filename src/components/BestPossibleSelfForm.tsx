@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import { Timer } from './Timer';
 import { AIAssistant } from './AIAssistant';
-import { PrivacySettings, type PrivacySetting } from './PrivacySettings';
+import { PrivacySettings, type DataSavingSetting } from './PrivacySettings';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 
 export function BestPossibleSelfForm() {
   const [content, setContent] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
-  const [privacySetting, setPrivacySetting] = useState<PrivacySetting>('private');
+  const [dataSavingSetting, setDataSavingSetting] = useState<DataSavingSetting>('private');
+  const [researchConsent, setResearchConsent] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   
@@ -20,24 +21,35 @@ export function BestPossibleSelfForm() {
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
     // Auto-save after content changes (debounced)
-    if (privacySetting !== 'private') {
+    if (dataSavingSetting !== 'private') {
       setSaveStatus('saving');
       saveJournalEntry(newContent);
     }
   };
 
-  const handlePrivacyChange = (newSetting: PrivacySetting) => {
-    setPrivacySetting(newSetting);
+  const handleDataSavingChange = (newSetting: DataSavingSetting) => {
+    setDataSavingSetting(newSetting);
     if (newSetting !== 'private' && content.trim()) {
       saveJournalEntry(content);
     }
   };
 
+  const handleResearchConsentChange = (consent: boolean) => {
+    setResearchConsent(consent);
+    // Update existing entry if we have one
+    if (currentEntryId && dataSavingSetting !== 'private') {
+      saveJournalEntry(content);
+    }
+  };
+
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || privacySetting === 'private' || !contentToSave.trim()) {
+    if (!user || dataSavingSetting === 'private' || !contentToSave.trim()) {
       setSaveStatus('idle');
       return;
     }
+
+    // Determine final privacy setting (data saving + research consent)
+    const finalPrivacySetting = researchConsent ? 'research_consent' : dataSavingSetting;
 
     try {
       if (currentEntryId) {
@@ -46,7 +58,7 @@ export function BestPossibleSelfForm() {
           .from('journal_entries')
           .update({
             content: contentToSave,
-            privacy_setting: privacySetting,
+            privacy_setting: finalPrivacySetting,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentEntryId);
@@ -59,7 +71,7 @@ export function BestPossibleSelfForm() {
           .insert({
             user_id: user.id,
             content: contentToSave,
-            privacy_setting: privacySetting,
+            privacy_setting: finalPrivacySetting,
             title: 'Best Possible Self - ' + new Date().toLocaleDateString()
           })
           .select()
@@ -141,8 +153,10 @@ export function BestPossibleSelfForm() {
       {/* Privacy Settings */}
       <div className="p-6 border-b">
         <PrivacySettings
-          defaultSetting={privacySetting}
-          onChange={handlePrivacyChange}
+          defaultDataSetting={dataSavingSetting}
+          defaultResearchConsent={researchConsent}
+          onDataSettingChange={handleDataSavingChange}
+          onResearchConsentChange={handleResearchConsentChange}
         />
       </div>
 
@@ -156,7 +170,7 @@ export function BestPossibleSelfForm() {
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
           placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
-          className="w-full h-64 p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-64 p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
         />
 
         <div className="mt-4 text-sm text-gray-600 mb-6">
@@ -165,7 +179,7 @@ export function BestPossibleSelfForm() {
 
         <AIAssistant 
           content={content} 
-          privacySetting={privacySetting}
+          privacySetting={researchConsent ? 'research_consent' : dataSavingSetting}
           entryId={currentEntryId}
         />
 
