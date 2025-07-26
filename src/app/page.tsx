@@ -77,38 +77,37 @@ export default function HomePage() {
 
         {/* Featured Tool Preview */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-            <div className="bg-white rounded-xl shadow-xl p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Tool</h2>
-                <p className="text-gray-600">Try our flagship tool to see how the platform works</p>
+          <div className="bg-white rounded-xl shadow-xl p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Tool</h2>
+              <p className="text-gray-600">Try our flagship tool to see how the platform works</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Best Possible Self</h3>
+                <p className="text-gray-600 mb-6">
+                  A research-backed reflection practice from Berkeley&apos;s Greater Good Science Center 
+                  that helps you envision your brightest future through guided journaling.
+                </p>
+                <div className="flex items-center space-x-4 text-sm text-gray-500 mb-6">
+                  <span className="bg-gray-100 px-3 py-1 rounded">🕐 15 minutes</span>
+                  <span className="bg-gray-100 px-3 py-1 rounded">📊 Beginner</span>
+                  <span className="bg-gray-100 px-3 py-1 rounded">🧠 Positive Psychology</span>
+                </div>
+                <Link 
+                  href="/app"
+                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Start Your Journey →
+                </Link>
               </div>
-              
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Best Possible Self</h3>
-                  <p className="text-gray-600 mb-6">
-                    A research-backed reflection practice from Berkeley&apos;s Greater Good Science Center 
-                    that helps you envision your brightest future through guided journaling.
-                  </p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 mb-6">
-                    <span className="bg-gray-100 px-3 py-1 rounded">🕐 15 minutes</span>
-                    <span className="bg-gray-100 px-3 py-1 rounded">📊 Beginner</span>
-                    <span className="bg-gray-100 px-3 py-1 rounded">🧠 Positive Psychology</span>
-                  </div>
-                  <Link 
-                    href="/app"
-                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                  >
-                    Start Your Journey →
-                  </Link>
-                </div>
-                <div className="bg-gradient-to-br from-blue-100 to-indigo-200 rounded-lg p-8 text-center">
-                  <div className="text-6xl mb-4">🌟</div>
-                  <h4 className="text-lg font-semibold text-gray-800 mb-2">Evidence-Based</h4>
-                  <p className="text-gray-600 text-sm">
-                    Backed by positive psychology research and proven to increase optimism and life satisfaction.
-                  </p>
-                </div>
+              <div className="bg-gradient-to-br from-blue-100 to-indigo-200 rounded-lg p-8 text-center">
+                <div className="text-6xl mb-4">🌟</div>
+                <h4 className="text-lg font-semibold text-gray-800 mb-2">Evidence-Based</h4>
+                <p className="text-gray-600 text-sm">
+                  Backed by positive psychology research and proven to increase optimism and life satisfaction.
+                </p>
               </div>
             </div>
           </div>
