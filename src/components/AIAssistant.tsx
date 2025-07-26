@@ -33,8 +33,18 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   useEffect(() => {
     const loadMessages = async () => {
       if (!user || !entryId) {
-        // Clear messages when no entry is selected (new entry)
-        setMessages([]);
+        // For new entries, try to load from sessionStorage first
+        const sessionKey = `chat_messages_new_${user?.id || 'anonymous'}`;
+        const savedMessages = sessionStorage.getItem(sessionKey);
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages));
+          } catch (e) {
+            setMessages([]);
+          }
+        } else {
+          setMessages([]);
+        }
         setMessagesLoaded(true);
         return;
       }
@@ -70,6 +80,14 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
 
     loadMessages();
   }, [user, entryId, supabase]);
+
+  // Auto-save messages to sessionStorage for persistence
+  useEffect(() => {
+    if (messages.length > 0) {
+      const sessionKey = entryId ? `chat_messages_${entryId}` : `chat_messages_new_${user?.id || 'anonymous'}`;
+      sessionStorage.setItem(sessionKey, JSON.stringify(messages));
+    }
+  }, [messages, entryId, user?.id]);
 
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
     if (!user || dataSavingSetting === 'private') return;

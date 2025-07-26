@@ -54,12 +54,12 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Mental Health Tools
-              <span className="block text-blue-600">That Work For You</span>
+              Mindfulness Tools
+              <span className="block text-blue-600">For Personal Growth</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Discover evidence-based therapeutic tools created by mental health professionals. 
-              Organize and categorize them in ways that make sense to your unique perspective.
+              Discover science-backed wellness practices and reflection tools. 
+              Organize and personalize them in ways that make sense to your unique journey.
             </p>
             
             {user ? (
@@ -98,8 +98,8 @@ export default function HomePage() {
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">Best Possible Self</h3>
                   <p className="text-gray-600 mb-6">
-                    A research-backed journaling exercise from Berkeley&apos;s Greater Good Science Center 
-                    that helps you envision your brightest future through guided reflection.
+                    A research-backed reflection practice from Berkeley&apos;s Greater Good Science Center 
+                    that helps you envision your brightest future through guided journaling.
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-500 mb-6">
                     <span className="bg-gray-100 px-3 py-1 rounded">🕐 15 minutes</span>
@@ -129,8 +129,8 @@ export default function HomePage() {
         <div className="bg-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why TherapyToolsHub?</h2>
-              <p className="text-xl text-gray-600">Built for real people with real needs</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Our Platform?</h2>
+              <p className="text-xl text-gray-600">Open source, science-backed, and built with trust</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -156,31 +156,36 @@ export default function HomePage() {
 
               <div className="text-center">
                 <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🏥</span>
+                  <span className="text-2xl">🔗</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Professional Quality</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Open Source & Transparent</h3>
                 <p className="text-gray-600">
-                  All tools are created or validated by licensed mental health professionals and researchers.
+                  Fully open source code you can inspect, contribute to, and trust. Built with transparency at our core.
+                  <br />
+                  <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline text-sm">
+                    View on GitHub →
+                  </a>
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* CTA for Therapists */}
+        {/* CTA for Creators */}
         <div className="bg-green-50 py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-bold text-green-900 mb-4">
-              Are You a Mental Health Professional?
+              Share Your Wisdom
             </h2>
             <p className="text-xl text-green-700 mb-8 max-w-3xl mx-auto">
-              Join our platform to share your therapeutic tools with the world. Help make mental health resources more accessible while building your professional presence.
+              Teachers, coaches, and wellness practitioners: collaborate with us to create transformative tools 
+              that help people grow and flourish. No clinical background required.
             </p>
             <button 
               className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
-              onClick={() => alert('Therapist portal coming soon! Email us at therapists@therapytoolshub.com to join the waitlist.')}
+              onClick={() => alert('Creator portal coming soon! Email us at hello@therapytoolshub.com to join the waitlist.')}
             >
-              Join as a Provider
+              Become a Creator
             </button>
           </div>
         </div>

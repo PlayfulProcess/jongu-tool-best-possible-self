@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 declare global {
   interface Window {
@@ -291,12 +292,12 @@ export default function AppPage() {
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-lg font-semibold text-gray-900">Best Possible Self</h1>
             <div className="flex items-center gap-2">
-              <a
+              <Link
                 href="/"
                 className="text-sm text-blue-600 hover:text-blue-800 underline"
               >
                 🏠 Home
-              </a>
+              </Link>
               <button
                 onClick={signOut}
                 className="text-sm text-gray-600 hover:text-gray-800 underline"
