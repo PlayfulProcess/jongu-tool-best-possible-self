@@ -1,11 +1,19 @@
-# Current Development Tasks
+1) Instead of saying this that will come later: Organize and personalize them in ways that make sense to your unique journey.
+Say somethign around keep a record, use AI help and find out great people who created this tools you can connect with if you want to dive deeper. 
+2) ad sign out to landing page.
+3) Change this writing and logo to black in auth pop up Sign in with Github
+4) When I entered the tool and started journaling, I clicked in sign in. Sign in worked, but I was redirected to the main page and lost everything. Fix that.
 
-1) Make this window (Welcome to Best Possible Self) only show up as a popup when people click in (Sign in to see your dashboard)
-2) In the app, when people click save, open the auth popup and preserve what the user wrote down. Currently, it is being lost.
-3) Sign in to save your work
+5) Console Error
 
-Go back to sign in --> not going back. Just a pop up with auth.
 
-4) Make sure the Welcome to Best Possible Self text is readable, currently too light of a grey over white...
-4) sign in with github in the VErcel app is redirecting to local... Is there a wrong environmental variable somewhere: http://localhost:3000/?code=4f7bbc19-fabd-42bb-aa01-2f87edadf7dd
+Error loading entries: {}
 
+Call Stack
+4
+
+Show 3 ignore-listed frame(s)
+AppPage.useCallback[loadEntries]
+.next\static\chunks\src_d0716b37._.js (1060:25)
+
+6) Starting a new entry is not clearign the chat with AI. 
