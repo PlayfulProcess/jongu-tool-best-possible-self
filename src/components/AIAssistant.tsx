@@ -35,7 +35,11 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     const loadMessages = async () => {
       // Track if this is just the first save (null -> actual ID)
       const isFirstSave = previousEntryId === null && entryId !== null && messages.length > 0;
-      setPreviousEntryId(entryId);
+      
+      // Only update previousEntryId if it's actually different
+      if (previousEntryId !== entryId) {
+        setPreviousEntryId(entryId);
+      }
 
       if (!user || !entryId) {
         // For new entries, try to load from sessionStorage first
@@ -89,7 +93,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     };
 
     loadMessages();
-  }, [user, entryId, supabase, previousEntryId, messages.length]);
+  }, [user, entryId, supabase]);
 
   // Auto-save messages to sessionStorage for persistence
   useEffect(() => {
