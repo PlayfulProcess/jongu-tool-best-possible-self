@@ -199,6 +199,7 @@ export function BestPossibleSelfForm() {
           ) : (
             <p className="text-gray-600">
               Your writing has been saved securely. You can return anytime to continue reflecting on your best possible self.
+              You can also delete any saved entries at any time from the &quot;My Entries&quot; section.
             </p>
           )}
         </div>

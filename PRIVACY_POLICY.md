@@ -34,9 +34,10 @@ Best Possible Self is a journaling application that helps users envision their b
 - Enable AI-powered coaching features
 
 ### AI Assistant Data Sharing
-- **When you use the AI assistant**, your messages are sent to OpenAI to generate responses
+- **When you use the AI assistant**, both your chat messages AND your journal content are sent to OpenAI to generate contextual responses
 - **If you don't use the AI assistant**, no data is shared with OpenAI
-- OpenAI does not use your data for training their models unless you specifically consent to research
+- OpenAI processes this data to generate responses but does not store it for training their models (per OpenAI's API terms)
+- The data sharing happens regardless of your research consent settings - research consent only affects our internal use
 - See OpenAI's privacy policy at https://openai.com/privacy for more details
 
 ### For Improvement

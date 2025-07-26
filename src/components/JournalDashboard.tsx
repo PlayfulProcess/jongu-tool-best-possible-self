@@ -72,20 +72,36 @@ export function JournalDashboard() {
     }
 
     try {
-      const { error } = await supabase
+      console.log('Attempting to delete entry:', entryId, 'for user:', user?.id)
+      
+      const { data, error } = await supabase
         .from('journal_entries')
         .delete()
         .eq('id', entryId)
+        .eq('user_id', user?.id) // Ensure user can only delete their own entries
+        .select()
 
-      if (error) throw error
+      console.log('Delete result:', { data, error })
+
+      if (error) {
+        console.error('Supabase delete error:', error)
+        throw error
+      }
+      
+      // Check if any rows were actually deleted
+      if (!data || data.length === 0) {
+        throw new Error('No entry was deleted - entry may not exist or belong to user')
+      }
       
       setEntries(entries.filter(e => e.id !== entryId))
       if (selectedEntry?.id === entryId) {
         setSelectedEntry(null)
       }
+
+      console.log('Entry deleted successfully')
     } catch (err) {
       console.error('Error deleting entry:', err)
-      alert('Failed to delete entry')
+      alert(`Failed to delete entry: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
 
