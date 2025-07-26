@@ -83,10 +83,12 @@ export default function AppPage() {
   };
 
   const handleNewEntry = () => {
-    if (hasUnsavedChanges) {
+    const hasContent = content.trim().length > 0;
+    
+    if (hasContent || hasUnsavedChanges) {
       const confirmed = confirm(
-        'You have unsaved changes that will be lost.\n\n' +
-        'Click OK to start a new entry, or Cancel to stay and save your work first.'
+        'Starting a new entry will clear your current work and chat history.\n\n' +
+        'Click OK to continue, or Cancel to stay and save your work first.'
       );
       if (!confirmed) return;
     }
@@ -116,6 +118,17 @@ export default function AppPage() {
     if (dataSavingSetting !== 'private' && content.trim()) {
       setSaveStatus('saving');
       saveJournalEntry(content);
+      
+      // Show update confirmation
+      if (currentEntryId) {
+        setTimeout(() => {
+          alert(
+            'Entry updated! 📝\n\n' +
+            'The sidebar preview may take a moment to refresh. ' +
+            'Refreshing the page will show updated previews but may lose unsaved work.'
+          );
+        }, 1000);
+      }
     }
   };
 
@@ -181,6 +194,8 @@ export default function AppPage() {
 
       setSaveStatus('saved');
       setHasUnsavedChanges(false);
+      // Auto-refresh entries to show updated content
+      loadEntries();
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
       console.error('Error saving journal entry:', error);
@@ -229,12 +244,20 @@ export default function AppPage() {
         <div className="p-4 border-b border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-lg font-semibold text-gray-900">Best Possible Self</h1>
-            <button
-              onClick={signOut}
-              className="text-sm text-gray-600 hover:text-gray-800 underline"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-2">
+              <a
+                href="/"
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+              >
+                🏠 Home
+              </a>
+              <button
+                onClick={signOut}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
           <button
             onClick={handleNewEntry}
@@ -247,9 +270,14 @@ export default function AppPage() {
         {/* Entries List */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
-            <h2 className="text-sm font-medium text-gray-700 mb-3">
-              Your Entries ({entries.length})
-            </h2>
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-sm font-medium text-gray-700">
+                Your Entries ({entries.length})
+              </h2>
+            </div>
+            <div className="text-xs text-gray-500 mb-3 p-2 bg-gray-50 rounded">
+              💡 Entry previews update after page refresh
+            </div>
             
             {entriesLoading ? (
               <div className="text-center py-8">
