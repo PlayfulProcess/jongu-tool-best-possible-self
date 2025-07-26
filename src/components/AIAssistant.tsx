@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import type { DataSavingSetting } from './PrivacySettings';
@@ -22,9 +22,48 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [messagesLoaded, setMessagesLoaded] = useState(false);
   
   const { user } = useAuth();
   const supabase = createClient();
+
+  // Load existing chat messages when component mounts or entryId changes
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!user || !entryId || dataSavingSetting === 'private') {
+        setMessages([]);
+        setMessagesLoaded(true);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('message, role, created_at')
+          .eq('journal_entry_id', entryId)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('Error loading chat messages:', error);
+          return;
+        }
+
+        const loadedMessages: Message[] = data.map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.message
+        }));
+
+        setMessages(loadedMessages);
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      } finally {
+        setMessagesLoaded(true);
+      }
+    };
+
+    loadMessages();
+  }, [user, entryId, dataSavingSetting, supabase]);
 
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
     if (!user || dataSavingSetting === 'private') return;
@@ -134,7 +173,11 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
 
           {/* Messages */}
           <div className="h-64 overflow-y-auto p-4 space-y-3">
-            {messages.length === 0 && (
+            {!messagesLoaded ? (
+              <div className="text-center text-gray-500 text-sm">
+                Loading conversation...
+              </div>
+            ) : messages.length === 0 ? (
               <div className="text-center space-y-3">
                 <div className="text-gray-500 text-sm">
                   Ask me anything about your Best Possible Self exercise!
@@ -143,7 +186,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
                   ⚠️ <strong>Privacy Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses. OpenAI processes this data but does not store it for training their models.
                 </div>
               </div>
-            )}
+            ) : null}
             
             {messages.map((message, index) => (
               <div
