@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { AuthForm } from '@/components/AuthForm';
 import { useAuth } from '@/components/AuthProvider';
+import { ProviderSignupForm } from '@/components/ProviderSignupForm';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -30,15 +31,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
-                <>
-                  <span className="text-sm text-gray-600">Welcome, {user.email}</span>
-                  <Link 
-                    href="/tools"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Browse Tools
-                  </Link>
-                </>
+                <span className="text-sm text-gray-600">Welcome, {user.email}</span>
               ) : (
                 <div className="text-sm text-gray-600">
                   Sign in to get started
@@ -63,16 +56,10 @@ export default function HomePage() {
             </p>
             
             {user ? (
-              <div className="flex justify-center space-x-4">
-                <Link 
-                  href="/tools"
-                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  Browse All Tools
-                </Link>
+              <div className="flex justify-center">
                 <Link 
                   href="/app"
-                  className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-colors"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
                 >
                   Try Best Possible Self
                 </Link>
@@ -181,12 +168,7 @@ export default function HomePage() {
               Teachers, coaches, and wellness practitioners: collaborate with us to create transformative tools 
               that help people grow and flourish. No clinical background required.
             </p>
-            <button 
-              className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
-              onClick={() => alert('Creator portal coming soon! Email us at hello@therapytoolshub.com to join the waitlist.')}
-            >
-              Become a Creator
-            </button>
+            <ProviderSignupForm />
           </div>
         </div>
       </main>
