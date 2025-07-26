@@ -27,6 +27,22 @@ export function PrivacySettings({
   const supabase = createClient()
 
   const handleDataSettingChange = (setting: DataSavingSetting) => {
+    // If switching to private mode, show confirmation popup
+    if (setting === 'private' && dataSetting === 'save_private') {
+      const confirmed = confirm(
+        'Switching to Private Mode:\n\n' +
+        '• No new data will be saved or collected\n' +
+        '• Your existing entries remain saved and accessible\n' +
+        '• Visit "My Entries" to delete old entries anytime\n' +
+        '• Current chat session will continue in memory\n\n' +
+        'Continue to Private Mode?'
+      );
+      
+      if (!confirmed) {
+        return; // Don't change if user cancels
+      }
+    }
+    
     setDataSetting(setting)
     onDataSettingChange(setting)
   }
