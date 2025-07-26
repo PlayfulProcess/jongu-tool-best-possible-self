@@ -1,6 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
+
+declare global {
+  interface Window {
+    autoSaveTimeout: NodeJS.Timeout;
+  }
+}
 import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { AuthForm } from '@/components/AuthForm';
@@ -35,6 +41,7 @@ export default function AppPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [chatExchangeCount, setChatExchangeCount] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   
   const supabase = createClient();
 
@@ -107,10 +114,13 @@ export default function AppPage() {
     setContent(newContent);
     setHasUnsavedChanges(true);
     
-    // Only auto-save if user has explicitly saved before
+    // Debounced auto-save - only save after user stops typing for 2 seconds
     if (dataSavingSetting !== 'private' && currentEntryId) {
-      setSaveStatus('saving');
-      saveJournalEntry(newContent);
+      clearTimeout(window.autoSaveTimeout);
+      window.autoSaveTimeout = setTimeout(() => {
+        setSaveStatus('saving');
+        saveJournalEntry(newContent);
+      }, 2000);
     }
   };
 
@@ -235,6 +245,36 @@ export default function AppPage() {
       minute: '2-digit'
     });
   };
+
+  // Focus Mode - Full screen writing
+  if (isFocusMode) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col">
+        {/* Focus Mode Header */}
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="text-sm text-gray-600">Focus Mode</div>
+          <button
+            onClick={() => setIsFocusMode(false)}
+            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+          >
+            Exit Focus
+          </button>
+        </div>
+
+        {/* Full Screen Textarea */}
+        <div className="flex-1 p-8">
+          <textarea
+            value={content}
+            onChange={(e) => handleContentChange(e.target.value)}
+            placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
+            className="w-full h-full resize-none border-none outline-none text-lg leading-relaxed text-gray-900 placeholder-gray-400"
+            style={{ fontSize: '18px', lineHeight: '1.7' }}
+            autoFocus
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -376,8 +416,16 @@ export default function AppPage() {
               />
 
               <div className="mt-4 flex justify-between items-center">
-                <div className="text-sm text-gray-600">
-                  Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-gray-600">
+                    Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
+                  </div>
+                  <button
+                    onClick={() => setIsFocusMode(true)}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                  >
+                    🎯 Focus Mode
+                  </button>
                 </div>
                 {dataSavingSetting !== 'private' && (
                   <button

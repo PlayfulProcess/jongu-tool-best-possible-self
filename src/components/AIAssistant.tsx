@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import type { DataSavingSetting } from './PrivacySettings';
+import ReactMarkdown from 'react-markdown';
 
 interface AIAssistantProps {
   content: string;
@@ -199,13 +200,19 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`max-w-[80%] p-3 rounded-lg whitespace-pre-wrap text-gray-900 ${
+                className={`max-w-[80%] p-3 rounded-lg text-gray-900 ${
                   message.role === 'user'
                     ? 'ml-auto bg-blue-100'
                     : 'bg-gray-100'
                 }`}
               >
-                {message.content}
+                {message.role === 'user' ? (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                ) : (
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             ))}
             

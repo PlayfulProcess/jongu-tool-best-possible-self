@@ -52,7 +52,7 @@ IMPORTANT: Format your responses with clear paragraph breaks. Use double line br
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message }
       ],
-      max_tokens: 200,
+      max_tokens: 400,
       temperature: 0.7,
     });
 

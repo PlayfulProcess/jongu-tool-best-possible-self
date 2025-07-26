@@ -1,12 +1,17 @@
 Commit.
 The problems I am seeing:
-1) THe entries in the sidebar are showing the beggining of the txt that does not automatically update when I update the entry, which might confuse the user. THe data is being updated in Supabase, but they just render when refreshing the page. 
-2) Nothing happens when people type "new entry, so they think nothing might actually be working, when it has. 
-3)New Entries are not deleting the chat history. WHen I click in past entries, I cannot retrieve my chat history. 
-4) User cannot go back home from the app website.
+1) auth with github not working locally. 
+2) it is a bit annoying to see the sidebar and update button pushing at every time I insert a new letter.
+2) Ifeel like the AI response is still being cut? Sometimes, our current circumstances or emotions can cloud our vision of what's possible. It might be beneficial to consider what values, strengths, or aspirations you hold deep inside you. What are some things that bring you joy, fulfillment, or a sense of purpose, even in small moments?
+
+Remember, the future is not set in stone, and it's full of possibilities waiting to unfold. What small steps could you take today, even tiny ones, that align with
+
+4) Answers in markdown are not being formatted. 3. **How does his work resonate with your aspirations and hopes for the future?** 
+5) Chat answers are disappeearing when I come into VS COde and come back to the app. 
 
 Solutions: think about it before implementing and let me know if you think you have a better one:
-1) LEave a note saying that sometimes it takes a while for the new entries to be updated in the sidebar on the top of the side bar. Also, when people click update, include a pop up that also lets them know  that it might take a while for the sidebar to refresh if they dont refresh the page and that is ok. If they refresh the page, they will lose unsaved data. Try to explain this in as few words as possible to still keep the message clear. 
-2) Create a popup when people type in "new entry" explain that unsaved data will be lost and ask for the user to click ok before continuing. 
-3) For now, keep trat chats in the same way as you are treating the jorunaling itself in the wrokflows of save and retrieve. That is. When pressing new entry, the chat should disappear. When I click in a past history, it should retrieve both the journaling prompt and the chat history for the user to continue to talk to AI.
-4) Create a home button in the app. 
+1) I will configure in github dev, but I need you to help me set the names in the .env files for me to paste the right keys..
+2) create a full screen mode for journalling, so people can enter in flow. HTey click and all they can see is the text box in which they are typing. 
+3) maybe render paragraph by paragraph or word by word so the user have an immediate response and it does not get cut in the middle? 
+4) format in markdown.
+5) Make them persistent in the browser? Make them always connected to Supabase entry?
