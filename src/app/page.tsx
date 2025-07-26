@@ -54,6 +54,9 @@ export default function HomePage() {
               Discover science-backed wellness practices and reflection tools. 
               Organize and personalize them in ways that make sense to your unique journey.
             </p>
+            <div className="text-sm text-gray-500 mb-8">
+              🔓 <a href="https://github.com/jongu-aps/journaling_apps" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Open source</a> - You can review our code and contribute
+            </div>
             
             {user ? (
               <div className="flex justify-center">
