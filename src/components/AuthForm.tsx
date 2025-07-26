@@ -9,12 +9,12 @@ export function AuthForm() {
   
   return (
     <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-center mb-6">Welcome to Best Possible Self</h1>
+      <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">Welcome to Best Possible Self</h1>
       <Auth
         supabaseClient={supabase}
         appearance={{ theme: ThemeSupa }}
         providers={['github']}
-        redirectTo={`${window.location.origin}/auth/callback`}
+        redirectTo={typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined}
         onlyThirdPartyProviders={false}
         showLinks={true}
         view="sign_in"

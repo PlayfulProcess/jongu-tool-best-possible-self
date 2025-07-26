@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { AuthForm } from '@/components/AuthForm';
+import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/components/AuthProvider';
 import { ProviderSignupForm } from '@/components/ProviderSignupForm';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   if (loading) {
     return (
@@ -33,9 +36,12 @@ export default function HomePage() {
               {user ? (
                 <span className="text-sm text-gray-600">Welcome, {user.email}</span>
               ) : (
-                <div className="text-sm text-gray-600">
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
                   Sign in to see your dashboard
-                </div>
+                </button>
               )}
             </div>
           </div>
@@ -68,9 +74,12 @@ export default function HomePage() {
                 </Link>
               </div>
             ) : (
-              <div className="max-w-md mx-auto">
-                <AuthForm />
-              </div>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Try Best Possible Self
+              </button>
             )}
           </div>
         </div>
@@ -173,6 +182,12 @@ export default function HomePage() {
           </div>
         </div>
       </main>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 }

@@ -50,6 +50,11 @@ In your Supabase Auth settings, make sure these redirect URLs are configured:
 
 - **"Authorization callback URL mismatch"**: Make sure the callback URL in GitHub matches your Supabase auth callback URL exactly
 - **"Client not found"**: Double-check that you copied the Client ID and Secret correctly
+- **Redirecting to localhost in production**: Update your GitHub OAuth app settings:
+  1. Go to GitHub Settings > Developer Settings > OAuth Apps > Your App
+  2. Update "Homepage URL" to your production domain (e.g., `https://your-app.vercel.app`)
+  3. Update "Authorization callback URL" to `https://your-supabase-project.supabase.co/auth/v1/callback`
+  4. Save the changes
 - **Still not working**: Check the Supabase Auth logs in your dashboard for specific error messages
 
 ## Environment Variables You Actually Need

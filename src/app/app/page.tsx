@@ -11,6 +11,7 @@ declare global {
 import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { AuthForm } from '@/components/AuthForm';
+import { AuthModal } from '@/components/AuthModal';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { PrivacySettings, type DataSavingSetting } from '@/components/PrivacySettings';
@@ -43,6 +44,7 @@ export default function AppPage() {
   const [chatExchangeCount, setChatExchangeCount] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const supabase = createClient();
 
@@ -127,7 +129,7 @@ export default function AppPage() {
 
   const handleManualSave = () => {
     if (!user) {
-      alert('Please sign in to save your journal entries. Your work will be preserved during this session.');
+      setShowAuthModal(true);
       return;
     }
     if (dataSavingSetting !== 'private' && content.trim()) {
@@ -149,7 +151,7 @@ export default function AppPage() {
 
   const handleDataSavingChange = (newSetting: DataSavingSetting) => {
     if (!user && newSetting !== 'private') {
-      alert('Please sign in to save your journal entries. Your work will be preserved during this session.');
+      setShowAuthModal(true);
       return;
     }
     setDataSavingSetting(newSetting);
@@ -321,12 +323,12 @@ export default function AppPage() {
           ) : (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
               <p className="text-sm text-blue-800 mb-2">Sign in to save your work</p>
-              <Link 
-                href="/"
+              <button 
+                onClick={() => setShowAuthModal(true)}
                 className="text-xs text-blue-600 hover:text-blue-800 underline"
               >
-                Go back to sign in
-              </Link>
+                Sign in now
+              </button>
             </div>
           )}
         </div>
@@ -519,6 +521,14 @@ export default function AppPage() {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Sign in to save your work"
+        subtitle="Your writing will be preserved and you can access it anywhere"
+      />
     </div>
   );
 }

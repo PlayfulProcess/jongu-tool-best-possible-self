@@ -1,18 +1,11 @@
 # Current Development Tasks
 
-## Completed ✅
-- Merged main branch into dev to get latest fixes
-- Chat persistence improvements from main branch
-- Environment variable handling for Vercel deployment
+1) Make this window (Welcome to Best Possible Self) only show up as a popup when people click in (Sign in to see your dashboard)
+2) In the app, when people click save, open the auth popup and preserve what the user wrote down. Currently, it is being lost.
+3) Sign in to save your work
 
-## To Do:
-1. Fix chat disappearing when changing windows (should be resolved by merge)
-2. Fix GitHub authentication (guide user through Supabase OAuth setup)
-3. Allow tool browsing without auth (modify landing page and routing)
-4. Update text and links (GitHub URL, titles, open source messaging)
-5. Add files to .gitignore (claude.md, .claude/ directory)
-6. Build basic test suite (E2E tests for chat persistence)
+Go back to sign in --> not going back. Just a pop up with auth.
 
-## Environment Variables Note:
-- No need for `NEXTAUTH_SECRET` or `NEXTAUTH_URL` (using Supabase Auth, not NextAuth)
-- GitHub OAuth configured in Supabase dashboard, not env vars
+4) Make sure the Welcome to Best Possible Self text is readable, currently too light of a grey over white...
+4) sign in with github in the VErcel app is redirecting to local... Is there a wrong environmental variable somewhere: http://localhost:3000/?code=4f7bbc19-fabd-42bb-aa01-2f87edadf7dd
+
