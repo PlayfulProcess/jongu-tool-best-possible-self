@@ -97,11 +97,11 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
 
   // Auto-save messages to sessionStorage for persistence
   useEffect(() => {
-    if (messages.length > 0) {
-      const sessionKey = entryId ? `chat_messages_${entryId}` : `chat_messages_new_${user?.id || 'anonymous'}`;
+    if (messages.length > 0 && user) {
+      const sessionKey = entryId ? `chat_messages_${entryId}` : `chat_messages_new_${user.id}`;
       sessionStorage.setItem(sessionKey, JSON.stringify(messages));
     }
-  }, [messages, entryId, user?.id]);
+  }, [messages, entryId, user]);
 
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
     if (!user || dataSavingSetting === 'private') return;
