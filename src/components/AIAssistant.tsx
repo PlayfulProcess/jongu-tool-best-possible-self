@@ -7,7 +7,8 @@ import type { DataSavingSetting } from './PrivacySettings';
 
 interface AIAssistantProps {
   content: string;
-  privacySetting?: DataSavingSetting | 'research_consent';
+  dataSavingSetting?: DataSavingSetting;
+  researchConsent?: boolean;
   entryId?: string | null;
 }
 
@@ -16,7 +17,7 @@ interface Message {
   content: string;
 }
 
-export function AIAssistant({ content, privacySetting = 'private', entryId }: AIAssistantProps) {
+export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -26,7 +27,7 @@ export function AIAssistant({ content, privacySetting = 'private', entryId }: AI
   const supabase = createClient();
 
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
-    if (!user || privacySetting === 'private') return;
+    if (!user || dataSavingSetting === 'private') return;
 
     try {
       await supabase.from('chat_messages').insert({
@@ -34,7 +35,8 @@ export function AIAssistant({ content, privacySetting = 'private', entryId }: AI
         journal_entry_id: entryId,
         message,
         role,
-        privacy_setting: privacySetting
+        is_public: false, // We removed public blog option
+        research_consent: researchConsent
       });
     } catch (error) {
       console.error('Error saving chat message:', error);

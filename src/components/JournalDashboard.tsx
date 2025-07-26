@@ -9,7 +9,8 @@ interface JournalEntry {
   id: string
   title: string | null
   content: string
-  privacy_setting: string
+  is_public: boolean
+  research_consent: boolean
   created_at: string
   updated_at: string
 }
@@ -58,12 +59,11 @@ export function JournalDashboard() {
     })
   }
 
-  const getPrivacyLabel = (setting: string) => {
-    switch(setting) {
-      case 'save_private': return 'Private'
-      case 'research_consent': return 'Private + Research'
-      default: return 'Private'
+  const getPrivacyLabel = (entry: JournalEntry) => {
+    if (entry.research_consent) {
+      return 'Private + Research'
     }
+    return 'Private'
   }
 
   const deleteEntry = async (entryId: string) => {
@@ -152,7 +152,7 @@ export function JournalDashboard() {
                     {entry.title || 'Untitled Entry'}
                   </h3>
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                    {getPrivacyLabel(entry.privacy_setting)}
+                    {getPrivacyLabel(entry)}
                   </span>
                 </div>
                 
@@ -186,7 +186,7 @@ export function JournalDashboard() {
                       {selectedEntry.title || 'Untitled Entry'}
                     </h3>
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                      {getPrivacyLabel(selectedEntry.privacy_setting)}
+                      {getPrivacyLabel(selectedEntry)}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
@@ -209,7 +209,8 @@ export function JournalDashboard() {
                   {/* AI Assistant for this entry */}
                   <AIAssistant 
                     content={selectedEntry.content}
-                    privacySetting={selectedEntry.privacy_setting as 'private' | 'save_private' | 'research_consent'}
+                    dataSavingSetting="save_private"
+                    researchConsent={selectedEntry.research_consent}
                     entryId={selectedEntry.id}
                   />
                 </div>

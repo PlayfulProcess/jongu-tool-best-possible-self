@@ -48,11 +48,7 @@ This will create:
    - Add your GitHub Client ID and Client Secret
    - Set redirect URL to: `https://YOUR_PROJECT_ID.supabase.co/auth/v1/callback`
    
-   **For Google:**
-   - Toggle Google to "Enabled" 
-   - Create Google OAuth credentials at https://console.cloud.google.com/
-   - Add your Google Client ID and Client Secret
-   - Set redirect URL to: `https://YOUR_PROJECT_ID.supabase.co/auth/v1/callback`
+   **Note:** Google auth has been removed from the app to simplify setup.
 
 4. Set up custom SMTP for email sending (recommended for production)
 

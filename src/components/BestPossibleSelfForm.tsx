@@ -48,8 +48,9 @@ export function BestPossibleSelfForm() {
       return;
     }
 
-    // Determine final privacy setting (data saving + research consent)
-    const finalPrivacySetting = researchConsent ? 'research_consent' : dataSavingSetting;
+    // Determine privacy flags based on settings
+    const isPublic = false; // We removed public blog option
+    const hasResearchConsent = researchConsent;
 
     try {
       if (currentEntryId) {
@@ -58,7 +59,8 @@ export function BestPossibleSelfForm() {
           .from('journal_entries')
           .update({
             content: contentToSave,
-            privacy_setting: finalPrivacySetting,
+            is_public: isPublic,
+            research_consent: hasResearchConsent,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentEntryId);
@@ -71,7 +73,8 @@ export function BestPossibleSelfForm() {
           .insert({
             user_id: user.id,
             content: contentToSave,
-            privacy_setting: finalPrivacySetting,
+            is_public: isPublic,
+            research_consent: hasResearchConsent,
             title: 'Best Possible Self - ' + new Date().toLocaleDateString()
           })
           .select()
@@ -180,7 +183,8 @@ export function BestPossibleSelfForm() {
 
         <AIAssistant 
           content={content} 
-          privacySetting={researchConsent ? 'research_consent' : dataSavingSetting}
+          dataSavingSetting={dataSavingSetting}
+          researchConsent={researchConsent}
           entryId={currentEntryId}
         />
 

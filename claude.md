@@ -1,4 +1,5 @@
-1) Delete this footer or say something like "if using private mode, remember to save your writing in a safe place. It might be helpful to go back and read it every now and then. Sometimes we see that we are closer than we realize to our best possible self, or at least it remind us to keep in the direction we feel right under so many life distractions". 📝 Keep a Record
-Print this page or copy your text to keep a record of your best possible self vision and insights.
-
-2) Create a dashboard where users can retrieve their saved files. Maybe it can be the same page but that retrieves the data from Supabase, so they can keep chatting with AI about it?
+1) I think the delete function is not deleting the data in supabase. 
+2) State in this footer that people can choose to delete the form at any time in their admin panel.
+3) If possible, let's also enable the option for people to automaticaaly opt out of enabling their past data to future research. Keep a Record
+Your writing has been saved securely. You can return anytime to continue reflecting on your best possible self.
+4) I think this note is not true? Privacy Note: When you use the AI assistant, your messages are sent to OpenAI to generate responses. Your data is not stored by OpenAI for training unless you specifically consent to research. I dont change anything in openAI with current code based on user settings. Plus it is not only the messages, but anything the person ahve written. 
