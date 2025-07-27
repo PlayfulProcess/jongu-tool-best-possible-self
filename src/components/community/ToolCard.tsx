@@ -107,8 +107,8 @@ export function ToolCard({ tool, onRate }: ToolCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-            <span className="text-4xl">{categoryEmojis[tool.category as keyof typeof categoryEmojis] || '🔧'}</span>
+          <div className="w-full h-full bg-gradient-to-br from-blue-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+            <span className="text-5xl drop-shadow-sm">{categoryEmojis[tool.category as keyof typeof categoryEmojis] || '🔧'}</span>
           </div>
         )}
         

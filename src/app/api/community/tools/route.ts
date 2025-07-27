@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch tools' }, { status: 500 });
     }
     
+    
     return NextResponse.json(data || []);
   } catch (error) {
     console.error('Error in tools API:', error);

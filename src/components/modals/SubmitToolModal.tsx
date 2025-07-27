@@ -40,9 +40,9 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (!formData.creator_name.trim()) newErrors.creator_name = 'Creator name is required';
     
-    // Validate Claude URL
-    if (formData.claude_url && !formData.claude_url.includes('claude.ai')) {
-      newErrors.claude_url = 'Please provide a valid Claude.ai URL';
+    // Basic URL validation (allow any URL, not just Claude.ai)
+    if (formData.claude_url && !formData.claude_url.startsWith('http')) {
+      newErrors.claude_url = 'Please provide a valid URL starting with http:// or https://';
     }
     
     setErrors(newErrors);
@@ -159,17 +159,17 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
               {errors.title && <p className="text-red-600 text-sm mt-1">{errors.title}</p>}
             </div>
 
-            {/* Claude URL */}
+            {/* Tool URL */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Claude.ai URL *
+                Tool URL *
               </label>
               <input
                 type="url"
                 value={formData.claude_url}
                 onChange={(e) => setFormData({ ...formData, claude_url: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="https://claude.ai/chat/your-tool-conversation"
+                placeholder="https://your-tool-url.com"
               />
               {errors.claude_url && <p className="text-red-600 text-sm mt-1">{errors.claude_url}</p>}
             </div>

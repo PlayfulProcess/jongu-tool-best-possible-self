@@ -30,7 +30,7 @@ export function ToolGrid({ selectedCategory, sortBy, onToolRate }: ToolGridProps
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTools = useCallback(async () => {
+  const fetchTools = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -39,7 +39,14 @@ export function ToolGrid({ selectedCategory, sortBy, onToolRate }: ToolGridProps
       }
       params.append('sort', sortBy);
       
-      const response = await fetch(`/api/community/tools?${params}`);
+      // Add cache-busting parameter for force refresh
+      if (forceRefresh) {
+        params.append('_t', Date.now().toString());
+      }
+      
+      const response = await fetch(`/api/community/tools?${params}`, {
+        cache: forceRefresh ? 'no-cache' : 'default'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch tools');
       }
@@ -66,20 +73,32 @@ export function ToolGrid({ selectedCategory, sortBy, onToolRate }: ToolGridProps
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating, review_text: review })
       });
-
+      
       if (!response.ok) {
-        throw new Error('Failed to submit rating');
+        const errorData = await response.json();
+        
+        // Handle duplicate rating case
+        if (response.status === 409) {
+          alert('ℹ️ ' + errorData.error);
+          return; // Don't refresh if it's a duplicate rating
+        }
+        
+        throw new Error(errorData.error || 'Failed to submit rating');
       }
 
-      // Refresh tools to show updated rating
-      fetchTools();
+      // Small delay to ensure database update is complete, then refresh
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await fetchTools(true);
       
       if (onToolRate) {
         onToolRate(toolId, rating, review);
       }
+      
+      // Show success message
+      alert('✅ Rating submitted successfully!');
     } catch (err) {
       console.error('Error submitting rating:', err);
-      alert('Failed to submit rating. Please try again.');
+      alert('❌ Failed to submit rating. Please try again.');
     }
   };
 

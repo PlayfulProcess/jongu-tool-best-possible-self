@@ -218,7 +218,7 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="text-2xl font-bold mb-4">🌱 Jongu Tool Garden</div>
+            <div className="text-2xl font-bold mb-4">🌱 Jongu</div>
             <p className="text-gray-400 mb-6">Community-powered emotional wellness</p>
             
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-400 mb-6">
@@ -234,7 +234,7 @@ export default function HomePage() {
             <div className="bg-amber-800 text-amber-200 p-4 rounded-lg mb-6">
               <div className="text-lg font-semibold mb-2">🚧 Beta Version</div>
               <div className="text-sm">
-                We&apos;re constantly improving and adding new features. Your feedback helps us grow!
+                We're constantly improving and adding new features. Your feedback helps us grow!
               </div>
             </div>
             
@@ -251,7 +251,7 @@ export default function HomePage() {
             </div>
             
             <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
-              © 2025 Jongu Tool Garden. Community-powered emotional wellness.
+              © 2025 Jongu. Community-powered emotional wellness.
             </div>
           </div>
         </div>

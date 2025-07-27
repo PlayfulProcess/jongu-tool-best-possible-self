@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const adminClient = createAdminClient();
     const body = await request.json();
     const { toolId } = body;
     
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
     
     // First get current click count, then increment
-    const { data: tool, error: getError } = await supabase
+    const { data: tool, error: getError } = await adminClient
       .from('tools')
       .select('click_count')
       .eq('id', toolId)
@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
     
     if (!getError && tool) {
       // Increment click count for analytics
-      const { error } = await supabase
+      const { error } = await adminClient
         .from('tools')
         .update({
-          click_count: tool.click_count + 1
+          click_count: (tool.click_count || 0) + 1
         })
         .eq('id', toolId);
         

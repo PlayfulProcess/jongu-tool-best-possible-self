@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -10,7 +9,6 @@ interface HeaderProps {
 
 export function Header({ showSubmitModal }: HeaderProps) {
   const { user, signOut } = useAuth();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-200">
@@ -20,7 +18,10 @@ export function Header({ showSubmitModal }: HeaderProps) {
           <div className="flex items-center space-x-8">
             <Link href="/" className="flex items-center space-x-2">
               <span className="text-2xl">🌱</span>
-              <span className="text-xl font-bold text-gray-900">Jongu Tool Garden</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-xl font-bold text-gray-900">Jongu</span>
+                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
+              </div>
             </Link>
             
             <nav className="hidden md:flex space-x-6">
@@ -30,52 +31,6 @@ export function Header({ showSubmitModal }: HeaderProps) {
               >
                 Browse Tools
               </Link>
-              
-              {/* Categories Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="text-gray-600 hover:text-gray-900 font-medium flex items-center space-x-1"
-                >
-                  <span>Categories</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {isDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                    <Link 
-                      href="/#community-tools?category=mindfulness"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      🧘 Mindfulness & Creativity
-                    </Link>
-                    <Link 
-                      href="/#community-tools?category=distress-tolerance"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      🛡️ Distress Tolerance
-                    </Link>
-                    <Link 
-                      href="/#community-tools?category=emotion-regulation"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      ❤️ Emotion Regulation
-                    </Link>
-                    <Link 
-                      href="/#community-tools?category=interpersonal-effectiveness"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      🤝 Interpersonal Effectiveness
-                    </Link>
-                  </div>
-                )}
-              </div>
               
               {showSubmitModal && (
                 <button
@@ -108,24 +63,23 @@ export function Header({ showSubmitModal }: HeaderProps) {
                 </button>
               </div>
             ) : (
-              <Link
-                href="/tools/best-possible-self"
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-              >
-                Try Our Tools
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/tools/best-possible-self"
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Try Tool
+                </Link>
+                <button
+                  className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Sign In
+                </button>
+              </div>
             )}
           </div>
         </div>
       </div>
-      
-      {/* Close dropdown when clicking outside */}
-      {isDropdownOpen && (
-        <div 
-          className="fixed inset-0 z-30" 
-          onClick={() => setIsDropdownOpen(false)}
-        />
-      )}
     </header>
   );
 }
