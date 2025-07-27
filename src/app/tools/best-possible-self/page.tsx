@@ -353,7 +353,7 @@ export default function BestPossibleSelfPage() {
       `}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-2">
             <h1 className="text-lg font-semibold text-gray-900">Best Possible Self</h1>
             <div className="flex items-center gap-2">
               {/* Close button for mobile */}
@@ -381,6 +381,16 @@ export default function BestPossibleSelfPage() {
                 </button>
               )}
             </div>
+          </div>
+          <div className="mb-4">
+            <a 
+              href="https://ggia.berkeley.edu/practice/best_possible_self" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              📚 Based on research from UC Berkeley's Greater Good Science Center
+            </a>
           </div>
           {user ? (
             <button

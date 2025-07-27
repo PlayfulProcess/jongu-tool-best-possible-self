@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 
 interface HeaderProps {
-  showSubmitModal?: () => void;
+  showAuthModal?: () => void;
 }
 
-export function Header({ showSubmitModal }: HeaderProps) {
+export function Header({ showAuthModal }: HeaderProps) {
   const { user, signOut } = useAuth();
 
   return (
@@ -32,14 +32,12 @@ export function Header({ showSubmitModal }: HeaderProps) {
                 Browse Tools
               </Link>
               
-              {showSubmitModal && (
-                <button
-                  onClick={showSubmitModal}
-                  className="text-green-600 hover:text-green-700 font-medium"
-                >
-                  Share a Tool
-                </button>
-              )}
+              <Link
+                href="/#share-tool"
+                className="text-green-600 hover:text-green-700 font-medium"
+              >
+                Share a Tool
+              </Link>
               
               <Link 
                 href="/#about" 
@@ -63,19 +61,12 @@ export function Header({ showSubmitModal }: HeaderProps) {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/tools/best-possible-self"
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Try Tool
-                </Link>
-                <button
-                  className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Sign In
-                </button>
-              </div>
+              <button
+                onClick={showAuthModal}
+                className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Sign In
+              </button>
             )}
           </div>
         </div>

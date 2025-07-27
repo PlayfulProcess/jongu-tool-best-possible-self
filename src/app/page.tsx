@@ -70,7 +70,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <Header 
-        showSubmitModal={() => setShowSubmitModal(true)}
+        showAuthModal={() => setShowAuthModal(true)}
       />
 
       {/* Section 1: BPS Hero */}
@@ -169,7 +169,7 @@ export default function HomePage() {
           />
 
           {/* Action Buttons */}
-          <div className="text-center mt-12 space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+          <div id="share-tool" className="text-center mt-12 space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
             <button
               onClick={() => setShowSubmitModal(true)}
               className="w-full sm:w-auto bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"

@@ -266,7 +266,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Upload an image to represent your tool (PNG, JPG, or GIF)
+                Upload an image to represent your tool (PNG, JPG, or GIF). Recommended size: 400x300px or 4:3 aspect ratio for best display.
               </p>
             </div>
 
