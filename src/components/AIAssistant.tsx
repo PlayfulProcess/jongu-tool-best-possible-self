@@ -21,7 +21,14 @@ interface Message {
 }
 
 export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId, onMessage, clearChat = false }: AIAssistantProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => {
+    // Initialize isOpen state from sessionStorage
+    if (typeof window !== 'undefined') {
+      const savedIsOpen = sessionStorage.getItem('ai_chat_isOpen');
+      return savedIsOpen === 'true';
+    }
+    return false;
+  });
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,15 +38,25 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   const { user } = useAuth();
   const supabase = createClient();
 
+  // Persist isOpen state to sessionStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('ai_chat_isOpen', isOpen.toString());
+    }
+  }, [isOpen]);
+
   // Clear chat when clearChat prop is true
   useEffect(() => {
     if (clearChat) {
       setMessages([]);
+      setIsOpen(false); // Also close the chat when clearing
       // Clear sessionStorage for new entries
       if (user) {
         const sessionKey = `chat_messages_new_${user.id}`;
         sessionStorage.removeItem(sessionKey);
       }
+      // Clear the isOpen state from sessionStorage too
+      sessionStorage.removeItem('ai_chat_isOpen');
     }
   }, [clearChat, user]);
 
