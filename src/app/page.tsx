@@ -173,7 +173,7 @@ export default function HomePage() {
             </h2>
             <p className="text-xl text-green-700 mb-8 max-w-3xl mx-auto">
               Teachers, coaches, and wellness practitioners: collaborate with us to create transformative tools 
-              that help people grow and flourish. No clinical background required.
+              that help people grow and flourish.
             </p>
             <ProviderSignupForm />
           </div>
