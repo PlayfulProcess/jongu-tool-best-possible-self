@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { AuthForm } from '@/components/AuthForm';
 import { AuthModal } from '@/components/AuthModal';
 import { useAuth } from '@/components/AuthProvider';
 import { ProviderSignupForm } from '@/components/ProviderSignupForm';
 
 export default function HomePage() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   if (loading) {
@@ -34,7 +32,15 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
-                <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                  <button
+                    onClick={signOut}
+                    className="text-sm text-gray-600 hover:text-gray-800 underline"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => setShowAuthModal(true)}
@@ -58,29 +64,11 @@ export default function HomePage() {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Discover science-backed wellness practices and reflection tools. 
-              Organize and personalize them in ways that make sense to your unique journey.
+              Keep a record of your progress, use AI help for deeper insights, and find out about the great people who created these tools - you can connect with them if you want to dive deeper.
             </p>
             <div className="text-sm text-gray-500 mb-8">
               🔓 <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Open source</a> - You can review our code and contribute
             </div>
-            
-            {user ? (
-              <div className="flex justify-center">
-                <Link 
-                  href="/app"
-                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  Try Best Possible Self
-                </Link>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Try Best Possible Self
-              </button>
-            )}
           </div>
         </div>
 
@@ -104,12 +92,21 @@ export default function HomePage() {
                   <span className="bg-gray-100 px-3 py-1 rounded">📊 Beginner</span>
                   <span className="bg-gray-100 px-3 py-1 rounded">🧠 Positive Psychology</span>
                 </div>
-                <Link 
-                  href="/app"
-                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  Start Your Journey →
-                </Link>
+                {user ? (
+                  <a 
+                    href="/app"
+                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  >
+                    Start Your Journey →
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  >
+                    Start Your Journey →
+                  </button>
+                )}
               </div>
               <div className="bg-gradient-to-br from-blue-100 to-indigo-200 rounded-lg p-8 text-center">
                 <div className="text-6xl mb-4">🌟</div>

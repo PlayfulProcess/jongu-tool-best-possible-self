@@ -77,16 +77,25 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
             theme: ThemeSupa,
             style: {
               button: {
-                background: '#2563eb',
-                borderColor: '#2563eb',
+                background: '#000000',
+                borderColor: '#000000',
+                color: '#ffffff',
               },
               anchor: {
-                color: '#2563eb',
+                color: '#000000',
+              },
+              label: {
+                color: '#000000',
+              },
+              message: {
+                color: '#000000',
               },
             }
           }}
           providers={['github']}
-          redirectTo={typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined}
+          redirectTo={typeof window !== 'undefined' ? 
+            `${window.location.protocol}//${window.location.host}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`
+            : undefined}
           onlyThirdPartyProviders={false}
           showLinks={true}
           view="sign_in"

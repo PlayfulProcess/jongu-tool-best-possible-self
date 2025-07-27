@@ -10,7 +10,6 @@ declare global {
 }
 import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
-import { AuthForm } from '@/components/AuthForm';
 import { AuthModal } from '@/components/AuthModal';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
@@ -45,6 +44,8 @@ export default function AppPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [clearAIChat, setClearAIChat] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const supabase = createClient();
 
@@ -59,10 +60,14 @@ export default function AppPage() {
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (error && Object.keys(error).length > 0) throw error;
       setEntries(data || []);
     } catch (err) {
       console.error('Error loading entries:', err);
+      // Only show error to user if it's a real error, not an empty object
+      if (err && Object.keys(err).length > 0) {
+        console.error('Detailed error:', err);
+      }
     } finally {
       setEntriesLoading(false);
     }
@@ -71,6 +76,26 @@ export default function AppPage() {
   useEffect(() => {
     if (user) {
       loadEntries();
+      
+      // Check if there's saved state to restore
+      const savedState = localStorage.getItem('journalState');
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState);
+          // Only restore if saved within last 30 minutes
+          if (Date.now() - state.timestamp < 30 * 60 * 1000) {
+            setContent(state.content || '');
+            setTimeSpent(state.timeSpent || 0);
+            setDataSavingSetting(state.dataSavingSetting || 'private');
+            setResearchConsent(state.researchConsent || false);
+            setHasUnsavedChanges(!!state.content);
+          }
+          localStorage.removeItem('journalState');
+        } catch (error) {
+          console.error('Error restoring journal state:', error);
+          localStorage.removeItem('journalState');
+        }
+      }
     }
   }, [user, loadEntries]);
 
@@ -111,6 +136,9 @@ export default function AppPage() {
     setHasUnsavedChanges(false);
     setChatExchangeCount(0);
     setTimeSpent(0);
+    setClearAIChat(true);
+    // Reset the clearAIChat flag after a short delay
+    setTimeout(() => setClearAIChat(false), 100);
   };
 
   const handleContentChange = (newContent: string) => {
@@ -129,6 +157,15 @@ export default function AppPage() {
 
   const handleManualSave = () => {
     if (!user) {
+      // Save current state to localStorage before showing auth modal
+      const stateToSave = {
+        content,
+        timeSpent,
+        dataSavingSetting,
+        researchConsent,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('journalState', JSON.stringify(stateToSave));
       setShowAuthModal(true);
       return;
     }
@@ -151,6 +188,15 @@ export default function AppPage() {
 
   const handleDataSavingChange = (newSetting: DataSavingSetting) => {
     if (!user && newSetting !== 'private') {
+      // Save current state to localStorage before showing auth modal
+      const stateToSave = {
+        content,
+        timeSpent,
+        dataSavingSetting: newSetting,
+        researchConsent,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('journalState', JSON.stringify(stateToSave));
       setShowAuthModal(true);
       return;
     }
@@ -240,8 +286,6 @@ export default function AppPage() {
     );
   }
 
-  // Allow access without auth, but show prompt for saving
-  const showAuthPrompt = !user;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -290,13 +334,38 @@ export default function AppPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile menu overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className={`
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        fixed lg:relative lg:translate-x-0
+        w-80 bg-white border-r border-gray-200 flex flex-col
+        transition-transform duration-300 ease-in-out
+        z-50 lg:z-auto
+        h-full lg:h-auto
+      `}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-lg font-semibold text-gray-900">Best Possible Self</h1>
             <div className="flex items-center gap-2">
+              {/* Close button for mobile */}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden p-1 text-gray-400 hover:text-gray-600"
+                aria-label="Close sidebar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
               <Link
                 href="/"
                 className="text-sm text-blue-600 hover:text-blue-800 underline"
@@ -405,8 +474,20 @@ export default function AppPage() {
         {/* User Header */}
         <div className="bg-white border-b border-gray-200 p-4">
           <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              {user ? `Welcome, ${user.email}` : 'Try the tool - Sign in to save your work'}
+            <div className="flex items-center gap-3">
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                aria-label="Open sidebar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="text-sm text-gray-600">
+                {user ? `Welcome, ${user.email}` : 'Try the tool - Sign in to save your work'}
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-xs text-gray-500">
@@ -430,8 +511,11 @@ export default function AppPage() {
                 Imagine yourself in the future, having achieved your most important goals. 
                 Write about what you see, feel, and experience in specific life areas.
               </p>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-gray-600 mb-2">
                 <strong>Areas to consider:</strong> Career & work, relationships, health & wellness, personal growth
+              </div>
+              <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 lg:hidden">
+                💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
               </div>
             </div>
 
@@ -509,6 +593,7 @@ export default function AppPage() {
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
                     onMessage={onChatMessage}
+                    clearChat={clearAIChat}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
                     <div className="mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">

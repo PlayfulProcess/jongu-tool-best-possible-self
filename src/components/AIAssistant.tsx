@@ -12,6 +12,7 @@ interface AIAssistantProps {
   researchConsent?: boolean;
   entryId?: string | null;
   onMessage?: () => void;
+  clearChat?: boolean;
 }
 
 interface Message {
@@ -19,7 +20,7 @@ interface Message {
   content: string;
 }
 
-export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId, onMessage }: AIAssistantProps) {
+export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId, onMessage, clearChat = false }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -29,6 +30,18 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   
   const { user } = useAuth();
   const supabase = createClient();
+
+  // Clear chat when clearChat prop is true
+  useEffect(() => {
+    if (clearChat) {
+      setMessages([]);
+      // Clear sessionStorage for new entries
+      if (user) {
+        const sessionKey = `chat_messages_new_${user.id}`;
+        sessionStorage.removeItem(sessionKey);
+      }
+    }
+  }, [clearChat, user]);
 
   // Load existing chat messages when component mounts or entryId changes
   useEffect(() => {
