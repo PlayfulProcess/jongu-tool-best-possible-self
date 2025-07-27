@@ -1,13 +1,59 @@
 'use client';
 
-import { useState } from 'react';
-import { AuthModal } from '@/components/AuthModal';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Header } from '@/components/shared/Header';
+import { AuthModal } from '@/components/modals/AuthModal';
+import { SubmitToolModal } from '@/components/modals/SubmitToolModal';
+import { CollaborationModal } from '@/components/modals/CollaborationModal';
+import { ToolGrid } from '@/components/community/ToolGrid';
+import { CategoryFilter } from '@/components/community/CategoryFilter';
+import { SortingControls } from '@/components/community/SortingControls';
+import { StatsDisplay } from '@/components/community/StatsDisplay';
 import { useAuth } from '@/components/AuthProvider';
-import { ProviderSignupForm } from '@/components/ProviderSignupForm';
 
 export default function HomePage() {
-  const { user, loading, signOut } = useAuth();
+  const { loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showCollabModal, setShowCollabModal] = useState(false);
+  
+  // Community tools state
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('rating');
+  const [categoryStats, setCategoryStats] = useState({});
+  const [totalTools, setTotalTools] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/community/tools');
+      const tools = await response.json();
+      
+      // Calculate stats
+      const stats: {[key: string]: number} = {};
+      let totalRating = 0;
+      let ratedToolsCount = 0;
+
+      tools.forEach((tool: { category: string; total_ratings: number; avg_rating: number }) => {
+        stats[tool.category] = (stats[tool.category] || 0) + 1;
+        if (tool.total_ratings > 0) {
+          totalRating += tool.avg_rating;
+          ratedToolsCount++;
+        }
+      });
+
+      setCategoryStats(stats);
+      setTotalTools(tools.length);
+      setAverageRating(ratedToolsCount > 0 ? totalRating / ratedToolsCount : 0);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -21,42 +67,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="relative bg-white/80 backdrop-blur-sm border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">TherapyToolsHub</h1>
-              <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">Beta</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">Welcome, {user.email}</span>
-                  <button
-                    onClick={signOut}
-                    className="text-sm text-gray-600 hover:text-gray-800 underline"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Sign in to see your dashboard
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header 
+        showSubmitModal={() => setShowSubmitModal(true)}
+      />
 
-      {/* Hero Section */}
-      <main className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+      {/* Section 1: BPS Hero */}
+      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
               Interactive Tools
@@ -64,16 +83,16 @@ export default function HomePage() {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Discover science-backed wellness practices and reflection tools. 
-              Keep a record of your progress, use AI help for deeper insights, and find out about the great people who created these tools - you can connect with them if you want to dive deeper.
+              Keep a record of your progress, use AI help for deeper insights, and connect with the amazing people who created these tools.
             </p>
             <div className="text-sm text-gray-500 mb-8">
-              🔓 <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Open source</a> - You can review our code and contribute
+              🔓 <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Open source</a> - Building gateways, not gatekeepers
             </div>
           </div>
         </div>
 
         {/* Featured Tool Preview */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
           <div className="bg-white rounded-xl shadow-xl p-8">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Tool</h2>
@@ -92,21 +111,12 @@ export default function HomePage() {
                   <span className="bg-gray-100 px-3 py-1 rounded">📊 Beginner</span>
                   <span className="bg-gray-100 px-3 py-1 rounded">🧠 Positive Psychology</span>
                 </div>
-                {user ? (
-                  <a 
-                    href="/app"
-                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                  >
-                    Start Your Journey →
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                  >
-                    Start Your Journey →
-                  </button>
-                )}
+                <Link 
+                  href="/tools/best-possible-self"
+                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Start Your Journey →
+                </Link>
               </div>
               <div className="bg-gradient-to-br from-blue-100 to-indigo-200 rounded-lg p-8 text-center">
                 <div className="text-6xl mb-4">🌟</div>
@@ -118,72 +128,149 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Features Section */}
-        <div className="bg-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Our Platform?</h2>
-              <p className="text-xl text-gray-600">Open source, science-backed, and built with trust</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Personalized Organization</h3>
-                <p className="text-gray-600">
-                  Organize tools by your perspective: parenting role, skills, therapeutic approach, or any way that makes sense to you.
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🤖</span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered Insights</h3>
-                <p className="text-gray-600">
-                  Our AI learns your preferences and suggests relevant tools, creating a personalized experience.
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🔗</span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Open Source & Transparent</h3>
-                <p className="text-gray-600">
-                  Fully open source code you can inspect, contribute to, and trust. Built with transparency at our core.
-                  <br />
-                  <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline text-sm">
-                    View on GitHub →
-                  </a>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA for Creators */}
-        <div className="bg-green-50 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-green-900 mb-4">
-              Share Your Wisdom
+      {/* Section 2: Community Wellness Tool Garden */}
+      <section id="community-tools" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              Community Wellness Tool Garden
             </h2>
-            <p className="text-xl text-green-700 mb-8 max-w-3xl mx-auto">
-              Teachers, coaches, and wellness practitioners: collaborate with us to create transformative tools 
-              that help people grow and flourish.
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-8">
+              Discover wellness tools organized by DBT skills: Mindfulness practices, Distress Tolerance techniques, 
+              Emotion Regulation guides, and Interpersonal Effectiveness builders. Journaling apps, creativity prompts, 
+              relationship boosters, and therapeutic exercises. Created by real people for real people.
             </p>
-            <ProviderSignupForm />
+          </div>
+
+          {/* Stats Display */}
+          <StatsDisplay totalTools={totalTools} averageRating={averageRating} />
+
+          {/* Controls */}
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 space-y-4 lg:space-y-0">
+            <CategoryFilter
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              categoryStats={categoryStats}
+            />
+            <SortingControls
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
+          </div>
+
+          {/* Tools Grid */}
+          <ToolGrid
+            selectedCategory={selectedCategory}
+            sortBy={sortBy}
+            onToolRate={fetchStats}
+          />
+
+          {/* Action Buttons */}
+          <div className="text-center mt-12 space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+            <button
+              onClick={() => setShowSubmitModal(true)}
+              className="w-full sm:w-auto bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+            >
+              🌱 Share a Tool
+            </button>
+            <button
+              onClick={() => setShowCollabModal(true)}
+              className="w-full sm:w-auto bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            >
+              🤝 Collaborate with Us
+            </button>
           </div>
         </div>
-      </main>
+      </section>
 
-      {/* Auth Modal */}
+      {/* Section 3: About This Platform */}
+      <section id="about" className="py-20 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">About This Platform</h2>
+          <div className="prose prose-lg mx-auto text-gray-600">
+            <p className="mb-6">
+              This platform was inspired by Dialectical Behavior Therapy (DBT) skills, but we&apos;ve added our own 
+              PlayfulProcess touch to make wellness more accessible and creative.
+            </p>
+            <p className="mb-6">
+              We believe in building gateways, not gatekeepers. Founded by PlayfulProcess, this community-driven 
+              platform welcomes tools that help people grow, heal, and connect—whether through traditional therapy 
+              techniques, creative expression, or innovative approaches to wellness.
+            </p>
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 text-left rounded-lg">
+              <h3 className="text-xl font-semibold text-blue-900 mb-4">Our Philosophy</h3>
+              <ul className="list-disc list-inside space-y-2 text-blue-800">
+                <li>Open source and transparent development</li>
+                <li>Community-driven content creation</li>
+                <li>Evidence-based but accessible tools</li>
+                <li>Creative approaches to traditional therapy</li>
+                <li>Building bridges between helpers and seekers</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 4: Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-4">🌱 Jongu Tool Garden</div>
+            <p className="text-gray-400 mb-6">Community-powered emotional wellness</p>
+            
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-400 mb-6">
+              <span>Built by PlayfulProcess</span>
+              <span className="hidden sm:inline">•</span>
+              <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="hover:text-white">
+                Open source
+              </a>
+              <span className="hidden sm:inline">•</span>
+              <span>Building gateways, not gatekeepers</span>
+            </div>
+            
+            <div className="bg-amber-800 text-amber-200 p-4 rounded-lg mb-6">
+              <div className="text-lg font-semibold mb-2">🚧 Beta Version</div>
+              <div className="text-sm">
+                We&apos;re constantly improving and adding new features. Your feedback helps us grow!
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6">
+              <Link href="/contact" className="text-gray-400 hover:text-white">
+                Contact Us
+              </Link>
+              <a href="https://github.com/PlayfulProcess" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
+                GitHub
+              </a>
+              <a href="https://www.playfulprocess.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
+                PlayfulProcess.com
+              </a>
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
+              © 2025 Jongu Tool Garden. Community-powered emotional wellness.
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Modals */}
       <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+      />
+      
+      <SubmitToolModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+      />
+      
+      <CollaborationModal
+        isOpen={showCollabModal}
+        onClose={() => setShowCollabModal(false)}
       />
     </div>
   );

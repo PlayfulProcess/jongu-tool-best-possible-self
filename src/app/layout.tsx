@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Best Possible Self",
-  description: "A journaling app for envisioning your brightest future",
+  title: "Jongu Tool Garden - Community Wellness Tools",
+  description: "Discover science-backed wellness tools organized by DBT skills. Community-driven platform for mindfulness, emotion regulation, distress tolerance, and interpersonal effectiveness.",
 };
 
 export default function RootLayout({
