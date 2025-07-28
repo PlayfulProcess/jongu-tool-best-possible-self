@@ -149,7 +149,7 @@ export function ToolGrid({ selectedCategory, sortBy, searchQuery = '', onToolRat
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">⚠️ {error}</div>
         <button
-          onClick={fetchTools}
+          onClick={() => fetchTools()}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           Try Again
@@ -172,7 +172,7 @@ export function ToolGrid({ selectedCategory, sortBy, searchQuery = '', onToolRat
         </p>
         {searchQuery.trim() && (
           <p className="text-sm text-blue-600 mt-2">
-            💡 Try searching "Jongu" to see our privacy-first tools!
+            💡 Try searching &quot;Jongu&quot; to see our privacy-first tools!
           </p>
         )}
       </div>

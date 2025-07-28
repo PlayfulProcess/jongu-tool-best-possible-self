@@ -143,8 +143,9 @@ export default function HomePage() {
         className="py-20 bg-white"
         onClick={(e) => {
           // Clear search if clicking outside search-related elements
-          if (!e.target.closest('.search-container') && 
-              !e.target.closest('.jongu-search-button') && 
+          const target = e.target as Element;
+          if (!target.closest('.search-container') && 
+              !target.closest('.jongu-search-button') && 
               searchQuery.trim()) {
             setSearchQuery('');
           }
@@ -289,7 +290,7 @@ export default function HomePage() {
             <div className="bg-amber-800 text-amber-200 p-4 rounded-lg mb-6">
               <div className="text-lg font-semibold mb-2">🚧 Beta Version</div>
               <div className="text-sm">
-                We're constantly improving and adding new features. Your feedback helps us grow!
+                We&apos;re constantly improving and adding new features. Your feedback helps us grow!
               </div>
             </div>
             

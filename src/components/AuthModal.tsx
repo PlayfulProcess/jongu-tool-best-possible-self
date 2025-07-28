@@ -88,7 +88,7 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
               <h2 className="text-2xl font-bold text-red-600 mb-2">⚠️ Warning</h2>
               <p className="text-gray-700 text-sm mb-4">
                 Signing in with GitHub will clear any unsaved work in your current session. 
-                Make sure you've saved everything important before continuing.
+                Make sure you&apos;ve saved everything important before continuing.
               </p>
               <p className="text-gray-600 text-sm">
                 If you have unsaved journal content or AI chat history, consider using email/password signup instead to preserve your work.
@@ -103,7 +103,7 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
                 }}
                 className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
               >
-                Continue with GitHub (I understand I'll lose my work)
+                Continue with GitHub (I understand I&apos;ll lose my work)
               </button>
               <button
                 onClick={() => {

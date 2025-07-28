@@ -89,8 +89,8 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
               💚 Building Gateways, Not Gatekeepers
             </h3>
             <p className="text-green-700 text-sm">
-              We believe in open collaboration and community-driven wellness. Whether you're a therapist, 
-              coach, researcher, or just someone passionate about mental health tools, we'd love to work together!
+              We believe in open collaboration and community-driven wellness. Whether you&apos;re a therapist, 
+              coach, researcher, or just someone passionate about mental health tools, we&apos;d love to work together!
             </p>
           </div>
 

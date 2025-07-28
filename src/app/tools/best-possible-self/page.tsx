@@ -389,7 +389,7 @@ export default function BestPossibleSelfPage() {
               rel="noopener noreferrer"
               className="text-xs text-blue-600 hover:text-blue-800 underline"
             >
-              📚 Based on research from UC Berkeley's Greater Good Science Center
+              📚 Based on research from UC Berkeley&apos;s Greater Good Science Center
             </a>
           </div>
           {user ? (
