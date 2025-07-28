@@ -43,14 +43,14 @@ export function Header({ showAuthModal }: HeaderProps) {
               
               <Link
                 href="/#community-tools"
-                className="text-green-600 hover:text-green-700 font-medium"
+                className="text-gray-600 hover:text-gray-900 font-medium"
               >
                 Share Tool
               </Link>
 
               <Link
                 href="/tools/best-possible-self"
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="text-gray-600 hover:text-gray-900 font-medium"
               >
                 Try Tool
               </Link>
