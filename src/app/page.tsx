@@ -104,19 +104,14 @@ export default function HomePage() {
             
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  <a 
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Best Possible Self</h3>
+                <p className="text-gray-600 mb-6">
+                  A research-backed reflection practice from <a 
                     href="https://ggia.berkeley.edu/practice/best_possible_self" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Best Possible Self
-                  </a>
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  A research-backed reflection practice from Berkeley&apos;s Greater Good Science Center 
-                  that helps you envision your brightest future through guided journaling.
+                  >Berkeley&apos;s Greater Good Science Center</a> that helps you envision your brightest future through guided journaling.
                 </p>
                 <div className="flex items-center space-x-4 text-sm text-gray-500 mb-6">
                   <span className="bg-gray-100 px-3 py-1 rounded">🕐 15 minutes</span>
@@ -184,36 +179,35 @@ export default function HomePage() {
                 <p className="text-gray-700 mb-4">
                   Our self-hosted tools are flexible enough so that everyone can make good use of them. Choose privacy mode or save versions. Use AI or leave it alone.
                 </p>
-                <button
-                  onClick={() => setShowCollabModal(true)}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  🤝 Suggest New Jongu Tool
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={() => {
+                      setSearchQuery('jongu');
+                      // Scroll to tools section
+                      const toolsSection = document.querySelector('.tools-section');
+                      if (toolsSection) {
+                        toolsSection.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                    className="jongu-search-button inline-flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    <img 
+                      src="/Jongulogo.png" 
+                      alt="Jongu" 
+                      className="h-4 w-auto filter brightness-0 invert"
+                    />
+                    <span>View Jongu Tools</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCollabModal(true)}
+                    className="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    🤝 Suggest New Jongu Tool
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Jongu Tools Search Button */}
-            <div className="text-center mt-8">
-              <button
-                onClick={() => {
-                  setSearchQuery('jongu');
-                  // Scroll to tools section
-                  const toolsSection = document.querySelector('.tools-section');
-                  if (toolsSection) {
-                    toolsSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-                className="jongu-search-button inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-green-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <img 
-                  src="/Jongulogo.png" 
-                  alt="Jongu" 
-                  className="h-6 w-auto filter brightness-0 invert"
-                />
-                <span>View Jongu Tools</span>
-              </button>
-            </div>
           </div>
 
           {/* Stats Display with Search */}
