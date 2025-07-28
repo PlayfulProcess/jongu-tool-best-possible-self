@@ -32,8 +32,16 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
     setIsSubmitting(true);
 
     try {
-      // For now, we'll show a success message and provide the email
-      // In production, you might want to implement an actual email service
+      const response = await fetch('/api/community/collaborations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit collaboration request');
+      }
+
       alert(
         `🎉 Thank you for your interest in collaborating!\n\n` +
         `We'll be in touch soon. You can also reach us directly at:\n` +
@@ -98,7 +106,7 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Your full name"
                 />
               </div>
@@ -112,7 +120,7 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="your@email.com"
                 />
               </div>

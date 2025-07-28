@@ -107,8 +107,15 @@ export function ToolCard({ tool, onRate }: ToolCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-100 via-purple-50 to-indigo-100 flex items-center justify-center">
-            <span className="text-5xl drop-shadow-sm">{categoryEmojis[tool.category as keyof typeof categoryEmojis] || '🔧'}</span>
+          <div className="w-full h-full bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 flex items-center justify-center relative overflow-hidden">
+            {/* Subtle pattern background */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-2 left-2 w-8 h-8 bg-white rounded-full"></div>
+              <div className="absolute top-8 right-4 w-4 h-4 bg-white rounded-full"></div>
+              <div className="absolute bottom-4 left-6 w-6 h-6 bg-white rounded-full"></div>
+              <div className="absolute bottom-2 right-2 w-3 h-3 bg-white rounded-full"></div>
+            </div>
+            <span className="text-5xl drop-shadow-lg relative z-10">{categoryEmojis[tool.category as keyof typeof categoryEmojis] || '🔧'}</span>
           </div>
         )}
         
@@ -208,7 +215,7 @@ export function ToolCard({ tool, onRate }: ToolCardProps) {
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
                 placeholder="Share your experience..."
-                className="w-full p-2 text-sm border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 text-sm text-gray-900 border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
             </div>

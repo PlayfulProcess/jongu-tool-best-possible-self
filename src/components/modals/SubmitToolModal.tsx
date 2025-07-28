@@ -153,7 +153,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., Mindful Breathing Exercise"
               />
               {errors.title && <p className="text-red-600 text-sm mt-1">{errors.title}</p>}
@@ -168,7 +168,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                 type="url"
                 value={formData.claude_url}
                 onChange={(e) => setFormData({ ...formData, claude_url: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="https://your-tool-url.com"
               />
               {errors.claude_url && <p className="text-red-600 text-sm mt-1">{errors.claude_url}</p>}
@@ -182,7 +182,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a category</option>
                 {categories.map((cat) => (
@@ -203,7 +203,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Describe what your tool does and how it helps people..."
               />
               {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
@@ -221,7 +221,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                   type="text"
                   value={formData.creator_name}
                   onChange={(e) => setFormData({ ...formData, creator_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Your name or professional title"
                 />
                 {errors.creator_name && <p className="text-red-600 text-sm mt-1">{errors.creator_name}</p>}
@@ -235,7 +235,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                   type="url"
                   value={formData.creator_link}
                   onChange={(e) => setFormData({ ...formData, creator_link: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="https://yourwebsite.com"
                 />
               </div>
@@ -248,7 +248,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                   value={formData.creator_background}
                   onChange={(e) => setFormData({ ...formData, creator_background: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Brief description of your expertise or background..."
                 />
               </div>
@@ -263,7 +263,7 @@ export function SubmitToolModal({ isOpen, onClose }: SubmitToolModalProps) {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Upload an image to represent your tool (PNG, JPG, or GIF). Recommended size: 400x300px or 4:3 aspect ratio for best display.

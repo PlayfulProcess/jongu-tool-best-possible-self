@@ -139,10 +139,30 @@ export default function HomePage() {
               Community Wellness Tool Garden
             </h2>
             <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-8">
-              Discover wellness tools organized by DBT skills: Mindfulness practices, Distress Tolerance techniques, 
-              Emotion Regulation guides, and Interpersonal Effectiveness builders. Journaling apps, creativity prompts, 
-              relationship boosters, and therapeutic exercises. Created by real people for real people.
+              Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto mb-8 text-left">
+              <p className="text-gray-700 mb-4">
+                For tools published by us (filter by Jongu Tools), you can always count that 1) AI use will be optional and the tool will be valuable even without AI, 2) your data will not be stored by us unless you want to save it.
+              </p>
+              <p className="text-gray-700 mb-4">
+                To partner with us to create Jongu Tools, use Collaboration Form. If you want to submit a tool from anywhere in the internet, use the "Share a Tool" button.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => setShowCollabModal(true)}
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  🤝 Collaboration Form
+                </button>
+                <button
+                  onClick={() => setShowSubmitModal(true)}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  🔗 Share a Tool
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Stats Display */}
@@ -197,8 +217,8 @@ export default function HomePage() {
             </p>
             <p className="mb-6">
               We believe in building gateways, not gatekeepers. Founded by PlayfulProcess, this community-driven 
-              platform welcomes tools that help people grow, heal, and connect—whether through traditional therapy 
-              techniques, creative expression, or innovative approaches to wellness.
+              platform welcomes tools that help people grow, heal, and connect—whether through creative approaches to healing, 
+              creative expression, or innovative approaches to wellness.
             </p>
             <div className="bg-blue-50 border-l-4 border-blue-400 p-6 text-left rounded-lg">
               <h3 className="text-xl font-semibold text-blue-900 mb-4">Our Philosophy</h3>
@@ -206,7 +226,7 @@ export default function HomePage() {
                 <li>Open source and transparent development</li>
                 <li>Community-driven content creation</li>
                 <li>Evidence-based but accessible tools</li>
-                <li>Creative approaches to traditional therapy</li>
+                <li>Creative approaches to healing</li>
                 <li>Building bridges between helpers and seekers</li>
               </ul>
             </div>
@@ -218,18 +238,16 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="text-2xl font-bold mb-4">🌱 Jongu</div>
-            <p className="text-gray-400 mb-6">Community-powered emotional wellness</p>
-            
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-400 mb-6">
-              <span>Built by PlayfulProcess</span>
-              <span className="hidden sm:inline">•</span>
-              <a href="https://github.com/PlayfulProcess/best-possible-self-app" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                Open source
-              </a>
-              <span className="hidden sm:inline">•</span>
-              <span>Building gateways, not gatekeepers</span>
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <span className="text-2xl">🌱</span>
+              <img 
+                src="/Jongulogo.png" 
+                alt="Jongu" 
+                className="h-8 w-auto"
+              />
             </div>
+            <p className="text-gray-400 mb-6">Community-powered open source wellness tool garden. Building gateways, not gatekeepers</p>
+            
             
             <div className="bg-amber-800 text-amber-200 p-4 rounded-lg mb-6">
               <div className="text-lg font-semibold mb-2">🚧 Beta Version</div>
@@ -251,7 +269,7 @@ export default function HomePage() {
             </div>
             
             <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
-              © 2025 Jongu. Community-powered emotional wellness.
+              © 2025 Jongu. Community-powered open source wellness tool garden.
             </div>
           </div>
         </div>

@@ -106,7 +106,7 @@ export default function ContactPage() {
             href="/tools/best-possible-self"
             className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-center font-medium"
           >
-            ✍️ Try Best Possible Self
+            ✍️ Try Featured Tool
           </Link>
         </div>
       </div>

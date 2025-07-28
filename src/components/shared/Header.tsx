@@ -17,9 +17,12 @@ export function Header({ showAuthModal }: HeaderProps) {
           {/* Logo and Navigation */}
           <div className="flex items-center space-x-8">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl">🌱</span>
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold text-gray-900">Jongu</span>
+                <img 
+                  src="/Jongulogo.png" 
+                  alt="Jongu" 
+                  className="h-12 w-auto"
+                />
                 <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
               </div>
             </Link>

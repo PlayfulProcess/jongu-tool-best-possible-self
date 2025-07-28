@@ -66,13 +66,16 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
       // Track if this is just the first save (null -> actual ID)
       const isFirstSave = previousEntryId === null && entryId !== null && messages.length > 0;
       
+      // Track if user just signed in (user state changed from null to actual user)
+      const userJustSignedIn = user && !previousEntryId && entryId;
+      
       // Only update previousEntryId if it's actually different
       if (previousEntryId !== entryId) {
         setPreviousEntryId(entryId || null);
       }
 
       if (!user || !entryId) {
-        // For new entries, try to load from sessionStorage first
+        // For new entries or anonymous users, try to load from sessionStorage first
         const sessionKey = `chat_messages_new_${user?.id || 'anonymous'}`;
         const savedMessages = sessionStorage.getItem(sessionKey);
         if (savedMessages) {
@@ -90,6 +93,29 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
 
       // If this is just the first save, don't reload - keep existing messages
       if (isFirstSave) {
+        setMessagesLoaded(true);
+        return;
+      }
+
+      // If user just signed in and we have messages in sessionStorage, preserve them
+      if (userJustSignedIn && messages.length > 0) {
+        const sessionKey = `chat_messages_new_anonymous`;
+        const anonymousMessages = sessionStorage.getItem(sessionKey);
+        if (anonymousMessages) {
+          try {
+            const parsedMessages = JSON.parse(anonymousMessages);
+            if (parsedMessages.length > 0) {
+              setMessages(parsedMessages);
+              setMessagesLoaded(true);
+              // Clear anonymous session storage since user is now authenticated
+              sessionStorage.removeItem(sessionKey);
+              return;
+            }
+          } catch {
+            // Continue with normal flow if parsing fails
+          }
+        }
+        // If we already have messages from before auth, keep them
         setMessagesLoaded(true);
         return;
       }

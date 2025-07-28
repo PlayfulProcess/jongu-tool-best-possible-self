@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const adminClient = createAdminClient();
     const body = await request.json();
     
     const {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     
     // Insert submission (for MVP, we'll auto-approve and move to tools table)
     // In production, this would go to submissions table for review
-    const { data, error } = await supabase
+    const { data, error } = await adminClient
       .from('tools')
       .insert({
         title,
