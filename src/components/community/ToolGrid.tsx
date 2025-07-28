@@ -22,10 +22,11 @@ interface Tool {
 interface ToolGridProps {
   selectedCategory: string;
   sortBy: string;
+  searchQuery?: string;
   onToolRate?: (toolId: string, rating: number, review?: string) => void;
 }
 
-export function ToolGrid({ selectedCategory, sortBy, onToolRate }: ToolGridProps) {
+export function ToolGrid({ selectedCategory, sortBy, searchQuery = '', onToolRate }: ToolGridProps) {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +62,26 @@ export function ToolGrid({ selectedCategory, sortBy, onToolRate }: ToolGridProps
       setLoading(false);
     }
   }, [selectedCategory, sortBy]);
+
+  // Filter tools based on search query
+  const filteredTools = tools.filter(tool => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase().trim();
+    
+    // Check if searching for "jongu" specifically for our tools
+    if (query === 'jongu' || query === 'jongu tools') {
+      return tool.creator_name.toLowerCase().includes('jongu');
+    }
+    
+    // General search across title, creator name, and description
+    return (
+      tool.title.toLowerCase().includes(query) ||
+      tool.creator_name.toLowerCase().includes(query) ||
+      tool.description.toLowerCase().includes(query) ||
+      tool.category.toLowerCase().includes(query)
+    );
+  });
 
   useEffect(() => {
     fetchTools();
@@ -137,23 +158,38 @@ export function ToolGrid({ selectedCategory, sortBy, onToolRate }: ToolGridProps
     );
   }
 
-  if (tools.length === 0) {
+  if (filteredTools.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-6xl mb-4">🌱</div>
+        <div className="text-6xl mb-4">🔍</div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
         <p className="text-gray-600">
-          {selectedCategory === 'all' 
-            ? 'No tools are available yet. Be the first to share one!' 
-            : 'No tools found in this category. Try a different category or browse all tools.'}
+          {searchQuery.trim() 
+            ? `No tools match "${searchQuery}". Try a different search term or clear the search.`
+            : selectedCategory === 'all' 
+              ? 'No tools are available yet. Be the first to share one!' 
+              : 'No tools found in this category. Try a different category or browse all tools.'}
         </p>
+        {searchQuery.trim() && (
+          <p className="text-sm text-blue-600 mt-2">
+            💡 Try searching "Jongu" to see our privacy-first tools!
+          </p>
+        )}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {tools.map((tool) => (
+      {searchQuery.trim() && (
+        <div className="col-span-full mb-4 text-center">
+          <p className="text-sm text-gray-600">
+            Showing {filteredTools.length} tool{filteredTools.length !== 1 ? 's' : ''} 
+            {searchQuery.toLowerCase().includes('jongu') ? ' from Jongu (privacy-first tools)' : ` matching "${searchQuery}"`}
+          </p>
+        </div>
+      )}
+      {filteredTools.map((tool) => (
         <ToolCard 
           key={tool.id} 
           tool={tool} 

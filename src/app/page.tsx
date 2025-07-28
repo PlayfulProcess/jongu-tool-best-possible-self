@@ -21,6 +21,7 @@ export default function HomePage() {
   // Community tools state
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
+  const [searchQuery, setSearchQuery] = useState('');
   const [categoryStats, setCategoryStats] = useState({});
   const [totalTools, setTotalTools] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
@@ -142,24 +143,47 @@ export default function HomePage() {
               Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto mb-8 text-left">
-              <p className="text-gray-700 mb-4">
-                For tools published by us (filter by Jongu Tools), you can always count that 1) AI use will be optional and the tool will be valuable even without AI, 2) your data will not be stored by us unless you want to save it.
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">🛡️ Jongu Tools: Privacy-First Wellness</h3>
+                <p className="text-gray-700 text-sm">
+                  Our self-hosted tools work without AI • Your data stays private • No tracking • Always functional
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 mb-4">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search tools or filter by 'Jongu' for our privacy-first tools..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="text-gray-600 text-sm mb-4 text-center">
+                Partner with us to create Jongu Tools, or share any wellness tool from the internet.
               </p>
-              <p className="text-gray-700 mb-4">
-                To partner with us to create Jongu Tools, use Collaboration Form. If you want to submit a tool from anywhere in the internet, use the "Share a Tool" button.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={() => setShowCollabModal(true)}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
                 >
-                  🤝 Collaboration Form
+                  🤝 Partner With Us
                 </button>
                 <button
                   onClick={() => setShowSubmitModal(true)}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                 >
-                  🔗 Share a Tool
+                  🔗 Share Any Tool
                 </button>
               </div>
             </div>
@@ -185,6 +209,7 @@ export default function HomePage() {
           <ToolGrid
             selectedCategory={selectedCategory}
             sortBy={sortBy}
+            searchQuery={searchQuery}
             onToolRate={fetchStats}
           />
 
