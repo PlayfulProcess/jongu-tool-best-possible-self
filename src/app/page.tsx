@@ -143,7 +143,18 @@ export default function HomePage() {
       </section>
 
       {/* Section 2: Community Wellness Tool Garden */}
-      <section id="community-tools" className="py-20 bg-white">
+      <section 
+        id="community-tools" 
+        className="py-20 bg-white"
+        onClick={(e) => {
+          // Clear search if clicking outside search-related elements
+          if (!e.target.closest('.search-container') && 
+              !e.target.closest('.jongu-search-button') && 
+              searchQuery.trim()) {
+            setSearchQuery('');
+          }
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center mb-12">
@@ -157,7 +168,7 @@ export default function HomePage() {
               <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
                 <h3 className="text-xl font-semibold text-green-900 mb-3">🌍 Community Tools</h3>
                 <p className="text-gray-700 mb-4">
-                  Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
+                  Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by the community for the community.
                 </p>
                 <button
                   onClick={() => setShowSubmitModal(true)}
@@ -169,17 +180,39 @@ export default function HomePage() {
 
               {/* Jongu Tools Box */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                <h3 className="text-xl font-semibold text-blue-900 mb-3">🛡️ Jongu Tools: Privacy-First Wellness</h3>
+                <h3 className="text-xl font-semibold text-blue-900 mb-3">🛡️ Jongu Tools: Premium Experience</h3>
                 <p className="text-gray-700 mb-4">
-                  Our self-hosted tools work without AI • Your data stays private • No tracking • Always functional
+                  Our self-hosted tools are flexible enough so that everyone can make good use of them. Choose privacy mode or save versions. Use AI or leave it alone.
                 </p>
                 <button
                   onClick={() => setShowCollabModal(true)}
                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
-                  🤝 Collaborate With Us
+                  🤝 Suggest New Jongu Tool
                 </button>
               </div>
+            </div>
+
+            {/* Jongu Tools Search Button */}
+            <div className="text-center mt-8">
+              <button
+                onClick={() => {
+                  setSearchQuery('jongu');
+                  // Scroll to tools section
+                  const toolsSection = document.querySelector('.tools-section');
+                  if (toolsSection) {
+                    toolsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="jongu-search-button inline-flex items-center space-x-3 bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-green-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <img 
+                  src="/Jongulogo.png" 
+                  alt="Jongu" 
+                  className="h-6 w-auto filter brightness-0 invert"
+                />
+                <span>View Jongu Tools</span>
+              </button>
             </div>
           </div>
 
@@ -205,12 +238,14 @@ export default function HomePage() {
           </div>
 
           {/* Tools Grid */}
-          <ToolGrid
-            selectedCategory={selectedCategory}
-            sortBy={sortBy}
-            searchQuery={searchQuery}
-            onToolRate={fetchStats}
-          />
+          <div className="tools-section">
+            <ToolGrid
+              selectedCategory={selectedCategory}
+              sortBy={sortBy}
+              searchQuery={searchQuery}
+              onToolRate={fetchStats}
+            />
+          </div>
 
         </div>
       </section>
@@ -251,7 +286,7 @@ export default function HomePage() {
               <img 
                 src="/Jongulogo.png" 
                 alt="Jongu" 
-                className="h-16 w-auto filter brightness-0 invert"
+                className="h-32 w-auto filter brightness-0 invert"
               />
             </div>
             <p className="text-gray-400 mb-6">Community-powered open source wellness tool garden. Building gateways, not gatekeepers</p>

@@ -107,16 +107,29 @@ export function ToolCard({ tool, onRate }: ToolCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 flex items-center justify-center relative overflow-hidden">
-            {/* Subtle pattern background */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-2 left-2 w-8 h-8 bg-white rounded-full"></div>
-              <div className="absolute top-8 right-4 w-4 h-4 bg-white rounded-full"></div>
-              <div className="absolute bottom-4 left-6 w-6 h-6 bg-white rounded-full"></div>
-              <div className="absolute bottom-2 right-2 w-3 h-3 bg-white rounded-full"></div>
-            </div>
-            <span className="text-5xl drop-shadow-lg relative z-10">{categoryEmojis[tool.category as keyof typeof categoryEmojis] || '🔧'}</span>
-          </div>
+          (() => {
+            const categoryGradients = {
+              'mindfulness': 'bg-gradient-to-br from-purple-100 via-indigo-50 to-blue-100',
+              'distress-tolerance': 'bg-gradient-to-br from-orange-100 via-red-50 to-pink-100',
+              'emotion-regulation': 'bg-gradient-to-br from-rose-100 via-pink-50 to-red-100',
+              'interpersonal-effectiveness': 'bg-gradient-to-br from-green-100 via-emerald-50 to-teal-100'
+            };
+            
+            const gradientClass = categoryGradients[tool.category as keyof typeof categoryGradients] || 'bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100';
+            
+            return (
+              <div className={`w-full h-full ${gradientClass} flex items-center justify-center relative overflow-hidden`}>
+                {/* Subtle pattern background */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-2 left-2 w-8 h-8 bg-white rounded-full"></div>
+                  <div className="absolute top-8 right-4 w-4 h-4 bg-white rounded-full"></div>
+                  <div className="absolute bottom-4 left-6 w-6 h-6 bg-white rounded-full"></div>
+                  <div className="absolute bottom-2 right-2 w-3 h-3 bg-white rounded-full"></div>
+                </div>
+                <span className="text-5xl drop-shadow-lg relative z-10">{categoryEmojis[tool.category as keyof typeof categoryEmojis] || '🔧'}</span>
+              </div>
+            );
+          })()
         )}
         
         {/* Category Badge */}
