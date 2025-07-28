@@ -139,58 +139,46 @@ export default function HomePage() {
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
               Community Wellness Tool Garden
             </h2>
-            <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-8">
-              Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto mb-8 text-left">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">🛡️ Jongu Tools: Privacy-First Wellness</h3>
-                <p className="text-gray-700 text-sm">
-                  Our self-hosted tools work without AI • Your data stays private • No tracking • Always functional
+            
+            {/* Two-box layout for Community Tools vs Jongu Tools */}
+            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-8">
+              {/* Community Tools Box */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                <h3 className="text-xl font-semibold text-green-900 mb-3">🌍 Community Tools</h3>
+                <p className="text-gray-700 mb-4">
+                  Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
                 </p>
-              </div>
-              <div className="bg-white rounded-lg p-4 mb-4">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">🔍</span>
-                  <input
-                    type="text"
-                    placeholder="Search tools or filter by 'Jongu' for our privacy-first tools..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              </div>
-              <p className="text-gray-600 text-sm mb-4 text-center">
-                Partner with us to create Jongu Tools, or share any wellness tool from the internet.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => setShowCollabModal(true)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
-                >
-                  🤝 Partner With Us
-                </button>
                 <button
                   onClick={() => setShowSubmitModal(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   🔗 Share Any Tool
+                </button>
+              </div>
+
+              {/* Jongu Tools Box */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                <h3 className="text-xl font-semibold text-blue-900 mb-3">🛡️ Jongu Tools: Privacy-First Wellness</h3>
+                <p className="text-gray-700 mb-4">
+                  Our self-hosted tools work without AI • Your data stays private • No tracking • Always functional
+                </p>
+                <button
+                  onClick={() => setShowCollabModal(true)}
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  🤝 Collaborate With Us
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Stats Display */}
-          <StatsDisplay totalTools={totalTools} averageRating={averageRating} />
+          {/* Stats Display with Search */}
+          <StatsDisplay 
+            totalTools={totalTools} 
+            averageRating={averageRating}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
 
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 space-y-4 lg:space-y-0">
@@ -213,21 +201,6 @@ export default function HomePage() {
             onToolRate={fetchStats}
           />
 
-          {/* Action Buttons */}
-          <div id="share-tool" className="text-center mt-12 space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-            <button
-              onClick={() => setShowSubmitModal(true)}
-              className="w-full sm:w-auto bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-            >
-              🌱 Share a Tool
-            </button>
-            <button
-              onClick={() => setShowCollabModal(true)}
-              className="w-full sm:w-auto bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-            >
-              🤝 Collaborate with Us
-            </button>
-          </div>
         </div>
       </section>
 

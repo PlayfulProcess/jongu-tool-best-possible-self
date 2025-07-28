@@ -3,9 +3,11 @@
 interface StatsDisplayProps {
   totalTools: number;
   averageRating: number;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
-export function StatsDisplay({ totalTools, averageRating }: StatsDisplayProps) {
+export function StatsDisplay({ totalTools, averageRating, searchQuery, onSearchChange }: StatsDisplayProps) {
   const renderStars = (rating: number) => {
     return (
       <div className="flex space-x-1">
@@ -31,8 +33,33 @@ export function StatsDisplay({ totalTools, averageRating }: StatsDisplayProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-      <div className="grid grid-cols-2 gap-6 text-center">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+        {/* Search Bar */}
         <div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-xl">🔍</span>
+              <input
+                type="text"
+                placeholder="Search tools or 'Jongu' for privacy-first tools..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => onSearchChange('')}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="text-center">
           <div className="text-3xl font-bold text-blue-600 mb-2">
             {totalTools}
           </div>
@@ -41,7 +68,7 @@ export function StatsDisplay({ totalTools, averageRating }: StatsDisplayProps) {
           </div>
         </div>
         
-        <div>
+        <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-2">
             <span className="text-3xl font-bold text-green-600">
               {averageRating.toFixed(1)}

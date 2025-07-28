@@ -1,3 +1,5 @@
+old ones:
+
 1) Can you get a better gradient color or pattern for the thumbnails that do not have an image? 
 2) Change colors of text appearing in chatbox where people input data to black. 
 3) Can you replace the word "Jongu" for the logo Jongu that I pasted in the public folder?
@@ -50,3 +52,45 @@ MFT Student
 9) When I authenticated with email and password, the text of the journaling was preserved, but I lost the AI chat. PLease fix that. 
 
 WHen you are done, list all the things I need to validate before pushing. 
+
+# new ones:
+1) Logo is too small to see, make it bigger and take out the carrot icon.
+2) delete this from the footer: Built by PlayfulProcess
+•
+Open source
+
+3) Change from Creative approaches to traditional therapy to Creative approaches to healing
+
+4) Change description:
+from: Discover wellness tools organized by DBT skills: Mindfulness practices, Distress Tolerance techniques, Emotion Regulation guides, and Interpersonal Effectiveness builders. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
+
+to (improve it): Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
+For tools published by us (filter by Jongu Tools), you can always count that 1) AI use will be optional and the tool will be valuabel even without AI, 2) your data will not be stored by us unless you want to save it. 
+To partner with us to create Jongu Tools, use Collaboration Form. If you want to submit a tool from anywhere in the internet, Use the "Share a Tool" button.
+[buttons]
+
+#newer ones:
+1) build admin page, as in the jongu tools garden project: https://github.com/PlayfulProcess/jongu_tool_garden
+2) Supabase submissions is not uplaoding when I submit a new tool.
+3) Change hero title to: Jongu, Interactive Tools
+for a Better Life
+
+#absolute newer ones:
+1) I want to transform this section into two boxes, one explaining what community tools are and another explaining what Jongu tools or self hosted tools are. For the community tools, there will be the button Share ANy Tool and for the Jongu Tools, COllaborate with us. Community Wellness Tool Garden
+Discover wellness tools. Journaling apps, creativity prompts, relationship boosters, and therapeutic exercises. Created by real people for real people.
+
+🛡️ Jongu Tools: Privacy-First Wellness
+Our self-hosted tools work without AI • Your data stays private • No tracking • Always functional
+
+🔍
+jongu
+✕
+Partner with us to create Jongu Tools, or share any wellness tool from the internet.
+
+🤝 Partner With Us
+🔗 Share Any Tool
+
+2) The search bar can be in the left in teh same box as: 11
+Community Tools Available
+4.1
+Average Community Rating. I think there is too much scroling ansd space before people get to see the tools. 

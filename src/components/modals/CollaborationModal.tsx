@@ -135,7 +135,7 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
                 type="text"
                 value={formData.organization}
                 onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Your organization, practice, or company"
               />
             </div>
@@ -150,7 +150,7 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
                 value={formData.expertise}
                 onChange={(e) => setFormData({ ...formData, expertise: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Tell us about your background, expertise, or what you bring to the table..."
               />
             </div>
@@ -164,7 +164,7 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
                 required
                 value={formData.collaboration_type}
                 onChange={(e) => setFormData({ ...formData, collaboration_type: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">Select collaboration type</option>
                 {collaborationTypes.map((type) => (
@@ -185,7 +185,7 @@ export function CollaborationModal({ isOpen, onClose }: CollaborationModalProps)
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 rows={5}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Tell us about your collaboration idea, what you'd like to work on together, or any questions you have..."
               />
             </div>
