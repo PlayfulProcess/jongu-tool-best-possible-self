@@ -28,18 +28,31 @@ export function Header({ showAuthModal }: HeaderProps) {
             </Link>
             
             <nav className="hidden md:flex space-x-6">
-              <Link 
-                href="/#community-tools" 
-                className="text-gray-600 hover:text-gray-900 font-medium"
+              <button 
+                onClick={() => {
+                  // Scroll to search bar area
+                  const searchSection = document.querySelector('.search-container');
+                  if (searchSection) {
+                    searchSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="text-gray-600 hover:text-gray-900 font-medium cursor-pointer"
               >
                 Browse Tools
-              </Link>
+              </button>
               
               <Link
-                href="/#share-tool"
+                href="/#community-tools"
                 className="text-green-600 hover:text-green-700 font-medium"
               >
-                Share a Tool
+                Share Tool
+              </Link>
+
+              <Link
+                href="/tools/best-possible-self"
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Try Tool
               </Link>
               
               <Link 
