@@ -25,15 +25,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Get submitter IP for tracking (unused in MVP but kept for future use)
-    // const submitterIP = request.headers.get('x-forwarded-for') || 
-    //                    request.headers.get('x-real-ip') || 
-    //                    'unknown';
+    // Get submitter IP for tracking
+    const submitterIP = request.headers.get('x-forwarded-for') || 
+                       request.headers.get('x-real-ip') || 
+                       'unknown';
     
-    // Insert submission (for MVP, we'll auto-approve and move to tools table)
-    // In production, this would go to submissions table for review
+    // Insert submission to submissions table for admin review
     const { data, error } = await adminClient
-      .from('tools')
+      .from('submissions')
       .insert({
         title,
         claude_url,
@@ -43,7 +42,9 @@ export async function POST(request: NextRequest) {
         creator_link: creator_link || null,
         creator_background: creator_background || null,
         thumbnail_url: thumbnail_url || null,
-        approved: true // Auto-approve for MVP
+        submitter_ip: submitterIP,
+        reviewed: false,
+        approved: false
       })
       .select()
       .single();
