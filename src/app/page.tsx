@@ -6,6 +6,7 @@ import { Header } from '@/components/shared/Header';
 import { AuthModal } from '@/components/modals/AuthModal';
 import { SubmitToolModal } from '@/components/modals/SubmitToolModal';
 import { CollaborationModal } from '@/components/modals/CollaborationModal';
+import { NewsletterModal } from '@/components/modals/NewsletterModal';
 import { ToolGrid } from '@/components/community/ToolGrid';
 import { CategoryFilter } from '@/components/community/CategoryFilter';
 import { SortingControls } from '@/components/community/SortingControls';
@@ -17,6 +18,7 @@ export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showCollabModal, setShowCollabModal] = useState(false);
+  const [showNewsletterModal, setShowNewsletterModal] = useState(false);
   
   // Community tools state
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -102,7 +104,16 @@ export default function HomePage() {
             
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Best Possible Self</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <a 
+                    href="https://ggia.berkeley.edu/practice/best_possible_self" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Best Possible Self
+                  </a>
+                </h3>
                 <p className="text-gray-600 mb-6">
                   A research-backed reflection practice from Berkeley&apos;s Greater Good Science Center 
                   that helps you envision your brightest future through guided journaling.
@@ -236,12 +247,11 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <span className="text-2xl">🌱</span>
+            <div className="flex items-center justify-center mb-4">
               <img 
                 src="/Jongulogo.png" 
                 alt="Jongu" 
-                className="h-8 w-auto"
+                className="h-16 w-auto filter brightness-0 invert"
               />
             </div>
             <p className="text-gray-400 mb-6">Community-powered open source wellness tool garden. Building gateways, not gatekeepers</p>
@@ -261,9 +271,12 @@ export default function HomePage() {
               <a href="https://github.com/PlayfulProcess" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
                 GitHub
               </a>
-              <a href="https://www.playfulprocess.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
-                PlayfulProcess.com
-              </a>
+              <button 
+                onClick={() => setShowNewsletterModal(true)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                📧 Newsletter
+              </button>
             </div>
             
             <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
@@ -287,6 +300,11 @@ export default function HomePage() {
       <CollaborationModal
         isOpen={showCollabModal}
         onClose={() => setShowCollabModal(false)}
+      />
+
+      <NewsletterModal
+        isOpen={showNewsletterModal}
+        onClose={() => setShowNewsletterModal(false)}
       />
     </div>
   );
