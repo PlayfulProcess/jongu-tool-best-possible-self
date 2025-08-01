@@ -92,7 +92,7 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
               },
             }
           }}
-          providers={['github']}
+          providers={[]}
           redirectTo={typeof window !== 'undefined' ? 
             `${window.location.protocol}//${window.location.host}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`
             : undefined}
