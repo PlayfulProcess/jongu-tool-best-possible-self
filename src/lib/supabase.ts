@@ -1,11 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseClient } from '@jongu/shared-config'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export const supabase = createSupabaseClient()
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Re-export Database type from shared config
+export { type Database } from '@jongu/shared-config'
 
-export type Database = {
+// Legacy type export for compatibility
+export type LegacyDatabase = {
   public: {
     Tables: {
       profiles: {
