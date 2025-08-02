@@ -1,0 +1,44 @@
+{
+  "channel": {
+    "name": "Best Possible Self Tool",
+    "tagline": "Envision your brightest future with AI guidance",
+    "description": "A science-backed journaling tool that helps you explore your best possible self through guided reflection and AI-powered insights.",
+    "author": "Jongu Collective",
+    "authorLink": "https://twitter.com/jongu"
+  },
+  "features": {
+    "discord": {
+      "enabled": true,
+      "serverId": "1234567890",
+      "showWidget": true
+    },
+    "donations": {
+      "enabled": true,
+      "stripeLink": "https://buy.stripe.com/test_placeholder",
+      "buttonText": "Support This Tool"
+    },
+    "newsletter": {
+      "enabled": false,
+      "provider": "resend"
+    },
+    "communityTools": {
+      "enabled": false,
+      "requireApproval": false
+    }
+  },
+  "theme": {
+    "primaryColor": "#3b82f6",
+    "accentColor": "#10b981",
+    "style": "tool"
+  },
+  "seo": {
+    "title": "Best Possible Self - AI-Guided Journaling Tool",
+    "description": "Explore your brightest future with this science-backed journaling tool featuring AI guidance",
+    "keywords": ["journaling", "best possible self", "AI", "wellness", "future planning"]
+  },
+  "links": {
+    "github": "https://github.com/PlayfulProcess/jongu-tool-best-possible-self",
+    "discord": "https://discord.gg/jongu",
+    "twitter": "https://twitter.com/jongu"
+  }
+}

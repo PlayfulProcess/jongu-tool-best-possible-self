@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import DiscordWidget from "@/components/DiscordWidget";
+import DonateButton from "@/components/DonateButton";
+import { config } from "@/lib/jongu-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jongu Tool Garden - Community Wellness Tools",
-  description: "Discover science-backed wellness tools organized by DBT skills. Community-driven platform for mindfulness, emotion regulation, distress tolerance, and interpersonal effectiveness.",
+  title: config.seo.title,
+  description: config.seo.description,
+  keywords: config.seo.keywords,
 };
 
 export default function RootLayout({
@@ -30,6 +34,17 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          {config.features.discord.enabled && config.features.discord.showWidget && (
+            <DiscordWidget serverId={config.features.discord.serverId} />
+          )}
+          {config.features.donations.enabled && (
+            <div className="fixed bottom-4 left-4 z-50">
+              <DonateButton 
+                stripeLink={config.features.donations.stripeLink}
+                buttonText={config.features.donations.buttonText}
+              />
+            </div>
+          )}
         </AuthProvider>
       </body>
     </html>
