@@ -43,8 +43,7 @@ export default function DiscordWidget({ serverId, className = '' }: DiscordWidge
           src={`https://discord.com/widget?id=${serverId}&theme=light`}
           width="350"
           height="400"
-          allowTransparency={true}
-          frameBorder="0"
+          style={{ border: 'none', background: 'transparent' }}
           sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
         />
       </div>
