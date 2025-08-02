@@ -1,9 +1,9 @@
-import { createSupabaseClient } from '@jongu/shared-config'
+import { createSupabaseClient } from '@playfulprocess/jongu-shared-config'
 
 export const supabase = createSupabaseClient()
 
 // Re-export Database type from shared config
-export { type Database } from '@jongu/shared-config'
+export { type Database } from '@playfulprocess/jongu-shared-config'
 
 // Legacy type export for compatibility
 export type LegacyDatabase = {
