@@ -91,7 +91,7 @@ export type Database = {
           created_at?: string
         }
       }
-      wellness_tools: {
+      tools: {
         Row: {
           id: string
           name: string
@@ -204,30 +204,51 @@ export type Database = {
           updated_at?: string
         }
       }
-      collaborations: {
+      submissions: {
         Row: {
           id: string
           name: string
           email: string
-          website?: string
-          message: string
+          category: string
+          url?: string
+          description?: string
+          message?: string
+          organization?: string
+          expertise?: string
+          collaboration_type?: string
+          status: string
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
           name: string
           email: string
-          website?: string
-          message: string
+          category: string
+          url?: string
+          description?: string
+          message?: string
+          organization?: string
+          expertise?: string
+          collaboration_type?: string
+          status?: string
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
           name?: string
           email?: string
-          website?: string
+          category?: string
+          url?: string
+          description?: string
           message?: string
+          organization?: string
+          expertise?: string
+          collaboration_type?: string
+          status?: string
           created_at?: string
+          updated_at?: string
         }
       }
     }

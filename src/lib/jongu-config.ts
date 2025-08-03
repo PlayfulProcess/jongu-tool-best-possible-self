@@ -45,4 +45,18 @@ export interface JonguConfig {
   };
 }
 
-export const config: JonguConfig = jonguConfig;
+// Merge environment variables with config
+export const config: JonguConfig = {
+  ...jonguConfig,
+  features: {
+    ...jonguConfig.features,
+    discord: {
+      ...jonguConfig.features.discord,
+      serverId: process.env.NEXT_PUBLIC_DISCORD_SERVER_ID || jonguConfig.features.discord.serverId,
+    },
+    donations: {
+      ...jonguConfig.features.donations,
+      stripeLink: process.env.NEXT_PUBLIC_STRIPE_DONATION_LINK || jonguConfig.features.donations.stripeLink,
+    },
+  },
+};
