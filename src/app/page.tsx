@@ -500,6 +500,14 @@ export default function BestPossibleSelfPage() {
                 {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
                 {hasUnsavedChanges && !user && '📝 Writing in session mode'}
               </div>
+              <a
+                href="https://www.jongu.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
+              >
+                🏠 Home
+              </a>
             </div>
           </div>
         </div>
