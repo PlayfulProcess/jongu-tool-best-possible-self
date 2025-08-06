@@ -121,8 +121,42 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
       }
 
       try {
-        // For now, just load from sessionStorage since the old table doesn't exist
-        // and the new schema doesn't have existing chat data yet
+        // First try to load from database
+        const { data: chatMessages, error: chatError } = await supabase
+          .from('user_documents')
+          .select('document_data, created_at')
+          .eq('user_id', user.id)
+          .eq('document_type', 'interaction')
+          .eq('tool_slug', 'best-possible-self')
+          .eq('document_data->>interaction_type', 'chat_message')
+          .eq('document_data->>target_id', entryId)
+          .order('created_at', { ascending: true });
+
+        if (!chatError && chatMessages && chatMessages.length > 0) {
+          // Transform database messages to our Message format
+          const transformedMessages = chatMessages.map(msg => ({
+            role: msg.document_data?.role as 'user' | 'assistant',
+            content: msg.document_data?.message || ''
+          })).filter(msg => msg.role && msg.content);
+          
+          setMessages(transformedMessages);
+        } else {
+          // Fallback to sessionStorage if no database messages
+          const sessionKey = `chat_messages_${entryId}`;
+          const savedMessages = sessionStorage.getItem(sessionKey);
+          if (savedMessages) {
+            try {
+              setMessages(JSON.parse(savedMessages));
+            } catch {
+              setMessages([]);
+            }
+          } else {
+            setMessages([]);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        // Fallback to sessionStorage on error
         const sessionKey = `chat_messages_${entryId}`;
         const savedMessages = sessionStorage.getItem(sessionKey);
         if (savedMessages) {
@@ -134,9 +168,6 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         } else {
           setMessages([]);
         }
-      } catch (error) {
-        console.error('Error loading messages:', error);
-        setMessages([]);
       } finally {
         setMessagesLoaded(true);
       }

@@ -376,18 +376,35 @@ export default function BestPossibleSelfPage() {
           <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
           <div className="hidden sm:block text-sm text-gray-600">/ Best Possible Self Tool</div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <a
             href="https://wellness.jongu.org"
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium flex items-center gap-1"
           >
             ← Back to Wellness
           </a>
+          
+          {user ? (
+            <button
+              onClick={signOut}
+              className="px-3 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+            >
+              Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+            >
+              Sign In
+            </button>
+          )}
+          
           <a
             href="https://jongu.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
+            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1 font-medium"
           >
             🏠 Home
           </a>
@@ -427,14 +444,6 @@ export default function BestPossibleSelfPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              {user && (
-                <button
-                  onClick={signOut}
-                  className="text-sm text-gray-600 hover:text-gray-800 underline"
-                >
-                  Sign Out
-                </button>
-              )}
             </div>
           </div>
           <div className="mb-4">
