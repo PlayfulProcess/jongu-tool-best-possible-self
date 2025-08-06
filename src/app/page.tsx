@@ -54,19 +54,34 @@ export default function BestPossibleSelfPage() {
     try {
       setEntriesLoading(true);
       const { data, error } = await supabase
-        .from('journal_entries')
+        .from('user_documents')
         .select('*')
         .eq('user_id', user.id)
+        .eq('document_type', 'tool_session')
+        .eq('tool_slug', 'best-possible-self')
         .order('updated_at', { ascending: false });
 
-      if (error && Object.keys(error).length > 0) throw error;
-      setEntries(data || []);
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      // Transform the data to match the expected JournalEntry format
+      const transformedEntries = (data || []).map(doc => ({
+        id: doc.id,
+        title: doc.document_data?.title || null,
+        content: doc.document_data?.content || '',
+        is_public: doc.is_public || false,
+        research_consent: doc.document_data?.research_consent || false,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at || doc.created_at
+      }));
+
+      setEntries(transformedEntries);
     } catch (err) {
       console.error('Error loading entries:', err);
-      // Only show error to user if it's a real error, not an empty object
-      if (err && Object.keys(err).length > 0) {
-        console.error('Detailed error:', err);
-      }
+      // Set empty array on error to avoid crashes
+      setEntries([]);
     } finally {
       setEntriesLoading(false);
     }
@@ -226,11 +241,19 @@ export default function BestPossibleSelfPage() {
       if (currentEntryId) {
         // Update existing entry
         const { error } = await supabase
-          .from('journal_entries')
+          .from('user_documents')
           .update({
-            content: contentToSave,
+            document_data: {
+              title: 'Best Possible Self - ' + new Date().toLocaleDateString(),
+              content: contentToSave,
+              research_consent: hasResearchConsent,
+              tool_name: 'Best Possible Self',
+              session_data: {
+                time_spent: timeSpent,
+                word_count: contentToSave.split(' ').length
+              }
+            },
             is_public: isPublic,
-            research_consent: hasResearchConsent,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentEntryId);
@@ -239,13 +262,22 @@ export default function BestPossibleSelfPage() {
       } else {
         // Create new entry
         const { data, error } = await supabase
-          .from('journal_entries')
+          .from('user_documents')
           .insert({
             user_id: user.id,
-            content: contentToSave,
+            document_type: 'tool_session',
+            tool_slug: 'best-possible-self',
             is_public: isPublic,
-            research_consent: hasResearchConsent,
-            title: 'Best Possible Self - ' + new Date().toLocaleDateString()
+            document_data: {
+              title: 'Best Possible Self - ' + new Date().toLocaleDateString(),
+              content: contentToSave,
+              research_consent: hasResearchConsent,
+              tool_name: 'Best Possible Self',
+              session_data: {
+                time_spent: timeSpent,
+                word_count: contentToSave.split(' ').length
+              }
+            }
           })
           .select()
           .single();
