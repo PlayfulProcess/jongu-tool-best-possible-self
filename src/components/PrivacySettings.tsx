@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './AuthProvider'
 import { createClient } from '@/lib/supabase-client'
 
@@ -24,6 +24,15 @@ export function PrivacySettings({
   
   const { user } = useAuth()
   const supabase = createClient()
+  
+  // Sync internal state with parent's state changes
+  useEffect(() => {
+    setDataSetting(defaultDataSetting)
+  }, [defaultDataSetting])
+  
+  useEffect(() => {
+    setResearchConsent(defaultResearchConsent)
+  }, [defaultResearchConsent])
 
   const handleDataSettingChange = (setting: DataSavingSetting) => {
     // If switching to private mode, show confirmation popup

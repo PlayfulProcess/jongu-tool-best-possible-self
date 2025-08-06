@@ -183,20 +183,47 @@ export default function BestPossibleSelfPage() {
       setShowAuthModal(true);
       return;
     }
-    if (dataSavingSetting !== 'private' && content.trim()) {
-      setSaveStatus('saving');
-      saveJournalEntry(content);
+    
+    if (!content.trim()) {
+      return; // Nothing to save
+    }
+    
+    if (dataSavingSetting === 'private') {
+      // Prompt user to switch to save mode
+      const confirmed = confirm(
+        'You are currently in "Do not save" mode. 🔒\n\n' +
+        'Would you like to switch to "Save mode"?\n\n' +
+        'Click OK to switch to save mode, or Cancel to stay in private mode.'
+      );
       
-      // Show update confirmation
-      if (currentEntryId) {
+      if (confirmed) {
+        // Switch to save mode
+        setDataSavingSetting('save_private');
+        
+        // Show confirmation that they can now save
         setTimeout(() => {
           alert(
-            'Entry updated! 📝\n\n' +
-            'The sidebar preview may take a moment to refresh. ' +
-            'Refreshing the page will show updated previews but may lose unsaved work.'
+            'Switched to Save mode! 📝✅\n\n' +
+            'You can now save your entry when ready by clicking the Save button again.'
           );
-        }, 1000);
+        }, 100);
       }
+      return;
+    }
+    
+    // User is already in save mode, proceed with saving
+    setSaveStatus('saving');
+    saveJournalEntry(content);
+    
+    // Show update confirmation
+    if (currentEntryId) {
+      setTimeout(() => {
+        alert(
+          'Entry updated! 📝\n\n' +
+          'The sidebar preview may take a moment to refresh. ' +
+          'Refreshing the page will show updated previews but may lose unsaved work.'
+        );
+      }, 1000);
     }
   };
 
@@ -284,7 +311,14 @@ export default function BestPossibleSelfPage() {
 
         if (error) throw error;
         if (data) {
-          setCurrentEntryId(data.id);
+          const newEntryId = data.id;
+          setCurrentEntryId(newEntryId);
+          
+          // Save any pending chat messages now that we have an entry ID
+          if (typeof window !== 'undefined' && (window as any).savePendingChatMessages && user) {
+            (window as any).savePendingChatMessages(user.id, newEntryId, researchConsent);
+          }
+          
           // Refresh entries list to show new entry
           loadEntries();
         }
@@ -626,16 +660,14 @@ export default function BestPossibleSelfPage() {
                     🎯 Focus Mode
                   </button>
                 </div>
-                {dataSavingSetting !== 'private' && (
-                  <button
-                    onClick={handleManualSave}
-                    disabled={!content.trim() || saveStatus === 'saving'}
-                    className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {saveStatus === 'saving' ? '💾 Saving...' : 
-                     currentEntryId ? '💾 Update' : '💾 Save'}
-                  </button>
-                )}
+                <button
+                  onClick={handleManualSave}
+                  disabled={!content.trim() || saveStatus === 'saving'}
+                  className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {saveStatus === 'saving' ? '💾 Saving...' : 
+                   currentEntryId ? '💾 Update' : '💾 Save'}
+                </button>
               </div>
             </div>
 
@@ -660,6 +692,7 @@ export default function BestPossibleSelfPage() {
               ) : (
                 <div>
                   <AIAssistant 
+                    key={`chat-${currentEntryId || 'new'}`}
                     content={content} 
                     dataSavingSetting={dataSavingSetting}
                     researchConsent={researchConsent}
