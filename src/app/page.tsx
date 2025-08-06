@@ -463,17 +463,7 @@ export default function BestPossibleSelfPage() {
             >
               ✍️ New Entry
             </button>
-          ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-              <p className="text-sm text-blue-800 mb-2">Sign in to save your work</p>
-              <button 
-                onClick={() => setShowAuthModal(true)}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
-              >
-                Sign in now
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* Entries List */}
@@ -560,7 +550,7 @@ export default function BestPossibleSelfPage() {
                 </svg>
               </button>
               <div className="text-sm text-gray-600">
-                {user ? `Welcome, ${user.email}` : 'Try the tool - Sign in to save your work'}
+                {user ? `Welcome, ${user.email}` : 'Try the tool'}
               </div>
             </div>
             <div className="text-xs text-gray-500">
@@ -694,7 +684,7 @@ export default function BestPossibleSelfPage() {
       <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        title="Sign in to save your work"
+        title="Welcome to Best Possible Self"
         subtitle="Your writing will be preserved and you can access it anywhere"
       />
     </div>

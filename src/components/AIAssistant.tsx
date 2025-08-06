@@ -63,16 +63,14 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   // Load existing chat messages when component mounts or entryId changes
   useEffect(() => {
     const loadMessages = async () => {
-      // Track if this is just the first save (null -> actual ID)
-      const isFirstSave = previousEntryId === null && entryId !== null && messages.length > 0;
+      console.log('Loading messages for entryId:', entryId, 'user:', user?.id);
       
-      // Track if user just signed in (user state changed from null to actual user)
-      const userJustSignedIn = user && !previousEntryId && entryId;
+      // Update previousEntryId tracking
+      setPreviousEntryId(entryId || null);
       
-      // Only update previousEntryId if it's actually different
-      if (previousEntryId !== entryId) {
-        setPreviousEntryId(entryId || null);
-      }
+      // Always start fresh - clear messages when loading
+      setMessages([]);
+      setMessagesLoaded(false);
 
       if (!user || !entryId) {
         // For new entries or anonymous users, try to load from sessionStorage first
@@ -80,7 +78,9 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         const savedMessages = sessionStorage.getItem(sessionKey);
         if (savedMessages) {
           try {
-            setMessages(JSON.parse(savedMessages));
+            const parsedMessages = JSON.parse(savedMessages);
+            console.log('Loaded from sessionStorage:', parsedMessages.length, 'messages');
+            setMessages(parsedMessages);
           } catch {
             setMessages([]);
           }
@@ -91,37 +91,9 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         return;
       }
 
-      // If this is just the first save, don't reload - keep existing messages
-      if (isFirstSave) {
-        setMessagesLoaded(true);
-        return;
-      }
-
-      // If user just signed in and we have messages in sessionStorage, preserve them
-      if (userJustSignedIn && messages.length > 0) {
-        const sessionKey = `chat_messages_new_anonymous`;
-        const anonymousMessages = sessionStorage.getItem(sessionKey);
-        if (anonymousMessages) {
-          try {
-            const parsedMessages = JSON.parse(anonymousMessages);
-            if (parsedMessages.length > 0) {
-              setMessages(parsedMessages);
-              setMessagesLoaded(true);
-              // Clear anonymous session storage since user is now authenticated
-              sessionStorage.removeItem(sessionKey);
-              return;
-            }
-          } catch {
-            // Continue with normal flow if parsing fails
-          }
-        }
-        // If we already have messages from before auth, keep them
-        setMessagesLoaded(true);
-        return;
-      }
-
       try {
         // First try to load from database
+        console.log('Querying database for entryId:', entryId);
         const { data: chatMessages, error: chatError } = await supabase
           .from('user_documents')
           .select('document_data, created_at')
@@ -132,6 +104,8 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
           .eq('document_data->>target_id', entryId)
           .order('created_at', { ascending: true });
 
+        console.log('Database query result:', chatMessages?.length || 0, 'messages, error:', chatError);
+
         if (!chatError && chatMessages && chatMessages.length > 0) {
           // Transform database messages to our Message format
           const transformedMessages = chatMessages.map(msg => ({
@@ -139,6 +113,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
             content: msg.document_data?.message || ''
           })).filter(msg => msg.role && msg.content);
           
+          console.log('Setting messages from database:', transformedMessages.length, 'messages');
           setMessages(transformedMessages);
         } else {
           // Fallback to sessionStorage if no database messages
