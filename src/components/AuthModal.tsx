@@ -67,9 +67,8 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
           ×
         </button>
 
-        {/* GitHub auth section removed */ true && (
-          /* Regular Auth Form */
-          <div>
+        {/* Regular Auth Form */}
+        <div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
               <p className="text-gray-600 text-sm">{subtitle}</p>
@@ -107,8 +106,7 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
               showLinks={true}
               view="sign_in"
             />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

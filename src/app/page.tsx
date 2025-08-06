@@ -364,14 +364,44 @@ export default function BestPossibleSelfPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Mobile menu overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <img 
+            src="/Jongulogo.png" 
+            alt="Jongu" 
+            className="h-20 w-auto"
+          />
+          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
+          <div className="hidden sm:block text-sm text-gray-600">/ Best Possible Self Tool</div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <a
+            href="https://wellness.jongu.org"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            ← Back to Wellness
+          </a>
+          <a
+            href="https://jongu.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
+          >
+            🏠 Home
+          </a>
+        </div>
+      </header>
+
+      <div className="flex-1 flex">
+        {/* Mobile menu overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
       
       {/* Sidebar */}
       <div className={`
@@ -524,22 +554,12 @@ export default function BestPossibleSelfPage() {
                 {user ? `Welcome, ${user.email}` : 'Try the tool - Sign in to save your work'}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-xs text-gray-500">
-                {saveStatus === 'saving' && '💾 Saving...'}
-                {saveStatus === 'saved' && '✅ Saved'}
-                {saveStatus === 'error' && '❌ Save Error'}
-                {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
-                {hasUnsavedChanges && !user && '📝 Writing in session mode'}
-              </div>
-              <a
-                href="https://www.jongu.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
-              >
-                🏠 Home
-              </a>
+            <div className="text-xs text-gray-500">
+              {saveStatus === 'saving' && '💾 Saving...'}
+              {saveStatus === 'saved' && '✅ Saved'}
+              {saveStatus === 'error' && '❌ Save Error'}
+              {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
+              {hasUnsavedChanges && !user && '📝 Writing in session mode'}
             </div>
           </div>
         </div>
@@ -547,21 +567,6 @@ export default function BestPossibleSelfPage() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-6">
-            {/* Instructions */}
-            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">How This Works</h2>
-              <p className="text-sm text-gray-700 mb-2">
-                Imagine yourself in the future, having achieved your most important goals. 
-                Write about what you see, feel, and experience in specific life areas.
-              </p>
-              <div className="text-xs text-gray-600 mb-2">
-                <strong>Areas to consider:</strong> Career & work, relationships, health & wellness, personal growth
-              </div>
-              <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 lg:hidden">
-                💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
-              </div>
-            </div>
-
             {/* Privacy Settings */}
             <div className="mb-6">
               <PrivacySettings
@@ -570,6 +575,31 @@ export default function BestPossibleSelfPage() {
                 onDataSettingChange={handleDataSavingChange}
                 onResearchConsentChange={handleResearchConsentChange}
               />
+            </div>
+
+            {/* Instructions - Now bigger and below privacy */}
+            <div className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">How This Works</h2>
+              <p className="text-base text-gray-700 mb-4 leading-relaxed">
+                Imagine yourself in the future, having achieved your most important goals. 
+                Write about what you see, feel, and experience in specific life areas. 
+                Be as detailed and vivid as possible - this exercise is most effective when you really 
+                immerse yourself in the vision of your future self.
+              </p>
+              <div className="text-sm text-gray-700 mb-4">
+                <strong>Key areas to explore:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Career & professional achievements</li>
+                  <li>Relationships & social connections</li>
+                  <li>Health & physical wellness</li>
+                  <li>Personal growth & learning</li>
+                  <li>Hobbies & creative pursuits</li>
+                  <li>Financial security & freedom</li>
+                </ul>
+              </div>
+              <div className="text-sm text-amber-700 bg-amber-50 p-3 rounded border border-amber-200 lg:hidden">
+                💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
+              </div>
             </div>
 
             {/* Writing Section */}
@@ -648,6 +678,7 @@ export default function BestPossibleSelfPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Auth Modal */}

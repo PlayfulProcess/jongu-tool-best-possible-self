@@ -9,7 +9,7 @@ interface DiscordWidgetProps {
 }
 
 export default function DiscordWidget({ serverId, className = '' }: DiscordWidgetProps) {
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
 
   if (isMinimized) {
     return (

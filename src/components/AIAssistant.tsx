@@ -121,25 +121,19 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
       }
 
       try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('message, role, created_at')
-          .eq('journal_entry_id', entryId)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: true });
-
-        if (error) {
-          console.error('Error loading chat messages:', error);
+        // For now, just load from sessionStorage since the old table doesn't exist
+        // and the new schema doesn't have existing chat data yet
+        const sessionKey = `chat_messages_${entryId}`;
+        const savedMessages = sessionStorage.getItem(sessionKey);
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages));
+          } catch {
+            setMessages([]);
+          }
+        } else {
           setMessages([]);
-          return;
         }
-
-        const loadedMessages: Message[] = data.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.message
-        }));
-
-        setMessages(loadedMessages);
       } catch (error) {
         console.error('Error loading messages:', error);
         setMessages([]);
@@ -164,13 +158,19 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     if (!user || dataSavingSetting === 'private') return;
 
     try {
-      await supabase.from('chat_messages').insert({
+      await supabase.from('user_documents').insert({
         user_id: user.id,
-        journal_entry_id: entryId,
-        message,
-        role,
-        is_public: false, // We removed public blog option
-        research_consent: researchConsent
+        document_type: 'interaction',
+        tool_slug: 'best-possible-self',
+        is_public: false,
+        document_data: {
+          target_type: 'tool_session',
+          target_id: entryId || 'new_session',
+          interaction_type: 'chat_message',
+          message,
+          role,
+          research_consent: researchConsent
+        }
       });
     } catch (error) {
       console.error('Error saving chat message:', error);
