@@ -20,10 +20,18 @@ interface Message {
   content: string;
 }
 
+// Extend window interface for global functions
+declare global {
+  interface Window {
+    debugChat?: (userId?: string, entryId?: string) => Promise<void>;
+    savePendingChatMessages?: (userId: string, entryId: string, researchConsent: boolean) => Promise<void>;
+  }
+}
+
 // Global functions for debugging and managing chat messages
 if (typeof window !== 'undefined') {
   // Debug function - can be called from browser console as window.debugChat()
-  (window as any).debugChat = async (userId?: string, entryId?: string) => {
+  window.debugChat = async (userId?: string, entryId?: string) => {
     const { createClient } = await import('@/lib/supabase-client');
     const supabase = createClient();
     
@@ -40,7 +48,7 @@ if (typeof window !== 'undefined') {
     
     console.log('📊 All chat messages:', allChats?.length, 'Error:', allError);
     if (allChats) {
-      const byTargetId = allChats.reduce((acc: any, msg: any) => {
+      const byTargetId = allChats.reduce((acc: Record<string, number>, msg: { document_data?: { target_id?: string } }) => {
         const targetId = msg.document_data?.target_id || 'unknown';
         acc[targetId] = (acc[targetId] || 0) + 1;
         return acc;
@@ -58,12 +66,12 @@ if (typeof window !== 'undefined') {
     
     console.log('📝 All tool sessions:', sessions?.length, 'Error:', sessionsError);
     if (sessions) {
-      console.log('📝 Session IDs:', sessions.map((s: any) => s.id));
+      console.log('📝 Session IDs:', sessions.map((s: { id: string }) => s.id));
     }
   };
   
   // Function to save pending chat messages when entry gets an ID
-  (window as any).savePendingChatMessages = async (userId: string, newEntryId: string, researchConsent: boolean) => {
+  window.savePendingChatMessages = async (userId: string, newEntryId: string, researchConsent: boolean) => {
     const { createClient } = await import('@/lib/supabase-client');
     const supabase = createClient();
     
@@ -93,7 +101,7 @@ if (typeof window !== 'undefined') {
     
     try {
       // Save all messages to database with the new entryId
-      const messagesToSave = messages.map((msg: any) => ({
+      const messagesToSave = messages.map((msg: { content: string; role: string }) => ({
         user_id: userId,
         document_type: 'interaction' as const,
         tool_slug: 'best-possible-self',
@@ -136,7 +144,6 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
-  const [previousEntryId, setPreviousEntryId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const supabase = createClient();
@@ -168,8 +175,6 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     const loadMessages = async () => {
       console.log('Loading messages for entryId:', entryId, 'user:', user?.id);
       
-      // Update previousEntryId tracking
-      setPreviousEntryId(entryId || null);
       
       // Always start fresh - clear messages when loading
       setMessages([]);
@@ -199,7 +204,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         console.log('🔍 Querying database for entryId:', entryId, 'user:', user.id);
         
         // First, let's see what's in the database for this user
-        const { data: allUserMessages, error: allError } = await supabase
+        const { data: allUserMessages } = await supabase
           .from('user_documents')
           .select('document_data, created_at')
           .eq('user_id', user.id)
@@ -270,7 +275,6 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     };
 
     loadMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, entryId, supabase]);
 
   // Auto-save messages to sessionStorage for persistence

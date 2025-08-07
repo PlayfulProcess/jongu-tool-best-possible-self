@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase-client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 interface AuthModalProps {
   isOpen: boolean;

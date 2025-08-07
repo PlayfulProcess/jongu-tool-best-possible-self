@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 declare global {
   interface Window {
     autoSaveTimeout: NodeJS.Timeout;
+    savePendingChatMessages?: (userId: string, entryId: string, researchConsent: boolean) => Promise<void>;
   }
 }
 import { useAuth } from '@/components/AuthProvider';
@@ -315,8 +317,8 @@ export default function BestPossibleSelfPage() {
           setCurrentEntryId(newEntryId);
           
           // Save any pending chat messages now that we have an entry ID
-          if (typeof window !== 'undefined' && (window as any).savePendingChatMessages && user) {
-            (window as any).savePendingChatMessages(user.id, newEntryId, researchConsent);
+          if (typeof window !== 'undefined' && window.savePendingChatMessages && user) {
+            window.savePendingChatMessages(user.id, newEntryId, researchConsent);
           }
           
           // Refresh entries list to show new entry
@@ -402,9 +404,11 @@ export default function BestPossibleSelfPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <img 
+          <Image 
             src="/Jongulogo.png" 
             alt="Jongu" 
+            width={80}
+            height={80}
             className="h-20 w-auto"
           />
           <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
