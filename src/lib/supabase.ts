@@ -1,9 +1,34 @@
-import { createSupabaseClient } from '@playfulprocess/jongu-shared-config'
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
 
-export const supabase = createSupabaseClient()
+export const getSupabaseConfig = () => ({
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+});
 
-// Re-export Database type from shared config
-export { type Database } from '@playfulprocess/jongu-shared-config'
+export const createSupabaseClient = () => {
+  const config = getSupabaseConfig();
+  return createClient<Database>(config.url, config.anonKey);
+};
+
+export const createSupabaseAdminClient = () => {
+  const config = getSupabaseConfig();
+  if (!config.serviceRoleKey) {
+    throw new Error('Service role key is required for admin client');
+  }
+  return createClient<Database>(config.url, config.serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
+
+export const supabase = createSupabaseClient();
+
+// Re-export Database type for compatibility
+export { type Database }
 
 // Legacy type export for compatibility
 export type LegacyDatabase = {
