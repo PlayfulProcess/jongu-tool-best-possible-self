@@ -9,6 +9,14 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get('host') || ''
   const isProd = process.env.NODE_ENV === 'production'
   const isJongu = /\.?jongu\.org$/i.test(host)
+  
+  // Debug logging
+  console.log('🔍 BPS Middleware Debug:', {
+    host,
+    isProd,
+    isJongu,
+    url: request.url
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,6 +37,7 @@ export async function middleware(request: NextRequest) {
             const isSbRefresh = name.startsWith('sb-') && name.endsWith('-refresh-token')
             
             if (isProd && isJongu && isSbAuth) {
+              console.log('🎯 BPS Setting cross-domain cookie:', { name, domain: '.jongu.org' })
               supabaseResponse.cookies.set({
                 name,
                 value,
