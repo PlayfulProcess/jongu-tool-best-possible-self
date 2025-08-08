@@ -6,6 +6,10 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
+  const host = request.headers.get('host') || ''
+  const isProd = process.env.NODE_ENV === 'production'
+  const isJongu = /\.?jongu\.org$/i.test(host)
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -20,22 +24,26 @@ export async function middleware(request: NextRequest) {
             request,
           })
           cookiesToSet.forEach(({ name, value, options }) => {
-            // Surgical approach: Only modify domain for main auth token, not refresh tokens
-            const isAuthCookie = name.includes('sb-') && name.includes('-auth-token')
-            const isRefresh = name.includes('-refresh')
-            const isProduction = process.env.NODE_ENV === 'production'
-            const isJongu = request.headers.get('host')?.includes('jongu.org')
-
-            if (isProduction && isJongu && isAuthCookie && !isRefresh) {
-              // Only set domain for main auth cookie in production on jongu.org
-              supabaseResponse.cookies.set(name, value, {
-                ...options,
+            // Surgical approach: only widen auth-token domain, leave refresh alone
+            const isSbAuth = name.startsWith('sb-') && name.endsWith('-auth-token')
+            const isSbRefresh = name.startsWith('sb-') && name.endsWith('-refresh-token')
+            
+            if (isProd && isJongu && isSbAuth) {
+              supabaseResponse.cookies.set({
+                name,
+                value,
                 domain: '.jongu.org',
-                sameSite: 'lax',
+                httpOnly: true,
                 secure: true,
+                sameSite: 'lax',
+                path: '/',
+                ...options
               })
+            } else if (!isSbRefresh) {
+              // Set normally for non-refresh tokens
+              supabaseResponse.cookies.set(name, value, options)
             } else {
-              // Keep original options for everything else (including refresh tokens)
+              // Leave refresh token untouched
               supabaseResponse.cookies.set(name, value, options)
             }
           })
@@ -54,11 +62,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
