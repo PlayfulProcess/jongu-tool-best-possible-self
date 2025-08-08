@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 declare global {
   interface Window {
     autoSaveTimeout: NodeJS.Timeout;
+    savePendingChatMessages?: (userId: string, entryId: string, researchConsent: boolean) => Promise<void>;
   }
 }
 import { useAuth } from '@/components/AuthProvider';
@@ -54,19 +56,34 @@ export default function BestPossibleSelfPage() {
     try {
       setEntriesLoading(true);
       const { data, error } = await supabase
-        .from('journal_entries')
+        .from('user_documents')
         .select('*')
         .eq('user_id', user.id)
+        .eq('document_type', 'tool_session')
+        .eq('tool_slug', 'best-possible-self')
         .order('updated_at', { ascending: false });
 
-      if (error && Object.keys(error).length > 0) throw error;
-      setEntries(data || []);
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      // Transform the data to match the expected JournalEntry format
+      const transformedEntries = (data || []).map(doc => ({
+        id: doc.id,
+        title: doc.document_data?.title || null,
+        content: doc.document_data?.content || '',
+        is_public: doc.is_public || false,
+        research_consent: doc.document_data?.research_consent || false,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at || doc.created_at
+      }));
+
+      setEntries(transformedEntries);
     } catch (err) {
       console.error('Error loading entries:', err);
-      // Only show error to user if it's a real error, not an empty object
-      if (err && Object.keys(err).length > 0) {
-        console.error('Detailed error:', err);
-      }
+      // Set empty array on error to avoid crashes
+      setEntries([]);
     } finally {
       setEntriesLoading(false);
     }
@@ -168,20 +185,47 @@ export default function BestPossibleSelfPage() {
       setShowAuthModal(true);
       return;
     }
-    if (dataSavingSetting !== 'private' && content.trim()) {
-      setSaveStatus('saving');
-      saveJournalEntry(content);
+    
+    if (!content.trim()) {
+      return; // Nothing to save
+    }
+    
+    if (dataSavingSetting === 'private') {
+      // Prompt user to switch to save mode
+      const confirmed = confirm(
+        'You are currently in "Do not save" mode. 🔒\n\n' +
+        'Would you like to switch to "Save mode"?\n\n' +
+        'Click OK to switch to save mode, or Cancel to stay in private mode.'
+      );
       
-      // Show update confirmation
-      if (currentEntryId) {
+      if (confirmed) {
+        // Switch to save mode
+        setDataSavingSetting('save_private');
+        
+        // Show confirmation that they can now save
         setTimeout(() => {
           alert(
-            'Entry updated! 📝\n\n' +
-            'The sidebar preview may take a moment to refresh. ' +
-            'Refreshing the page will show updated previews but may lose unsaved work.'
+            'Switched to Save mode! 📝✅\n\n' +
+            'You can now save your entry when ready by clicking the Save button again.'
           );
-        }, 1000);
+        }, 100);
       }
+      return;
+    }
+    
+    // User is already in save mode, proceed with saving
+    setSaveStatus('saving');
+    saveJournalEntry(content);
+    
+    // Show update confirmation
+    if (currentEntryId) {
+      setTimeout(() => {
+        alert(
+          'Entry updated! 📝\n\n' +
+          'The sidebar preview may take a moment to refresh. ' +
+          'Refreshing the page will show updated previews but may lose unsaved work.'
+        );
+      }, 1000);
     }
   };
 
@@ -226,11 +270,19 @@ export default function BestPossibleSelfPage() {
       if (currentEntryId) {
         // Update existing entry
         const { error } = await supabase
-          .from('journal_entries')
+          .from('user_documents')
           .update({
-            content: contentToSave,
+            document_data: {
+              title: 'Best Possible Self - ' + new Date().toLocaleDateString(),
+              content: contentToSave,
+              research_consent: hasResearchConsent,
+              tool_name: 'Best Possible Self',
+              session_data: {
+                time_spent: timeSpent,
+                word_count: contentToSave.split(' ').length
+              }
+            },
             is_public: isPublic,
-            research_consent: hasResearchConsent,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentEntryId);
@@ -239,20 +291,36 @@ export default function BestPossibleSelfPage() {
       } else {
         // Create new entry
         const { data, error } = await supabase
-          .from('journal_entries')
+          .from('user_documents')
           .insert({
             user_id: user.id,
-            content: contentToSave,
+            document_type: 'tool_session',
+            tool_slug: 'best-possible-self',
             is_public: isPublic,
-            research_consent: hasResearchConsent,
-            title: 'Best Possible Self - ' + new Date().toLocaleDateString()
+            document_data: {
+              title: 'Best Possible Self - ' + new Date().toLocaleDateString(),
+              content: contentToSave,
+              research_consent: hasResearchConsent,
+              tool_name: 'Best Possible Self',
+              session_data: {
+                time_spent: timeSpent,
+                word_count: contentToSave.split(' ').length
+              }
+            }
           })
           .select()
           .single();
 
         if (error) throw error;
         if (data) {
-          setCurrentEntryId(data.id);
+          const newEntryId = data.id;
+          setCurrentEntryId(newEntryId);
+          
+          // Save any pending chat messages now that we have an entry ID
+          if (typeof window !== 'undefined' && window.savePendingChatMessages && user) {
+            window.savePendingChatMessages(user.id, newEntryId, researchConsent);
+          }
+          
           // Refresh entries list to show new entry
           loadEntries();
         }
@@ -332,14 +400,63 @@ export default function BestPossibleSelfPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Mobile menu overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <Image 
+            src="/Jongulogo.png" 
+            alt="Jongu" 
+            width={80}
+            height={80}
+            className="h-20 w-auto"
+          />
+          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
+          <div className="hidden sm:block text-sm text-gray-600">/ Best Possible Self Tool</div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <a
+            href="https://wellness.jongu.org"
+            className="px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium flex items-center gap-1"
+          >
+            ← Back to Wellness
+          </a>
+          
+          {user ? (
+            <button
+              onClick={signOut}
+              className="px-3 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+            >
+              Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+            >
+              Sign In
+            </button>
+          )}
+          
+          <a
+            href="https://jongu.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1 font-medium"
+          >
+            🏠 Home
+          </a>
+        </div>
+      </header>
+
+      <div className="flex-1 flex">
+        {/* Mobile menu overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
       
       {/* Sidebar */}
       <div className={`
@@ -365,14 +482,6 @@ export default function BestPossibleSelfPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              {user && (
-                <button
-                  onClick={signOut}
-                  className="text-sm text-gray-600 hover:text-gray-800 underline"
-                >
-                  Sign Out
-                </button>
-              )}
             </div>
           </div>
           <div className="mb-4">
@@ -392,17 +501,7 @@ export default function BestPossibleSelfPage() {
             >
               ✍️ New Entry
             </button>
-          ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-              <p className="text-sm text-blue-800 mb-2">Sign in to save your work</p>
-              <button 
-                onClick={() => setShowAuthModal(true)}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
-              >
-                Sign in now
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* Entries List */}
@@ -489,25 +588,15 @@ export default function BestPossibleSelfPage() {
                 </svg>
               </button>
               <div className="text-sm text-gray-600">
-                {user ? `Welcome, ${user.email}` : 'Try the tool - Sign in to save your work'}
+                {user ? `Welcome, ${user.email}` : 'Try the tool'}
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-xs text-gray-500">
-                {saveStatus === 'saving' && '💾 Saving...'}
-                {saveStatus === 'saved' && '✅ Saved'}
-                {saveStatus === 'error' && '❌ Save Error'}
-                {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
-                {hasUnsavedChanges && !user && '📝 Writing in session mode'}
-              </div>
-              <a
-                href="https://www.jongu.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1"
-              >
-                🏠 Home
-              </a>
+            <div className="text-xs text-gray-500">
+              {saveStatus === 'saving' && '💾 Saving...'}
+              {saveStatus === 'saved' && '✅ Saved'}
+              {saveStatus === 'error' && '❌ Save Error'}
+              {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
+              {hasUnsavedChanges && !user && '📝 Writing in session mode'}
             </div>
           </div>
         </div>
@@ -515,21 +604,6 @@ export default function BestPossibleSelfPage() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-6">
-            {/* Instructions */}
-            <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">How This Works</h2>
-              <p className="text-sm text-gray-700 mb-2">
-                Imagine yourself in the future, having achieved your most important goals. 
-                Write about what you see, feel, and experience in specific life areas.
-              </p>
-              <div className="text-xs text-gray-600 mb-2">
-                <strong>Areas to consider:</strong> Career & work, relationships, health & wellness, personal growth
-              </div>
-              <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 lg:hidden">
-                💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
-              </div>
-            </div>
-
             {/* Privacy Settings */}
             <div className="mb-6">
               <PrivacySettings
@@ -538,6 +612,31 @@ export default function BestPossibleSelfPage() {
                 onDataSettingChange={handleDataSavingChange}
                 onResearchConsentChange={handleResearchConsentChange}
               />
+            </div>
+
+            {/* Instructions - Now bigger and below privacy */}
+            <div className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">How This Works</h2>
+              <p className="text-base text-gray-700 mb-4 leading-relaxed">
+                Imagine yourself in the future, having achieved your most important goals. 
+                Write about what you see, feel, and experience in specific life areas. 
+                Be as detailed and vivid as possible - this exercise is most effective when you really 
+                immerse yourself in the vision of your future self.
+              </p>
+              <div className="text-sm text-gray-700 mb-4">
+                <strong>Key areas to explore:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Career & professional achievements</li>
+                  <li>Relationships & social connections</li>
+                  <li>Health & physical wellness</li>
+                  <li>Personal growth & learning</li>
+                  <li>Hobbies & creative pursuits</li>
+                  <li>Financial security & freedom</li>
+                </ul>
+              </div>
+              <div className="text-sm text-amber-700 bg-amber-50 p-3 rounded border border-amber-200 lg:hidden">
+                💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
+              </div>
             </div>
 
             {/* Writing Section */}
@@ -565,16 +664,14 @@ export default function BestPossibleSelfPage() {
                     🎯 Focus Mode
                   </button>
                 </div>
-                {dataSavingSetting !== 'private' && (
-                  <button
-                    onClick={handleManualSave}
-                    disabled={!content.trim() || saveStatus === 'saving'}
-                    className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {saveStatus === 'saving' ? '💾 Saving...' : 
-                     currentEntryId ? '💾 Update' : '💾 Save'}
-                  </button>
-                )}
+                <button
+                  onClick={handleManualSave}
+                  disabled={!content.trim() || saveStatus === 'saving'}
+                  className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {saveStatus === 'saving' ? '💾 Saving...' : 
+                   currentEntryId ? '💾 Update' : '💾 Save'}
+                </button>
               </div>
             </div>
 
@@ -599,6 +696,7 @@ export default function BestPossibleSelfPage() {
               ) : (
                 <div>
                   <AIAssistant 
+                    key={`chat-${currentEntryId || 'new'}`}
                     content={content} 
                     dataSavingSetting={dataSavingSetting}
                     researchConsent={researchConsent}
@@ -617,12 +715,13 @@ export default function BestPossibleSelfPage() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Auth Modal */}
       <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        title="Sign in to save your work"
+        title="Welcome to Best Possible Self"
         subtitle="Your writing will be preserved and you can access it anywhere"
       />
     </div>

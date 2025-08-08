@@ -12,7 +12,7 @@ interface AuthModalProps {
   subtitle?: string;
 }
 
-export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible Self", subtitle = "Sign in to save your work and access it anywhere" }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible Self", subtitle = "Your writing will be preserved and you can access it anywhere" }: AuthModalProps) {
   const supabase = createClient();
 
   // Close modal on successful auth

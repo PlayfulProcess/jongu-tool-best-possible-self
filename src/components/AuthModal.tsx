@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase-client';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface AuthModalProps {
   subtitle?: string;
 }
 
-export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible Self", subtitle = "Sign in to save your work and access it anywhere" }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible Self", subtitle = "Your writing will be preserved and you can access it anywhere" }: AuthModalProps) {
   const supabase = createClient();
   // GitHub auth removed due to issues
 
@@ -67,9 +67,8 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
           ×
         </button>
 
-        {/* GitHub auth section removed */ true && (
-          /* Regular Auth Form */
-          <div>
+        {/* Regular Auth Form */}
+        <div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
               <p className="text-gray-600 text-sm">{subtitle}</p>
@@ -107,8 +106,7 @@ export function AuthModal({ isOpen, onClose, title = "Welcome to Best Possible S
               showLinks={true}
               view="sign_in"
             />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

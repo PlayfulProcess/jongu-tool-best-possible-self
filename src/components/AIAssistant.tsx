@@ -20,6 +20,117 @@ interface Message {
   content: string;
 }
 
+// Extend window interface for global functions
+declare global {
+  interface Window {
+    debugChat?: (userId?: string, entryId?: string) => Promise<void>;
+    savePendingChatMessages?: (userId: string, entryId: string, researchConsent: boolean) => Promise<void>;
+  }
+}
+
+// Global functions for debugging and managing chat messages
+if (typeof window !== 'undefined') {
+  // Debug function - can be called from browser console as window.debugChat()
+  window.debugChat = async (userId?: string, entryId?: string) => {
+    const { createClient } = await import('@/lib/supabase-client');
+    const supabase = createClient();
+    
+    console.log('🔍 Chat Debug - UserId:', userId, 'EntryId:', entryId);
+    
+    // Get all chat messages for user
+    const { data: allChats, error: allError } = await supabase
+      .from('user_documents')
+      .select('*')
+      .eq('document_type', 'interaction')
+      .eq('tool_slug', 'best-possible-self')
+      .eq('document_data->>interaction_type', 'chat_message')
+      .order('created_at', { ascending: true });
+    
+    console.log('📊 All chat messages:', allChats?.length, 'Error:', allError);
+    if (allChats) {
+      const byTargetId = allChats.reduce((acc: Record<string, number>, msg: { document_data?: { target_id?: string } }) => {
+        const targetId = msg.document_data?.target_id || 'unknown';
+        acc[targetId] = (acc[targetId] || 0) + 1;
+        return acc;
+      }, {});
+      console.log('📊 Messages by target_id:', byTargetId);
+    }
+    
+    // Get all tool sessions for comparison
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('user_documents')
+      .select('*')
+      .eq('document_type', 'tool_session')
+      .eq('tool_slug', 'best-possible-self')
+      .order('created_at', { ascending: true });
+    
+    console.log('📝 All tool sessions:', sessions?.length, 'Error:', sessionsError);
+    if (sessions) {
+      console.log('📝 Session IDs:', sessions.map((s: { id: string }) => s.id));
+    }
+  };
+  
+  // Function to save pending chat messages when entry gets an ID
+  window.savePendingChatMessages = async (userId: string, newEntryId: string, researchConsent: boolean) => {
+    const { createClient } = await import('@/lib/supabase-client');
+    const supabase = createClient();
+    
+    // Get messages from sessionStorage
+    const sessionKey = `chat_messages_new_${userId}`;
+    const savedMessages = sessionStorage.getItem(sessionKey);
+    
+    if (!savedMessages) {
+      console.log('💾 No pending messages to save');
+      return;
+    }
+    
+    let messages;
+    try {
+      messages = JSON.parse(savedMessages);
+    } catch {
+      console.log('💾 Invalid messages format in sessionStorage');
+      return;
+    }
+    
+    if (!messages || messages.length === 0) {
+      console.log('💾 No messages to save');
+      return;
+    }
+    
+    console.log('💾 Saving', messages.length, 'pending chat messages for entryId:', newEntryId);
+    
+    try {
+      // Save all messages to database with the new entryId
+      const messagesToSave = messages.map((msg: { content: string; role: string }) => ({
+        user_id: userId,
+        document_type: 'interaction' as const,
+        tool_slug: 'best-possible-self',
+        is_public: false,
+        document_data: {
+          target_type: 'tool_session',
+          target_id: newEntryId,
+          interaction_type: 'chat_message',
+          message: msg.content,
+          role: msg.role,
+          research_consent: researchConsent
+        }
+      }));
+      
+      const { error } = await supabase.from('user_documents').insert(messagesToSave);
+      
+      if (error) {
+        console.error('💾 Error saving pending chat messages:', error);
+      } else {
+        console.log('💾 Successfully saved', messagesToSave.length, 'pending chat messages');
+        // Clear the sessionStorage since messages are now in database
+        sessionStorage.removeItem(sessionKey);
+      }
+    } catch (error) {
+      console.error('💾 Error saving pending messages:', error);
+    }
+  };
+}
+
 export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId, onMessage, clearChat = false }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(() => {
     // Initialize isOpen state from sessionStorage
@@ -33,7 +144,6 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
-  const [previousEntryId, setPreviousEntryId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const supabase = createClient();
@@ -63,16 +173,12 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   // Load existing chat messages when component mounts or entryId changes
   useEffect(() => {
     const loadMessages = async () => {
-      // Track if this is just the first save (null -> actual ID)
-      const isFirstSave = previousEntryId === null && entryId !== null && messages.length > 0;
+      console.log('Loading messages for entryId:', entryId, 'user:', user?.id);
       
-      // Track if user just signed in (user state changed from null to actual user)
-      const userJustSignedIn = user && !previousEntryId && entryId;
       
-      // Only update previousEntryId if it's actually different
-      if (previousEntryId !== entryId) {
-        setPreviousEntryId(entryId || null);
-      }
+      // Always start fresh - clear messages when loading
+      setMessages([]);
+      setMessagesLoaded(false);
 
       if (!user || !entryId) {
         // For new entries or anonymous users, try to load from sessionStorage first
@@ -80,7 +186,9 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         const savedMessages = sessionStorage.getItem(sessionKey);
         if (savedMessages) {
           try {
-            setMessages(JSON.parse(savedMessages));
+            const parsedMessages = JSON.parse(savedMessages);
+            console.log('Loaded from sessionStorage:', parsedMessages.length, 'messages');
+            setMessages(parsedMessages);
           } catch {
             setMessages([]);
           }
@@ -91,65 +199,82 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
         return;
       }
 
-      // If this is just the first save, don't reload - keep existing messages
-      if (isFirstSave) {
-        setMessagesLoaded(true);
-        return;
-      }
-
-      // If user just signed in and we have messages in sessionStorage, preserve them
-      if (userJustSignedIn && messages.length > 0) {
-        const sessionKey = `chat_messages_new_anonymous`;
-        const anonymousMessages = sessionStorage.getItem(sessionKey);
-        if (anonymousMessages) {
-          try {
-            const parsedMessages = JSON.parse(anonymousMessages);
-            if (parsedMessages.length > 0) {
-              setMessages(parsedMessages);
-              setMessagesLoaded(true);
-              // Clear anonymous session storage since user is now authenticated
-              sessionStorage.removeItem(sessionKey);
-              return;
-            }
-          } catch {
-            // Continue with normal flow if parsing fails
-          }
-        }
-        // If we already have messages from before auth, keep them
-        setMessagesLoaded(true);
-        return;
-      }
-
       try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('message, role, created_at')
-          .eq('journal_entry_id', entryId)
+        // First try to load from database
+        console.log('🔍 Querying database for entryId:', entryId, 'user:', user.id);
+        
+        // First, let's see what's in the database for this user
+        const { data: allUserMessages } = await supabase
+          .from('user_documents')
+          .select('document_data, created_at')
           .eq('user_id', user.id)
+          .eq('document_type', 'interaction')
+          .eq('tool_slug', 'best-possible-self')
+          .eq('document_data->>interaction_type', 'chat_message')
+          .order('created_at', { ascending: true });
+          
+        console.log('📋 All chat messages for user:', allUserMessages?.length || 0);
+        if (allUserMessages && allUserMessages.length > 0) {
+          const targetIds = allUserMessages.map(msg => msg.document_data?.target_id).filter((v, i, a) => a.indexOf(v) === i);
+          console.log('🎯 Available target_ids:', targetIds);
+        }
+        
+        // Now query for the specific entry
+        const { data: chatMessages, error: chatError } = await supabase
+          .from('user_documents')
+          .select('document_data, created_at')
+          .eq('user_id', user.id)
+          .eq('document_type', 'interaction')
+          .eq('tool_slug', 'best-possible-self')
+          .eq('document_data->>interaction_type', 'chat_message')
+          .eq('document_data->>target_id', entryId)
           .order('created_at', { ascending: true });
 
-        if (error) {
-          console.error('Error loading chat messages:', error);
-          setMessages([]);
-          return;
+        console.log('📊 Database query result for entryId', entryId, ':', chatMessages?.length || 0, 'messages, error:', chatError);
+
+        if (!chatError && chatMessages && chatMessages.length > 0) {
+          // Transform database messages to our Message format
+          const transformedMessages = chatMessages.map(msg => ({
+            role: msg.document_data?.role as 'user' | 'assistant',
+            content: msg.document_data?.message || ''
+          })).filter(msg => msg.role && msg.content);
+          
+          console.log('Setting messages from database:', transformedMessages.length, 'messages');
+          setMessages(transformedMessages);
+        } else {
+          // Fallback to sessionStorage if no database messages
+          const sessionKey = `chat_messages_${entryId}`;
+          const savedMessages = sessionStorage.getItem(sessionKey);
+          if (savedMessages) {
+            try {
+              setMessages(JSON.parse(savedMessages));
+            } catch {
+              setMessages([]);
+            }
+          } else {
+            setMessages([]);
+          }
         }
-
-        const loadedMessages: Message[] = data.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.message
-        }));
-
-        setMessages(loadedMessages);
       } catch (error) {
         console.error('Error loading messages:', error);
-        setMessages([]);
+        // Fallback to sessionStorage on error
+        const sessionKey = `chat_messages_${entryId}`;
+        const savedMessages = sessionStorage.getItem(sessionKey);
+        if (savedMessages) {
+          try {
+            setMessages(JSON.parse(savedMessages));
+          } catch {
+            setMessages([]);
+          }
+        } else {
+          setMessages([]);
+        }
       } finally {
         setMessagesLoaded(true);
       }
     };
 
     loadMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, entryId, supabase]);
 
   // Auto-save messages to sessionStorage for persistence
@@ -161,21 +286,50 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
   }, [messages, entryId, user]);
 
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
-    if (!user || dataSavingSetting === 'private') return;
+    if (!user || dataSavingSetting === 'private') {
+      console.log('💾 Not saving chat message - user:', !!user, 'dataSetting:', dataSavingSetting);
+      return;
+    }
 
+    // Don't save to database if we don't have an entryId yet
+    // Messages will be saved to sessionStorage and can be saved to database later when entry is saved
+    if (!entryId) {
+      console.log('💾 Skipping database save - no entryId yet, messages in sessionStorage only');
+      return;
+    }
+
+    console.log('💾 Saving chat message - entryId:', entryId, 'role:', role, 'message length:', message.length);
+    
     try {
-      await supabase.from('chat_messages').insert({
+      const insertData = {
         user_id: user.id,
-        journal_entry_id: entryId,
-        message,
-        role,
-        is_public: false, // We removed public blog option
-        research_consent: researchConsent
-      });
+        document_type: 'interaction',
+        tool_slug: 'best-possible-self',
+        is_public: false,
+        document_data: {
+          target_type: 'tool_session',
+          target_id: entryId,
+          interaction_type: 'chat_message',
+          message,
+          role,
+          research_consent: researchConsent
+        }
+      };
+      
+      console.log('💾 Insert data:', JSON.stringify(insertData, null, 2));
+      
+      const result = await supabase.from('user_documents').insert(insertData);
+      
+      if (result.error) {
+        console.error('💾 Database insert error:', result.error);
+      } else {
+        console.log('💾 Successfully saved chat message to database');
+      }
     } catch (error) {
-      console.error('Error saving chat message:', error);
+      console.error('💾 Error saving chat message:', error);
     }
   };
+
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;

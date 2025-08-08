@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useAuth } from './AuthProvider'
-import { createClient } from '@/lib/supabase-client'
+import { useState, useEffect } from 'react'
 
 export type DataSavingSetting = 'private' | 'save_private'
 
@@ -21,10 +19,16 @@ export function PrivacySettings({
 }: PrivacySettingsProps) {
   const [dataSetting, setDataSetting] = useState<DataSavingSetting>(defaultDataSetting)
   const [researchConsent, setResearchConsent] = useState<boolean>(defaultResearchConsent)
-  const [isUpdatingPastData, setIsUpdatingPastData] = useState(false)
   
-  const { user } = useAuth()
-  const supabase = createClient()
+  
+  // Sync internal state with parent's state changes
+  useEffect(() => {
+    setDataSetting(defaultDataSetting)
+  }, [defaultDataSetting])
+  
+  useEffect(() => {
+    setResearchConsent(defaultResearchConsent)
+  }, [defaultResearchConsent])
 
   const handleDataSettingChange = (setting: DataSavingSetting) => {
     // If switching to private mode, show confirmation popup
@@ -47,59 +51,10 @@ export function PrivacySettings({
     onDataSettingChange(setting)
   }
 
-  const updatePastDataConsent = async (newConsent: boolean) => {
-    if (!user) return
-    
-    setIsUpdatingPastData(true)
-    try {
-      // Update all existing journal entries
-      const { error: journalError } = await supabase
-        .from('journal_entries')
-        .update({ research_consent: newConsent })
-        .eq('user_id', user.id)
 
-      if (journalError) throw journalError
-
-      // Update all existing chat messages
-      const { error: chatError } = await supabase
-        .from('chat_messages')
-        .update({ research_consent: newConsent })
-        .eq('user_id', user.id)
-
-      if (chatError) throw chatError
-
-      console.log('Updated past data consent to:', newConsent)
-    } catch (error) {
-      console.error('Error updating past data consent:', error)
-      alert('Failed to update past data settings')
-    } finally {
-      setIsUpdatingPastData(false)
-    }
-  }
-
-  const handleResearchConsentChange = async (consent: boolean) => {
-    const wasConsenting = researchConsent
+  const handleResearchConsentChange = (consent: boolean) => {
     setResearchConsent(consent)
     onResearchConsentChange(consent)
-
-    // If user is changing from consenting to not consenting, ask about past data
-    if (wasConsenting && !consent) {
-      const shouldUpdatePast = confirm(
-        'Would you also like to remove research consent from all your previously saved entries and chat messages?'
-      )
-      if (shouldUpdatePast) {
-        await updatePastDataConsent(false)
-      }
-    }
-    // If user is changing from not consenting to consenting, offer to include past data
-    else if (!wasConsenting && consent) {
-      const shouldUpdatePast = confirm(
-        'Would you like to include your previously saved entries and chat messages for research? (This will help improve our AI for everyone)'
-      )
-      if (shouldUpdatePast) {
-        await updatePastDataConsent(true)
-      }
-    }
   }
 
   const dataSavingOptions = [
@@ -152,15 +107,11 @@ export function PrivacySettings({
               type="checkbox"
               checked={researchConsent}
               onChange={(e) => handleResearchConsentChange(e.target.checked)}
-              disabled={isUpdatingPastData}
-              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <div className="flex-1">
               <div className="text-sm font-medium text-gray-900">
                 Research Consent
-                {isUpdatingPastData && (
-                  <span className="ml-2 text-xs text-blue-600">Updating past data...</span>
-                )}
               </div>
               <div className="text-xs text-gray-500">
                 Allow us to use anonymized data to improve the AI (completely separate from your privacy choice above)
