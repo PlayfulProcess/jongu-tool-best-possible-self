@@ -19,21 +19,9 @@ export async function middleware(request: NextRequest) {
           supabaseResponse = NextResponse.next({
             request,
           })
-          cookiesToSet.forEach(({ name, value, options }) => {
-            // Only modify domain for production jongu.org domains
-            if (process.env.NODE_ENV === 'production' && 
-                request.headers.get('host')?.includes('jongu.org')) {
-              supabaseResponse.cookies.set(name, value, {
-                ...options,
-                domain: '.jongu.org', // This allows sharing across all *.jongu.org subdomains
-                sameSite: 'lax',
-                secure: true
-              })
-            } else {
-              // Keep default for localhost and Vercel preview URLs
-              supabaseResponse.cookies.set(name, value, options)
-            }
-          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
         },
       },
     }
