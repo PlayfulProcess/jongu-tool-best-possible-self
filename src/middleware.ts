@@ -19,9 +19,26 @@ export async function middleware(request: NextRequest) {
           supabaseResponse = NextResponse.next({
             request,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Surgical approach: Only modify domain for main auth token, not refresh tokens
+            const isAuthCookie = name.includes('sb-') && name.includes('-auth-token')
+            const isRefresh = name.includes('-refresh')
+            const isProduction = process.env.NODE_ENV === 'production'
+            const isJongu = request.headers.get('host')?.includes('jongu.org')
+
+            if (isProduction && isJongu && isAuthCookie && !isRefresh) {
+              // Only set domain for main auth cookie in production on jongu.org
+              supabaseResponse.cookies.set(name, value, {
+                ...options,
+                domain: '.jongu.org',
+                sameSite: 'lax',
+                secure: true,
+              })
+            } else {
+              // Keep original options for everything else (including refresh tokens)
+              supabaseResponse.cookies.set(name, value, options)
+            }
+          })
         },
       },
     }
