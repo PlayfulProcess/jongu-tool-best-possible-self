@@ -13,11 +13,16 @@ function createRouteClient(req: NextRequest, res: NextResponse) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
-        set: (name: string, value: string, options: Record<string, unknown>) =>
-          res.cookies.set({ name, value, ...options, ...(parentDomain ? { domain: parentDomain } : {}) }),
-        remove: (name: string, options: Record<string, unknown>) =>
-          res.cookies.set({ name, value: '', ...options, ...(parentDomain ? { domain: parentDomain } : {}) }),
+        getAll() {
+          return req.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const cookieOptions = parentDomain ? { ...options, domain: parentDomain } : options
+            res.cookies.set(name, value, cookieOptions)
+          })
+        },
       },
     }
   )
