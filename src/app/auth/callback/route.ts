@@ -5,8 +5,10 @@ import { createServerClient } from '@supabase/ssr'
 function createRouteClient(req: NextRequest, res: NextResponse) {
   const host = req.headers.get('host') || ''
   const isProd = process.env.NODE_ENV === 'production'
-  const isJongu = /jongu\.org$/i.test(host)
+  const isJongu = /\.?jongu\.org$/i.test(host) // Match both preview.jongu.org and jongu.org
   const parentDomain = isProd && isJongu ? '.jongu.org' : undefined
+  
+  console.log('Auth callback - Host:', host, 'isProd:', isProd, 'isJongu:', isJongu, 'parentDomain:', parentDomain)
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
