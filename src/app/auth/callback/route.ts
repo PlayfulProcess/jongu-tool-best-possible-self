@@ -5,7 +5,7 @@ import { createServerClient } from '@supabase/ssr'
 function createRouteClient(req: NextRequest, res: NextResponse) {
   const host = req.headers.get('host') || ''
   const isProd = process.env.NODE_ENV === 'production'
-  const isJongu = /\.?jongu\.org$/i.test(host)
+  const isJongu = /jongu\.org$/i.test(host)
   const parentDomain = isProd && isJongu ? '.jongu.org' : undefined
 
   return createServerClient(

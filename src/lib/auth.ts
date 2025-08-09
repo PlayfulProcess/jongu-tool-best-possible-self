@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase-client'
 
-export async function signInWithEmail(email: string) {
+export async function signInWithEmail(email: string, returnTo?: string) {
   const supabase = createClient()
-  const next = window.location.href // return here after login
+  const next = returnTo || window.location.href // return here after login
   await supabase.auth.signInWithOtp({
     email,
     options: {

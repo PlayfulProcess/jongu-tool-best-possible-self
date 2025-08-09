@@ -180,7 +180,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = '/auth';
+      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
       return;
     }
     
@@ -238,7 +238,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = '/auth';
+      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
       return;
     }
     setDataSavingSetting(newSetting);
@@ -429,7 +429,7 @@ export default function BestPossibleSelfPage() {
             </button>
           ) : (
             <button
-              onClick={() => window.location.href = '/auth'}
+              onClick={() => window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`}
               className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
             >
               Sign In
