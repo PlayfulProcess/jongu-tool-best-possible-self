@@ -11,7 +11,6 @@ declare global {
 }
 import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
-import { AuthModal } from '@/components/AuthModal';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { PrivacySettings, type DataSavingSetting } from '@/components/PrivacySettings';
@@ -44,7 +43,6 @@ export default function BestPossibleSelfPage() {
   const [chatExchangeCount, setChatExchangeCount] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [clearAIChat, setClearAIChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -182,7 +180,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      setShowAuthModal(true);
+      window.location.href = '/auth';
       return;
     }
     
@@ -240,7 +238,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      setShowAuthModal(true);
+      window.location.href = '/auth';
       return;
     }
     setDataSavingSetting(newSetting);
@@ -431,7 +429,7 @@ export default function BestPossibleSelfPage() {
             </button>
           ) : (
             <button
-              onClick={() => setShowAuthModal(true)}
+              onClick={() => window.location.href = '/auth'}
               className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
             >
               Sign In
@@ -723,13 +721,7 @@ export default function BestPossibleSelfPage() {
       </div>
       </div>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        title="Welcome to Best Possible Self"
-        subtitle="Your writing will be preserved and you can access it anywhere"
-      />
+      {/* Auth now redirects to /auth page */}
     </div>
   );
 }
