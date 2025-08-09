@@ -14,9 +14,9 @@ function createRouteClient(req: NextRequest, res: NextResponse) {
     {
       cookies: {
         get: (name: string) => req.cookies.get(name)?.value,
-        set: (name: string, value: string, options: any) =>
+        set: (name: string, value: string, options: Record<string, unknown>) =>
           res.cookies.set({ name, value, ...options, ...(parentDomain ? { domain: parentDomain } : {}) }),
-        remove: (name: string, options: any) =>
+        remove: (name: string, options: Record<string, unknown>) =>
           res.cookies.set({ name, value: '', ...options, ...(parentDomain ? { domain: parentDomain } : {}) }),
       },
     }
