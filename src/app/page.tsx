@@ -214,17 +214,6 @@ export default function BestPossibleSelfPage() {
     // User is already in save mode, proceed with saving
     setSaveStatus('saving');
     saveJournalEntry(content);
-    
-    // Show update confirmation
-    if (currentEntryId) {
-      setTimeout(() => {
-        alert(
-          'Entry updated! 📝\n\n' +
-          'The sidebar preview may take a moment to refresh. ' +
-          'Refreshing the page will show updated previews but may lose unsaved work.'
-        );
-      }, 1000);
-    }
   };
 
   const handleDataSavingChange = (newSetting: DataSavingSetting) => {
