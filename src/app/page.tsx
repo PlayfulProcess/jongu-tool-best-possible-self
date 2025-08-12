@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { PrivacySettings, type DataSavingSetting } from '@/components/PrivacySettings';
+import { AuthModal } from '@/components/AuthModal';
 
 interface JournalEntry {
   id: string
@@ -45,6 +46,7 @@ export default function BestPossibleSelfPage() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [clearAIChat, setClearAIChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const supabase = createClient();
 
@@ -180,7 +182,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
+      setShowAuthModal(true);
       return;
     }
     
@@ -227,7 +229,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
+      setShowAuthModal(true);
       return;
     }
     setDataSavingSetting(newSetting);
@@ -418,7 +420,7 @@ export default function BestPossibleSelfPage() {
             </button>
           ) : (
             <button
-              onClick={() => window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`}
+              onClick={() => setShowAuthModal(true)}
               className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
             >
               Sign In
@@ -710,7 +712,13 @@ export default function BestPossibleSelfPage() {
       </div>
       </div>
 
-      {/* Auth now redirects to /auth page */}
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
     </div>
   );
 }
