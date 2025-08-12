@@ -1,45 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase-server'
+import { NextResponse } from 'next/server'
 
-// Minimal route-client that forces domain=.jongu.org in prod
-function createRouteClient(req: NextRequest, res: NextResponse) {
-  const host = req.headers.get('host') || ''
-  const isProd = process.env.NODE_ENV === 'production'
-  const isJongu = /\.?jongu\.org$/i.test(host) // Match both preview.jongu.org and jongu.org
-  const parentDomain = isProd && isJongu ? '.jongu.org' : undefined
-  
-  console.log('Auth callback - Host:', host, 'isProd:', isProd, 'isJongu:', isJongu, 'parentDomain:', parentDomain)
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  // Support both 'next' and 'returnTo' params for backward compatibility
+  const next = searchParams.get('next') ?? searchParams.get('returnTo') ?? '/'
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
-          cookiesToSet.forEach(({ name, value, options }) => {
-            const cookieOptions = parentDomain ? { ...options, domain: parentDomain } : options
-            res.cookies.set(name, value, cookieOptions)
-          })
-        },
-      },
-    }
-  )
-}
-
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url)
-  const next = url.searchParams.get('next') || '/'
-  const res = NextResponse.redirect(new URL(next, url))
-  const supabase = createRouteClient(req, res)
-
-  const code = url.searchParams.get('code')
   if (code) {
-    // Works for magic links and OAuth PKCE flows
-    await supabase.auth.exchangeCodeForSession(code)
+    const supabase = await createClient()
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+      const isLocalEnv = process.env.NODE_ENV === 'development'
+      
+      // All magic link flows go to the same place
+      if (isLocalEnv) {
+        return NextResponse.redirect(`${origin}${next}`)
+      } else if (forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}${next}`)
+      } else {
+        return NextResponse.redirect(`${origin}${next}`)
+      }
+    }
   }
-  return res
+
+  // return the user to an error page with instructions
+  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }

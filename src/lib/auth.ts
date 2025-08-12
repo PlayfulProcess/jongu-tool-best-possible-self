@@ -5,12 +5,12 @@ export async function signInWithEmail(email: string, returnTo?: string) {
   const next = returnTo || window.location.href // return here after login
   
   console.log('Attempting to send magic link to:', email)
-  console.log('Redirect URL will be:', `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`)
+  console.log('Redirect URL will be:', `${window.location.origin}/auth/callback?returnTo=${encodeURIComponent(next)}`)
   
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: `${window.location.origin}/auth/callback?returnTo=${encodeURIComponent(next)}`,
     },
   })
   
