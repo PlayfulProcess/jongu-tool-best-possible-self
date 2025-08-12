@@ -2,7 +2,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from './supabase'
 
 export function createClient() {
-  // Determine if we're on a jongu.org domain
+  // Determine if we're on a jongu.org domain (including preview subdomains)
   const isJonguDomain = typeof window !== 'undefined' && 
     (window.location.hostname.endsWith('.jongu.org') || 
      window.location.hostname === 'jongu.org')

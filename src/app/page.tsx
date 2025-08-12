@@ -56,7 +56,7 @@ export default function BestPossibleSelfPage() {
       const { data, error } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.id as string)
         .eq('document_type', 'tool_session')
         .eq('tool_slug', 'best-possible-self')
         .order('updated_at', { ascending: false });
