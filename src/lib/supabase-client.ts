@@ -12,18 +12,19 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        // Set domain to .jongu.org in production for cross-subdomain auth
-        ...(isJonguDomain && {
-          getAll() {
-            const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
-              const [name, value] = cookie.split('=')
-              acc.push({ name, value })
-              return acc
-            }, [] as { name: string; value: string }[])
-            return cookies
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
+        getAll() {
+          if (typeof document === 'undefined') return []
+          const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
+            const [name, value] = cookie.split('=')
+            if (name && value) acc.push({ name, value })
+            return acc
+          }, [] as { name: string; value: string }[])
+          return cookies
+        },
+        setAll(cookiesToSet) {
+          if (typeof document === 'undefined') return
+          cookiesToSet.forEach(({ name, value, options }) => {
+            if (isJonguDomain) {
               const cookieString = `${name}=${value}; ${Object.entries({
                 ...options,
                 domain: '.jongu.org', // Force parent domain
@@ -32,9 +33,13 @@ export function createClient() {
                 sameSite: 'lax'
               }).map(([k, v]) => `${k}=${v}`).join('; ')}`
               document.cookie = cookieString
-            })
-          }
-        })
+            } else {
+              // Standard cookie handling for non-jongu domains
+              const cookieString = `${name}=${value}; ${Object.entries(options || {}).map(([k, v]) => `${k}=${v}`).join('; ')}`
+              document.cookie = cookieString
+            }
+          })
+        }
       }
     }
   )
