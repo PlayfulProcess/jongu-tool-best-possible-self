@@ -1,54 +1,51 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ImprovedAuthModal } from '@/components/modals/ImprovedAuthModal'
 import { createClient } from '@/lib/supabase-client'
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
 
 export default function AuthPage() {
+  const router = useRouter()
+  const [showAuthModal, setShowAuthModal] = useState(true)
   const supabase = createClient()
 
+  useEffect(() => {
+    // Check if user is already signed in
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/')
+      }
+    }
+    checkUser()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        router.push('/')
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [router, supabase.auth])
+
+  const handleCloseModal = () => {
+    setShowAuthModal(false)
+    router.push('/')
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6 text-gray-900">Welcome to Best Possible Self</h1>
-        <p className="text-sm text-gray-600 text-center mb-6">Sign in or create your account</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Best Possible Self Tool</h1>
+        <p className="text-lg text-gray-600 mb-8">Research-backed future visioning exercise</p>
         
-        {/* Privacy Notice */}
-        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-800">
-            🔒 <strong>Privacy First:</strong> Your password works across all Jongu tools, but each tool requires separate sign-in. 
-            We use only essential session cookies that expire when you close your browser. No tracking, no cross-site data sharing.
-          </p>
-        </div>
-        
-        <Auth
-          supabaseClient={supabase}
-          appearance={{ 
-            theme: ThemeSupa,
-            style: {
-              button: {
-                background: '#2563eb',
-                borderColor: '#2563eb',
-                color: '#ffffff',
-              },
-              anchor: {
-                color: '#2563eb',
-              },
-              label: {
-                color: '#374151',
-              },
-              message: {
-                color: '#374151',
-              },
-            }
-          }}
-          providers={[]}
-          redirectTo={typeof window !== 'undefined' ? 
-            `${window.location.protocol}//${window.location.host}/auth/callback?returnTo=${encodeURIComponent('/')}`
-            : undefined}
-          onlyThirdPartyProviders={false}
-          showLinks={true}
-          view="sign_in"
+        <ImprovedAuthModal 
+          isOpen={showAuthModal}
+          onClose={handleCloseModal}
+          title="Welcome to Best Possible Self Tool"
+          subtitle="Choose your preferred sign-in method"
         />
       </div>
     </div>

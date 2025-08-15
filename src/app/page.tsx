@@ -411,10 +411,10 @@ export default function BestPossibleSelfPage() {
           
           {user ? (
             <button
-              onClick={signOut}
-              className="px-3 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+              onClick={() => window.location.href = '/account'}
+              className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
             >
-              Sign Out
+              Account Settings
             </button>
           ) : (
             <button
