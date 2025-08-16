@@ -103,16 +103,16 @@ export function ImprovedAuthModal({
         // Development - use localhost
         redirectUrl = `${window.location.protocol}//${window.location.host}/auth/callback`;
       } else if (currentDomain.includes('bps-preview')) {
-        // BPS Preview deployment
+        // BPS Preview deployment (no production BPS domain exists)
         redirectUrl = 'https://bps-preview.jongu.org/auth/callback';
-      } else if (currentDomain.includes('bps')) {
-        // BPS Production
-        redirectUrl = 'https://bps.jongu.org/auth/callback';
+      } else if (currentDomain.includes('wellness-tool')) {
+        // Wellness Tool (more specific match first)
+        redirectUrl = 'https://wellness-tool.jongu.org/auth/callback';
       } else if (currentDomain.includes('wellness-preview')) {
         // Wellness Preview deployment  
         redirectUrl = 'https://wellness-preview.jongu.org/auth/callback';
       } else if (currentDomain.includes('wellness')) {
-        // Wellness Production
+        // Wellness Channel (fallback for wellness)
         redirectUrl = 'https://wellness.jongu.org/auth/callback';
       } else {
         // Fallback - use current domain
