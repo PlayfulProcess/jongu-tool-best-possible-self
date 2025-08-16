@@ -95,11 +95,29 @@ export function ImprovedAuthModal({
 
     try {
       // Use proper magic link method that works for both existing and new users
-      // Force the correct domain for BPS tool
+      // Smart domain-aware redirect logic
       const currentDomain = window.location.host;
-      const redirectUrl = currentDomain.includes('localhost') 
-        ? `${window.location.protocol}//${window.location.host}/auth/callback`
-        : 'https://bps.jongu.org/auth/callback'; // Force BPS domain in production
+      let redirectUrl;
+      
+      if (currentDomain.includes('localhost')) {
+        // Development - use localhost
+        redirectUrl = `${window.location.protocol}//${window.location.host}/auth/callback`;
+      } else if (currentDomain.includes('bps-preview')) {
+        // BPS Preview deployment
+        redirectUrl = 'https://bps-preview.jongu.org/auth/callback';
+      } else if (currentDomain.includes('bps')) {
+        // BPS Production
+        redirectUrl = 'https://bps.jongu.org/auth/callback';
+      } else if (currentDomain.includes('wellness-preview')) {
+        // Wellness Preview deployment  
+        redirectUrl = 'https://wellness-preview.jongu.org/auth/callback';
+      } else if (currentDomain.includes('wellness')) {
+        // Wellness Production
+        redirectUrl = 'https://wellness.jongu.org/auth/callback';
+      } else {
+        // Fallback - use current domain
+        redirectUrl = `${window.location.protocol}//${window.location.host}/auth/callback`;
+      }
         
       const { error } = await supabase.auth.signInWithOtp({
         email,
