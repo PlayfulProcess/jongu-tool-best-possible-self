@@ -129,9 +129,9 @@ export default function AccountSettingsPage() {
     if (!user) return;
 
     const confirmed = window.confirm(
-      'Are you sure you want to delete all your data from the Best Possible Self tool?\\n\\n' +
+      'Are you sure you want to delete all your data from the Best Possible Self tool?\n\n' +
       'This will permanently delete all your journal entries from this tool only. ' +
-      'Your account and data from other Jongu tools will remain intact.\\n\\n' +
+      'Your account and data from other Jongu tools will remain intact.\n\n' +
       'This action cannot be undone.'
     );
 
@@ -166,17 +166,17 @@ export default function AccountSettingsPage() {
     if (!user) return;
 
     const confirmed = window.confirm(
-      'Are you sure you want to delete your Jongu account?\\n\\n' +
-      'WILL BE DELETED:\\n' +
-      '• Your account and authentication\\n' +
-      '• All private journal entries\\n' +
-      '• Your personal settings\\n' +
-      '• Your starred items\\n\\n' +
-      'WILL REMAIN PUBLIC:\\n' +
-      '• Tools you submitted to the community\\n' +
-      '• Public comments or contributions\\n' +
-      '• Anonymized research data (if consented)\\n\\n' +
-      'Contact pp@playfulprocess.com for complete removal including public content.\\n\\n' +
+      'Are you sure you want to delete your Jongu account?\n\n' +
+      'WILL BE DELETED:\n' +
+      '• Your account and authentication\n' +
+      '• All private journal entries\n' +
+      '• Your personal settings\n' +
+      '• Your starred items\n\n' +
+      'WILL REMAIN PUBLIC:\n' +
+      '• Tools you submitted to the community\n' +
+      '• Public comments or contributions\n' +
+      '• Anonymized research data (if consented)\n\n' +
+      'Contact pp@playfulprocess.com for complete removal including public content.\n\n' +
       'This action cannot be undone.'
     );
 
@@ -184,8 +184,8 @@ export default function AccountSettingsPage() {
     
     // Double confirmation for this serious action
     const doubleConfirmed = window.confirm(
-      'Final confirmation: Delete your account?\\n\\n' +
-      'Remember: Your submitted tools will remain in the community.\\n' +
+      'Final confirmation: Delete your account?\n\n' +
+      'Remember: Your submitted tools will remain in the community.\n' +
       'Contact pp@playfulprocess.com if you need them removed too.'
     );
     
@@ -208,22 +208,12 @@ export default function AccountSettingsPage() {
 
       if (documentsError) throw documentsError;
 
-      // Delete user from auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (authError) {
-        // If admin delete fails, try user delete
-        const { error: userDeleteError } = await supabase.auth.deleteUser();
-        if (userDeleteError) throw userDeleteError;
-      }
-
-      setMessage({ type: 'success', text: 'Your account and all data have been deleted. You will be redirected shortly.' });
-      
-      // Sign out and redirect
-      setTimeout(async () => {
-        await signOut();
-        router.push('/');
-      }, 2000);
+      // Note: User deletion needs to be handled server-side
+      // For now, we can only delete the user_documents data
+      setMessage({ 
+        type: 'success', 
+        text: 'Your personal data has been deleted. Please contact pp@playfulprocess.com to complete account removal.' 
+      });
     } catch (error) {
       setMessage({ type: 'error', text: `Failed to delete account: ${(error as Error).message}` });
     } finally {

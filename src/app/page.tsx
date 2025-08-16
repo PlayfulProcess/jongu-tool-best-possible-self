@@ -28,7 +28,7 @@ interface JournalEntry {
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
 
 export default function BestPossibleSelfPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [entriesLoading, setEntriesLoading] = useState(true);
