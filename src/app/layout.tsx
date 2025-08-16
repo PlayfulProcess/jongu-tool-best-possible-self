@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
-import DiscordWidget from "@/components/DiscordWidget";
-import DonateButton from "@/components/DonateButton";
 import { config } from "@/lib/jongu-config";
 
 const geistSans = Geist({
@@ -34,17 +32,6 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
-          {config.features.discord.enabled && config.features.discord.showWidget && (
-            <DiscordWidget serverId={config.features.discord.serverId} />
-          )}
-          {config.features.donations.enabled && (
-            <div className="fixed bottom-4 left-4 z-50">
-              <DonateButton 
-                stripeLink={config.features.donations.stripeLink}
-                buttonText={config.features.donations.buttonText}
-              />
-            </div>
-          )}
         </AuthProvider>
       </body>
     </html>

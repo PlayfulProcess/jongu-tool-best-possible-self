@@ -14,6 +14,8 @@ import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { PrivacySettings, type DataSavingSetting } from '@/components/PrivacySettings';
+import { CalmDonateButton } from '@/components/CalmDonateButton';
+import { CalmDiscordButton } from '@/components/CalmDiscordButton';
 
 interface JournalEntry {
   id: string
@@ -408,6 +410,8 @@ export default function BestPossibleSelfPage() {
           >
             ← Back to Wellness
           </a>
+          <CalmDiscordButton compact={true} className="hidden sm:inline-flex" />
+          <CalmDonateButton compact={true} className="hidden sm:inline-flex" />
           
           {user ? (
             <button
