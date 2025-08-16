@@ -2,6 +2,8 @@
 
 A focused implementation of the Best Possible Self journaling exercise, based on research from UC Berkeley's Greater Good Science Center.
 
+Featured as the www.jongu.org tool.
+
 ## Features
 
 - 📝 Guided journaling with the Best Possible Self exercise
