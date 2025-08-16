@@ -208,12 +208,21 @@ export default function AccountSettingsPage() {
 
       if (documentsError) throw documentsError;
 
-      // Note: User deletion needs to be handled server-side
-      // For now, we can only delete the user_documents data
+      // For now, we can only delete user data
+      // Auth account deletion requires server-side implementation or RPC function
       setMessage({ 
         type: 'success', 
-        text: 'Your personal data has been deleted. Please contact pp@playfulprocess.com to complete account removal.' 
+        text: 'Your personal data has been deleted. Please contact pp@playfulprocess.com to complete account removal, or use the SQL function provided.' 
       });
+      
+      // Optionally sign out the user after data deletion
+      setTimeout(async () => {
+        const shouldSignOut = window.confirm('Your data has been deleted. Would you like to sign out now?');
+        if (shouldSignOut) {
+          await signOut();
+          window.location.href = '/';
+        }
+      }, 2000);
     } catch (error) {
       setMessage({ type: 'error', text: `Failed to delete account: ${(error as Error).message}` });
     } finally {

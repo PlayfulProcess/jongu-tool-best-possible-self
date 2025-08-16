@@ -95,10 +95,16 @@ export function ImprovedAuthModal({
 
     try {
       // Use proper magic link method that works for both existing and new users
+      // Force the correct domain for BPS tool
+      const currentDomain = window.location.host;
+      const redirectUrl = currentDomain.includes('localhost') 
+        ? `${window.location.protocol}//${window.location.host}/auth/callback`
+        : 'https://bps.jongu.org/auth/callback'; // Force BPS domain in production
+        
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.protocol}//${window.location.host}/auth/callback`
+          emailRedirectTo: redirectUrl
         }
       });
       if (error) throw error;
