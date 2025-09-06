@@ -69,7 +69,20 @@ export function ImprovedAuthModal({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.protocol}//${window.location.host}/auth/callback`
+            emailRedirectTo: (() => {
+              const currentDomain = window.location.host;
+              if (currentDomain.includes('localhost')) {
+                return `${window.location.protocol}//${window.location.host}/auth/callback`;
+              } else if (currentDomain.includes('journal.recursive.eco')) {
+                return 'https://journal.recursive.eco/auth/callback';
+              } else if (currentDomain.includes('channels.recursive.eco')) {
+                return 'https://channels.recursive.eco/auth/callback';
+              } else if (currentDomain.includes('recursive.eco')) {
+                return 'https://www.recursive.eco/auth/callback';
+              } else {
+                return `${window.location.protocol}//${window.location.host}/auth/callback`;
+              }
+            })()
           }
         });
         if (error) throw error;
@@ -102,6 +115,15 @@ export function ImprovedAuthModal({
       if (currentDomain.includes('localhost')) {
         // Development - use localhost
         redirectUrl = `${window.location.protocol}//${window.location.host}/auth/callback`;
+      } else if (currentDomain.includes('journal.recursive.eco')) {
+        // New recursive.eco journal domain (Best Possible Self tool)
+        redirectUrl = 'https://journal.recursive.eco/auth/callback';
+      } else if (currentDomain.includes('channels.recursive.eco')) {
+        // New recursive.eco channels domain
+        redirectUrl = 'https://channels.recursive.eco/auth/callback';
+      } else if (currentDomain.includes('recursive.eco')) {
+        // Main recursive.eco domain
+        redirectUrl = 'https://www.recursive.eco/auth/callback';
       } else if (currentDomain.includes('bps-preview')) {
         // BPS Preview deployment (no production BPS domain exists)
         redirectUrl = 'https://bps-preview.jongu.org/auth/callback';
@@ -141,7 +163,20 @@ export function ImprovedAuthModal({
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.protocol}//${window.location.host}/auth/callback?type=recovery`
+        redirectTo: (() => {
+          const currentDomain = window.location.host;
+          if (currentDomain.includes('localhost')) {
+            return `${window.location.protocol}//${window.location.host}/auth/callback?type=recovery`;
+          } else if (currentDomain.includes('journal.recursive.eco')) {
+            return 'https://journal.recursive.eco/auth/callback?type=recovery';
+          } else if (currentDomain.includes('channels.recursive.eco')) {
+            return 'https://channels.recursive.eco/auth/callback?type=recovery';
+          } else if (currentDomain.includes('recursive.eco')) {
+            return 'https://www.recursive.eco/auth/callback?type=recovery';
+          } else {
+            return `${window.location.protocol}//${window.location.host}/auth/callback?type=recovery`;
+          }
+        })()
       });
       if (error) throw error;
       setMessage({ type: 'success', text: 'Password reset link sent! Check your email.' });

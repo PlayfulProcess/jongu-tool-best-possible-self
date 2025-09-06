@@ -12,31 +12,31 @@ interface NetworkChannel {
 
 export const JONGU_NETWORK: Record<string, NetworkChannel> = {
   main: {
-    name: "Jongu Collective",
-    url: "https://jongu.org",
+    name: "Recursive.eco",
+    url: "https://www.recursive.eco",
     description: "Gateway to wellness channels"
   },
   wellness: {
-    name: "Wellness",
-    url: "https://wellness.jongu.org",
+    name: "Channels",
+    url: "https://channels.recursive.eco",
     description: "Mental health resources"
+  },
+  journal: {
+    name: "Journal",
+    url: "https://journal.recursive.eco",
+    description: "Best Possible Self tool"
   },
   parents: {
     name: "Parents",
-    url: "https://parents.jongu.org",
+    url: "https://parents.recursive.eco",
     description: "Parenting support",
     comingSoon: true
   },
   developers: {
     name: "Developers",
-    url: "https://developers.jongu.org",
+    url: "https://developers.recursive.eco",
     description: "Code with purpose",
     comingSoon: true
-  },
-  tools: {
-    name: "Tools",
-    url: "https://tools.jongu.org",
-    description: "Wellness tools collection"
   }
 };
 

@@ -441,7 +441,7 @@ export default function BestPossibleSelfPage() {
           </a>
           
           <a
-            href="https://jongu.org"
+            href="https://www.recursive.eco"
             target="_blank"
             rel="noopener noreferrer"
             className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1 font-medium"
