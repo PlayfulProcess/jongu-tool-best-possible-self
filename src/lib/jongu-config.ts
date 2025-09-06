@@ -40,7 +40,7 @@ export interface JonguConfig {
   };
   links: {
     github: string;
-    discord: string;
+    discord?: string;
     twitter: string;
   };
 }

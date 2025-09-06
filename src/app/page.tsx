@@ -15,7 +15,6 @@ import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { PrivacySettings, type DataSavingSetting } from '@/components/PrivacySettings';
 import { CalmDonateButton } from '@/components/CalmDonateButton';
-import { CalmDiscordButton } from '@/components/CalmDiscordButton';
 
 interface JournalEntry {
   id: string
@@ -394,8 +393,8 @@ export default function BestPossibleSelfPage() {
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <Image 
-            src="/Jongulogo.png" 
-            alt="Jongu" 
+            src="/recursive-logo-1756153260128.png" 
+            alt="Recursive.eco" 
             width={80}
             height={80}
             className="h-20 w-auto"
@@ -405,12 +404,11 @@ export default function BestPossibleSelfPage() {
         </div>
         <div className="flex items-center space-x-3">
           <a
-            href="https://wellness.jongu.org"
+            href="https://channels.recursive.eco/"
             className="px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium flex items-center gap-1"
           >
-            ← Back to Wellness
+            ← Back to Channels
           </a>
-          <CalmDiscordButton compact={true} className="hidden sm:inline-flex" />
           <CalmDonateButton compact={true} className="hidden sm:inline-flex" />
           
           {user ? (

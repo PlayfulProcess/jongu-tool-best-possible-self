@@ -8,9 +8,9 @@
   },
   "features": {
     "discord": {
-      "enabled": true,
-      "serverId": "1234567890",
-      "showWidget": true
+      "enabled": false,
+      "serverId": "",
+      "showWidget": false
     },
     "donations": {
       "enabled": true,
@@ -38,7 +38,6 @@
   },
   "links": {
     "github": "https://github.com/PlayfulProcess/jongu-tool-best-possible-self",
-    "discord": "https://discord.gg/jongu",
     "twitter": "https://twitter.com/jongu"
   }
 }
