@@ -13,7 +13,6 @@ import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
-import { CalmDonateButton } from '@/components/CalmDonateButton';
 
 type DataSavingSetting = 'private' | 'save_private';
 
@@ -218,33 +217,6 @@ export default function BestPossibleSelfPage() {
     saveJournalEntry(content);
   };
 
-  const handleDataSavingChange = (newSetting: DataSavingSetting) => {
-    if (!user && newSetting !== 'private') {
-      // Save current state to localStorage before showing auth modal
-      const stateToSave = {
-        content,
-        timeSpent,
-        dataSavingSetting: newSetting,
-        researchConsent,
-        timestamp: Date.now()
-      };
-      localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
-      return;
-    }
-    setDataSavingSetting(newSetting);
-    if (newSetting !== 'private' && content.trim()) {
-      saveJournalEntry(content);
-    }
-  };
-
-  const handleResearchConsentChange = (consent: boolean) => {
-    setResearchConsent(consent);
-    // Update existing entry if we have one
-    if (currentEntryId && dataSavingSetting !== 'private') {
-      saveJournalEntry(content);
-    }
-  };
 
   const saveJournalEntry = async (contentToSave: string) => {
     if (!user || dataSavingSetting === 'private' || !contentToSave.trim()) {

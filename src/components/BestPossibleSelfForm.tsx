@@ -34,20 +34,6 @@ export function BestPossibleSelfForm() {
     }
   };
 
-  const handleDataSavingChange = (newSetting: DataSavingSetting) => {
-    setDataSavingSetting(newSetting);
-    if (newSetting !== 'private' && content.trim()) {
-      saveJournalEntry(content);
-    }
-  };
-
-  const handleResearchConsentChange = (consent: boolean) => {
-    setResearchConsent(consent);
-    // Update existing entry if we have one
-    if (currentEntryId && dataSavingSetting !== 'private') {
-      saveJournalEntry(content);
-    }
-  };
 
   const saveJournalEntry = async (contentToSave: string) => {
     if (!user || dataSavingSetting === 'private' || !contentToSave.trim()) {
