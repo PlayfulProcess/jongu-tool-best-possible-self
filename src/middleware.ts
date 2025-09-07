@@ -6,6 +6,10 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
+  const host = request.headers.get('host') || ''
+  const isProd = process.env.NODE_ENV === 'production'
+  const isJongu = /\.?jongu\.org$/i.test(host)
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,9 +23,27 @@ export async function middleware(request: NextRequest) {
           supabaseResponse = NextResponse.next({
             request,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // For production jongu.org, set auth cookies with wider domain for SSO
+            const isSbAuth = name.startsWith('sb-') && name.endsWith('-auth-token')
+            
+            if (isProd && isJongu && isSbAuth) {
+              // Set cross-domain cookie for SSO between jongu.org subdomains
+              supabaseResponse.cookies.set({
+                name,
+                value,
+                domain: '.jongu.org',
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+                path: '/',
+                ...options
+              })
+            } else {
+              // Set normally for other cookies and environments
+              supabaseResponse.cookies.set(name, value, options)
+            }
+          })
         },
       },
     }
