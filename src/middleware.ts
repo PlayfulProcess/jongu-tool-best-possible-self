@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
 
   const host = request.headers.get('host') || ''
   const isProd = process.env.NODE_ENV === 'production'
-  const isJongu = /\.?jongu\.org$/i.test(host)
+  const isRecursive = /\.?recursive\.eco$/i.test(host)
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,12 +27,12 @@ export async function middleware(request: NextRequest) {
             // For production jongu.org, set auth cookies with wider domain for SSO
             const isSbAuth = name.startsWith('sb-') && name.endsWith('-auth-token')
             
-            if (isProd && isJongu && isSbAuth) {
-              // Set cross-domain cookie for SSO between jongu.org subdomains
+            if (isProd && isRecursive && isSbAuth) {
+              // Set cross-domain cookie for SSO between recursive.eco subdomains
               supabaseResponse.cookies.set({
                 name,
                 value,
-                domain: '.jongu.org',
+                domain: '.recursive.eco',
                 httpOnly: true,
                 secure: true,
                 sameSite: 'lax',
