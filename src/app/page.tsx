@@ -397,9 +397,8 @@ export default function BestPossibleSelfPage() {
             alt="Recursive.eco" 
             width={80}
             height={80}
-            className="h-20 w-auto"
+            className="h-20 w-auto rotate-[240deg]"
           />
-          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
           <div className="hidden sm:block text-sm text-gray-600">/ Best Possible Self Tool</div>
         </div>
         <div className="flex items-center space-x-3">
@@ -412,16 +411,28 @@ export default function BestPossibleSelfPage() {
           <CalmDonateButton compact={true} className="hidden sm:inline-flex" />
           
           {user ? (
-            <button
-              onClick={() => window.location.href = '/account'}
-              className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
-            >
-              Account Settings
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => window.location.href = '/account'}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Dashboard
+              </button>
+              <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+              <button
+                onClick={async () => {
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                Sign Out
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`}
-              className="px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+              className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Sign In
             </button>
