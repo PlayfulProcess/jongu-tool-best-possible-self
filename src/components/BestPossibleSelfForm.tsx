@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Timer } from './Timer';
 import { AIAssistant } from './AIAssistant';
-import { PrivacySettings, type DataSavingSetting } from './PrivacySettings';
+type DataSavingSetting = 'private' | 'save_private';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 
@@ -55,7 +55,7 @@ export function BestPossibleSelfForm() {
       return;
     }
 
-    // Determine privacy flags based on settings
+    // Determine data flags based on settings
     const isPublic = false; // We removed public blog option
     const hasResearchConsent = researchConsent;
 
@@ -159,16 +159,6 @@ export function BestPossibleSelfForm() {
             <p><strong>Personal Growth:</strong> What skills have you developed? What wisdom have you gained?</p>
           </div>
         </div>
-      </div>
-
-      {/* Privacy Settings */}
-      <div className="p-6 border-b">
-        <PrivacySettings
-          defaultDataSetting={dataSavingSetting}
-          defaultResearchConsent={researchConsent}
-          onDataSettingChange={handleDataSavingChange}
-          onResearchConsentChange={handleResearchConsentChange}
-        />
       </div>
 
       {/* Writing Section */}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
-import type { DataSavingSetting } from './PrivacySettings';
+type DataSavingSetting = 'private' | 'save_private';
 import ReactMarkdown from 'react-markdown';
 
 interface AIAssistantProps {
@@ -435,7 +435,7 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
                   Ask me anything about your Best Possible Self exercise!
                 </div>
                 <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border">
-                  ⚠️ <strong>Privacy Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses. OpenAI processes this data but does not store it for training their models.
+                  ⚠️ <strong>Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses.
                 </div>
               </div>
             ) : null}

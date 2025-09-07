@@ -13,8 +13,9 @@ import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
-import { PrivacySettings, type DataSavingSetting } from '@/components/PrivacySettings';
 import { CalmDonateButton } from '@/components/CalmDonateButton';
+
+type DataSavingSetting = 'private' | 'save_private';
 
 interface JournalEntry {
   id: string
@@ -438,7 +439,7 @@ export default function BestPossibleSelfPage() {
             )}
             
             <a
-              href="https://github.com/PlayfulProcess/jongu-tool-best-possible-self"
+              href="https://github.com/PlayfulProcess/recursive-journal"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1"
@@ -601,17 +602,7 @@ export default function BestPossibleSelfPage() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-6">
-            {/* Privacy Settings */}
-            <div className="mb-6">
-              <PrivacySettings
-                defaultDataSetting={dataSavingSetting}
-                defaultResearchConsent={researchConsent}
-                onDataSettingChange={handleDataSavingChange}
-                onResearchConsentChange={handleResearchConsentChange}
-              />
-            </div>
-
-            {/* Instructions - Now bigger and below privacy */}
+            {/* Instructions */}
             <div className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
               <h2 className="text-xl font-bold text-gray-800 mb-4">How This Works</h2>
               <p className="text-base text-gray-700 mb-4 leading-relaxed">

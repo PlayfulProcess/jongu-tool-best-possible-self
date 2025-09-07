@@ -16,7 +16,7 @@ type AuthView = 'sign-in' | 'sign-up';
 export function ImprovedAuthModal({ 
   isOpen, 
   onClose, 
-  title = "Welcome to Best Possible Self Tool", 
+  title = "Welcome to Recursive.eco", 
   subtitle = "Choose your preferred sign-in method" 
 }: ImprovedAuthModalProps) {
   const supabase = createClient();
@@ -126,16 +126,16 @@ export function ImprovedAuthModal({
         redirectUrl = 'https://www.recursive.eco/auth/callback';
       } else if (currentDomain.includes('bps-preview')) {
         // BPS Preview deployment (no production BPS domain exists)
-        redirectUrl = 'https://bps-preview.jongu.org/auth/callback';
+        redirectUrl = 'https://journal.recursive.eco/auth/callback';
       } else if (currentDomain.includes('wellness-tool')) {
         // Wellness Tool (more specific match first)
-        redirectUrl = 'https://wellness-tool.jongu.org/auth/callback';
+        redirectUrl = 'https://journal.recursive.eco/auth/callback';
       } else if (currentDomain.includes('wellness-preview')) {
         // Wellness Preview deployment  
-        redirectUrl = 'https://wellness-preview.jongu.org/auth/callback';
+        redirectUrl = 'https://channels.recursive.eco/auth/callback';
       } else if (currentDomain.includes('wellness')) {
         // Wellness Channel (fallback for wellness)
-        redirectUrl = 'https://wellness.jongu.org/auth/callback';
+        redirectUrl = 'https://channels.recursive.eco/auth/callback';
       } else {
         // Fallback - use current domain
         redirectUrl = `${window.location.protocol}//${window.location.host}/auth/callback`;
@@ -213,11 +213,10 @@ export function ImprovedAuthModal({
           <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
           <p className="text-gray-600 text-sm">{subtitle}</p>
           
-          {/* Privacy Notice */}
+          {/* Account Notice */}
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-xs text-blue-800">
-              🔒 <strong>Privacy First:</strong> Your account works across all Jongu tools, but each tool requires separate sign-in. 
-              We use only essential session cookies that expire when you close your browser. No tracking, no cross-site data sharing.
+              🔒 <strong>Cross-Tool Access:</strong> Your account works across all Recursive.eco tools.
             </p>
             <p className="text-xs text-blue-800 mt-2">
               ✨ <strong>Recommended:</strong> For a better experience with fewer bugs, we recommend using magic links (no passwords needed). 

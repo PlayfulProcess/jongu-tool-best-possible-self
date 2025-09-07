@@ -47,7 +47,7 @@ export function StarErrorModal({ isOpen, onClose, onRefresh }: StarErrorModalPro
         
         <div className="mt-4 text-center">
           <a 
-            href="https://jongu.org/known-issues.html" 
+            href="https://recursive.eco/known-issues.html" 
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-blue-600 hover:underline"

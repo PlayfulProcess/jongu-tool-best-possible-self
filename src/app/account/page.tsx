@@ -110,7 +110,7 @@ export default function AccountSettingsPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `jongu-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `recursive-data-export-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -131,7 +131,7 @@ export default function AccountSettingsPage() {
     const confirmed = window.confirm(
       'Are you sure you want to delete all your data from the Best Possible Self tool?\n\n' +
       'This will permanently delete all your journal entries from this tool only. ' +
-      'Your account and data from other Jongu tools will remain intact.\n\n' +
+      'Your account and data from other Recursive.eco tools will remain intact.\n\n' +
       'This action cannot be undone.'
     );
 
@@ -166,7 +166,7 @@ export default function AccountSettingsPage() {
     if (!user) return;
 
     const confirmed = window.confirm(
-      'Are you sure you want to delete your Jongu account?\n\n' +
+      'Are you sure you want to delete your Recursive.eco account?\n\n' +
       'WILL BE DELETED:\n' +
       '• Your account and authentication\n' +
       '• All private journal entries\n' +
@@ -251,8 +251,8 @@ export default function AccountSettingsPage() {
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <Image 
-            src="/Jongulogo.png" 
-            alt="Jongu" 
+            src="/Recursivelogo.png" 
+            alt="Recursive.eco" 
             width={80}
             height={80}
             className="h-20 w-auto"
@@ -404,7 +404,7 @@ export default function AccountSettingsPage() {
                 </h3>
                 <p className="text-xs text-yellow-700 mb-3">
                   This will delete all your journal entries from the Best Possible Self tool only. 
-                  Your account and data from other Jongu tools will remain intact.
+                  Your account and data from other Recursive.eco tools will remain intact.
                 </p>
                 <button
                   onClick={handleDeleteToolData}
@@ -418,7 +418,7 @@ export default function AccountSettingsPage() {
               {/* Delete All Data */}
               <div className="border border-red-200 rounded-lg p-4 bg-red-50">
                 <h3 className="text-sm font-medium text-red-800 mb-2">
-                  Delete Entire Jongu Account
+                  Delete Entire Recursive.eco Account
                 </h3>
                 <div className="text-xs text-red-700 mb-3 space-y-2">
                   <p className="font-semibold">This will permanently delete:</p>
