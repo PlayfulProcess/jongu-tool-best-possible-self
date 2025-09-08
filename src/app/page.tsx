@@ -389,10 +389,10 @@ export default function BestPossibleSelfPage() {
             {user ? (
               <>
                 <a
-                  href="/dashboard"
+                  href="/account"
                   className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  Dashboard
+                  Account Settings
                 </a>
                 <button
                   onClick={signOut}
