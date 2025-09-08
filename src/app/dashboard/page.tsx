@@ -7,8 +7,13 @@ export default function DashboardPage() {
   const router = useRouter();
   
   useEffect(() => {
-    // Redirect to main page since BPS tool doesn't have a separate dashboard
-    router.push('/');
+    // Redirect to channels dashboard based on environment
+    const currentDomain = window.location.host;
+    if (currentDomain.includes('dev-journal.recursive.eco')) {
+      window.location.href = 'https://dev-channels.recursive.eco/';
+    } else {
+      window.location.href = 'https://channels.recursive.eco/';
+    }
   }, [router]);
   
   return (
