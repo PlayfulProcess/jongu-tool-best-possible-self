@@ -8,6 +8,12 @@ export async function GET(request: Request) {
   const type = searchParams.get('type')
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/'
+  
+  // NOTE: localStorage cannot persist across magic link redirects because:
+  // 1. Magic links open in new tabs/windows (different browser context)
+  // 2. localStorage is origin-specific and isolated per tab until navigation
+  // 3. The email client may open the link in a different browser
+  // Solutions: Use session storage, URL params, or database to persist data
 
   // Handle magic link tokens
   if (token_hash && type === 'magiclink') {

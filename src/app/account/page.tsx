@@ -200,14 +200,16 @@ export default function AccountSettingsPage() {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <Image 
-            src="/recursive-logo-1756153260128.png" 
-            alt="Recursive.eco" 
-            width={60}
-            height={60}
-            className="h-12 w-auto"
-            style={{ transform: 'rotate(200deg)' }}
-          />
+          <a href="https://www.recursive.eco" className="flex items-center">
+            <Image 
+              src="/recursive-logo-1756153260128.png" 
+              alt="Recursive.eco" 
+              width={60}
+              height={60}
+              className="h-12 w-auto"
+              style={{ transform: 'rotate(200deg)' }}
+            />
+          </a>
           <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool / Account Settings</div>
         </div>
         <div className="flex items-center space-x-3">
