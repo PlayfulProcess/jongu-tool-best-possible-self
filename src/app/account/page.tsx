@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase-client';
 import Image from 'next/image';
 
 export default function AccountSettingsPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, status, signOut } = useAuth();
   const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -21,10 +21,10 @@ export default function AccountSettingsPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (status === 'unauthenticated') {
       router.push('/auth');
     }
-  }, [user, loading, router]);
+  }, [status, router]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,7 +230,7 @@ export default function AccountSettingsPage() {
     }
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

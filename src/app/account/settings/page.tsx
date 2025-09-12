@@ -3,13 +3,12 @@
 import { createClient } from '@/lib/supabase-client';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function AccountSettingsPage() {
   const supabase = createClient();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, status } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,31 +16,14 @@ export default function AccountSettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/');
-        return;
-      }
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        router.push('/');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth, router]);
+    if (status === 'unauthenticated') {
+      router.push('/');
+    }
+  }, [status, router]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
-
+    
     if (newPassword !== confirmPassword) {
       setMessage({ type: 'error', text: 'New passwords do not match' });
       return;
@@ -53,31 +35,36 @@ export default function AccountSettingsPage() {
     }
 
     setUpdating(true);
+    setMessage(null);
 
     try {
-      // First verify current password by attempting to sign in
+      // First verify current password by trying to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user!.email!,
+        email: user?.email || '',
         password: currentPassword
       });
 
       if (signInError) {
-        throw new Error('Current password is incorrect');
+        setMessage({ type: 'error', text: 'Current password is incorrect' });
+        setUpdating(false);
+        return;
       }
 
-      // Update to new password
-      const { error: updateError } = await supabase.auth.updateUser({
+      // Update password
+      const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
-      if (updateError) throw updateError;
-
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      if (error) {
+        setMessage({ type: 'error', text: error.message });
+      } else {
+        setMessage({ type: 'success', text: 'Password updated successfully!' });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
     } catch (error) {
-      setMessage({ type: 'error', text: (error as Error).message });
+      setMessage({ type: 'error', text: 'An error occurred while updating password' });
     } finally {
       setUpdating(false);
     }
@@ -88,119 +75,137 @@ export default function AccountSettingsPage() {
     router.push('/');
   };
 
-  if (loading) {
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      // In production, you'd call an API endpoint that handles account deletion
+      setMessage({ type: 'error', text: 'Account deletion not implemented in demo' });
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to delete account' });
+    }
+  };
+
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-              <button
-                onClick={() => router.push('/')}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                ← Back to Home
-              </button>
-            </div>
-            <div className="text-sm text-gray-600">
-              <p>Email: <span className="font-medium text-gray-900">{user?.email}</span></p>
-              <p className="mt-1">Account ID: <span className="font-mono text-xs">{user?.id}</span></p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="mb-8">
+          <button
+            onClick={() => router.push('/')}
+            className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+          >
+            ← Back to Journal
+          </button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
+
+          {/* User Info */}
+          <div className="mb-8 pb-8 border-b">
+            <h2 className="text-lg font-semibold mb-4">Account Information</h2>
+            <div className="space-y-2">
+              <p className="text-gray-600">
+                <span className="font-medium">Email:</span> {user.email}
+              </p>
+              <p className="text-gray-600">
+                <span className="font-medium">User ID:</span> {user.id}
+              </p>
+              <p className="text-gray-600">
+                <span className="font-medium">Created:</span> {new Date(user.created_at).toLocaleDateString()}
+              </p>
             </div>
           </div>
 
-          {/* Password Change Section */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Change Password</h2>
-            
-            {message && (
-              <div className={`mb-4 p-3 rounded-lg ${
-                message.type === 'success' 
-                  ? 'bg-green-50 border border-green-200 text-green-800' 
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}>
-                <p className="text-sm">{message.text}</p>
-              </div>
-            )}
-
+          {/* Change Password */}
+          <div className="mb-8 pb-8 border-b">
+            <h2 className="text-lg font-semibold mb-4">Change Password</h2>
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Current Password
                 </label>
                 <input
-                  id="currentPassword"
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Enter current password"
                 />
               </div>
-
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   New Password
                 </label>
                 <input
-                  id="newPassword"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Enter new password (min 6 characters)"
                 />
               </div>
-
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Confirm New Password
                 </label>
                 <input
-                  id="confirmPassword"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Confirm new password"
                 />
               </div>
-
+              {message && (
+                <div className={`p-3 rounded ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {message.text}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={updating}
-                className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
                 {updating ? 'Updating...' : 'Update Password'}
               </button>
             </form>
           </div>
 
-          {/* Sign Out Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Session</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Sign out from your account on this device.
-            </p>
-            <button
-              onClick={handleSignOut}
-              className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Sign Out
-            </button>
+          {/* Account Actions */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Account Actions</h2>
+            <div className="space-y-4">
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Sign Out
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 ml-4"
+              >
+                Delete Account
+              </button>
+            </div>
           </div>
         </div>
       </div>

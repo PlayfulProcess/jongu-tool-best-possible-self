@@ -29,7 +29,7 @@ interface JournalEntry {
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
 
 export default function BestPossibleSelfPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, status, signOut } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [entriesLoading, setEntriesLoading] = useState(true);
@@ -303,7 +303,7 @@ export default function BestPossibleSelfPage() {
     setChatExchangeCount(prev => prev + 1);
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <main className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
         <div className="text-center">
