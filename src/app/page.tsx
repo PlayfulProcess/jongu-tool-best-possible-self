@@ -13,9 +13,9 @@ import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { MagicLinkAuth } from '@/components/MagicLinkAuth';
 
-type DataSavingSetting = 'private' | 'save_private';
+// Simplified: no more complex data saving settings
 
 interface JournalEntry {
   id: string
@@ -38,7 +38,6 @@ export default function BestPossibleSelfPage() {
   // Current session state
   const [content, setContent] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
-  const [dataSavingSetting, setDataSavingSetting] = useState<DataSavingSetting>('private');
   const [researchConsent, setResearchConsent] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -47,6 +46,7 @@ export default function BestPossibleSelfPage() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [clearAIChat, setClearAIChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const supabase = createClient();
 
@@ -105,8 +105,11 @@ export default function BestPossibleSelfPage() {
             setDataSavingSetting(state.dataSavingSetting || 'private');
             setResearchConsent(state.researchConsent || false);
             setHasUnsavedChanges(!!state.content);
+            // Don't remove localStorage immediately - keep it until user saves or session ends
+          } else {
+            // Only remove if expired
+            localStorage.removeItem('journalState');
           }
-          localStorage.removeItem('journalState');
         } catch (error) {
           console.error('Error restoring journal state:', error);
           localStorage.removeItem('journalState');
@@ -182,7 +185,7 @@ export default function BestPossibleSelfPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
+      setShowAuthModal(true);
       return;
     }
     
@@ -290,6 +293,8 @@ export default function BestPossibleSelfPage() {
 
       setSaveStatus('saved');
       setHasUnsavedChanges(false);
+      // Clear localStorage since content was successfully saved
+      localStorage.removeItem('journalState');
       // Auto-refresh entries to show updated content
       loadEntries();
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -380,7 +385,6 @@ export default function BestPossibleSelfPage() {
             <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool</div>
           </div>
           <nav className="flex items-center space-x-6">
-            <ThemeToggle />
             <a
               href="https://channels.recursive.eco/"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex items-center gap-1"
@@ -621,7 +625,7 @@ export default function BestPossibleSelfPage() {
                   </div>
                   <button
                     onClick={() => setIsFocusMode(true)}
-                    className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800/30 transition-colors"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     🎯 Focus Mode
                   </button>
@@ -679,7 +683,14 @@ export default function BestPossibleSelfPage() {
       </div>
       </div>
 
-      {/* Auth now redirects to /auth page */}
+      {/* Auth Modal */}
+      <MagicLinkAuth 
+        isOpen={showAuthModal}
+        onClose={() => {
+          setShowAuthModal(false);
+          // Don't clear localStorage - let user continue with unsaved content
+        }}
+      />
     </div>
   );
 }
