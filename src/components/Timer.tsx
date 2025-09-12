@@ -51,8 +51,8 @@ export function Timer({ onTimeUpdate }: TimerProps) {
   return (
     <div className="flex items-center gap-6 mb-6 flex-wrap">
       {/* Timer Display */}
-      <div className="w-24 h-24 border-3 border-blue-500 rounded-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <span className="font-mono text-lg text-gray-800">
+      <div className="w-24 h-24 border-3 border-blue-500 rounded-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
+        <span className="font-mono text-lg text-gray-800 dark:text-gray-200">
           {minutes}:{seconds.toString().padStart(2, '0')}
         </span>
       </div>
@@ -75,7 +75,7 @@ export function Timer({ onTimeUpdate }: TimerProps) {
       </div>
 
       {/* Progress Bar */}
-      <div className="flex-1 min-w-[200px] h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="flex-1 min-w-[200px] h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
         <div 
           className="h-full bg-blue-600 transition-all duration-300"
           style={{ width: `${progress}%` }}

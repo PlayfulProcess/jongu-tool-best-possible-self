@@ -8,6 +8,12 @@ export async function GET(request: Request) {
   const type = searchParams.get('type')
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/'
+  
+  // NOTE: localStorage cannot persist across magic link redirects because:
+  // 1. Magic links open in new tabs/windows (different browser context)
+  // 2. localStorage is origin-specific and isolated per tab until navigation
+  // 3. The email client may open the link in a different browser
+  // Solutions: Use session storage, URL params, or database to persist data
 
   // Handle magic link tokens
   if (token_hash && type === 'magiclink') {
@@ -37,18 +43,7 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       
-      // Check if this is a password recovery flow
-      if (type === 'recovery') {
-        if (isLocalEnv) {
-          return NextResponse.redirect(`${origin}/auth/update-password`)
-        } else if (forwardedHost) {
-          return NextResponse.redirect(`https://${forwardedHost}/auth/update-password`)
-        } else {
-          return NextResponse.redirect(`${origin}/auth/update-password`)
-        }
-      }
-      
-      // All other auth flows go to the same place
+      // All auth flows go to the same place (no password recovery needed for magic link only)
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${next}`)
       } else if (forwardedHost) {

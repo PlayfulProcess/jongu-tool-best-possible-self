@@ -1,42 +1,59 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import type { User } from '@supabase/supabase-js'
 
+type Status = 'loading' | 'authenticated' | 'unauthenticated'
+
 interface AuthContextType {
+  status: Status
   user: User | null
-  loading: boolean
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
+  status: 'loading',
   user: null,
-  loading: true,
   signOut: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [status, setStatus] = useState<Status>('loading')
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const handledInitial = useRef(false)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    let mounted = true
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    async function init() {
+      // Get initial session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!mounted) return
+      
       setUser(session?.user ?? null)
-      setLoading(false)
-    })
+      setStatus(session?.user ? 'authenticated' : 'unauthenticated')
 
-    return () => subscription.unsubscribe()
+      // Subscribe to auth changes, ignore duplicate INITIAL_SESSION (StrictMode)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'INITIAL_SESSION') {
+          if (handledInitial.current) return
+          handledInitial.current = true
+        }
+        setUser(session?.user ?? null)
+        setStatus(session?.user ? 'authenticated' : 'unauthenticated')
+      })
+
+      return () => subscription.unsubscribe()
+    }
+
+    const cleanup = init()
+    
+    return () => {
+      mounted = false
+      cleanup.then(unsub => unsub?.())
+    }
   }, [supabase.auth])
 
   const signOut = async () => {
@@ -44,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ status, user, signOut }}>
       {children}
     </AuthContext.Provider>
   )

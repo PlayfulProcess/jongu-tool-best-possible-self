@@ -7,12 +7,8 @@ import { createClient } from '@/lib/supabase-client';
 import Image from 'next/image';
 
 export default function AccountSettingsPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, status, signOut } = useAuth();
   const router = useRouter();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [updating, setUpdating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [deletingToolData, setDeletingToolData] = useState(false);
   const [deletingAllData, setDeletingAllData] = useState(false);
@@ -21,57 +17,11 @@ export default function AccountSettingsPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth');
+    if (status === 'unauthenticated') {
+      router.push('/');
     }
-  }, [user, loading, router]);
+  }, [status, router]);
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'New passwords do not match' });
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
-      return;
-    }
-
-    setUpdating(true);
-    setMessage(null);
-
-    try {
-      // First verify current password by trying to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || '',
-        password: currentPassword
-      });
-
-      if (signInError) {
-        throw new Error('Current password is incorrect');
-      }
-
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateError) throw updateError;
-
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      
-      setTimeout(() => setMessage(null), 5000);
-    } catch (error) {
-      setMessage({ type: 'error', text: (error as Error).message });
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const handleDownloadData = async () => {
     if (!user) return;
@@ -230,12 +180,12 @@ export default function AccountSettingsPage() {
     }
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -246,31 +196,33 @@ export default function AccountSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <Image 
-            src="/Recursivelogo.png" 
-            alt="Recursive.eco" 
-            width={80}
-            height={80}
-            className="h-20 w-auto"
-          />
-          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">BETA</span>
-          <div className="hidden sm:block text-sm text-gray-600">/ Best Possible Self Tool / Account Settings</div>
+          <a href="https://www.recursive.eco" className="flex items-center">
+            <Image 
+              src="/recursive-logo-1756153260128.png" 
+              alt="Recursive.eco" 
+              width={60}
+              height={60}
+              className="h-12 w-auto"
+              style={{ transform: 'rotate(200deg)' }}
+            />
+          </a>
+          <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool / Account Settings</div>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.push('/')}
-            className="px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium flex items-center gap-1"
+            className="px-3 py-2 text-sm bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-800/30 transition-colors font-medium flex items-center gap-1"
           >
             ← Back to Tool
           </button>
           
           <button
             onClick={signOut}
-            className="px-3 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+            className="px-3 py-2 text-sm bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/30 transition-colors font-medium"
           >
             Sign Out
           </button>
@@ -280,16 +232,16 @@ export default function AccountSettingsPage() {
       {/* Main Content */}
       <div className="flex-1 max-w-4xl mx-auto p-6 w-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Settings</h1>
-          <p className="text-gray-600">Manage your account preferences and data.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Account Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and data.</p>
         </div>
 
         {/* Message Display */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
             message.type === 'success' 
-              ? 'bg-green-50 border border-green-200 text-green-800' 
-              : 'bg-red-50 border border-red-200 text-red-800'
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300' 
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-300'
           }`}>
             <p className="font-medium">{message.text}</p>
           </div>
@@ -297,95 +249,34 @@ export default function AccountSettingsPage() {
 
         <div className="space-y-6">
           {/* Account Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Account Information</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Account Information</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <div className="text-sm text-gray-900 p-2 bg-gray-50 rounded border">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                <div className="text-sm text-gray-900 dark:text-gray-100 p-2 bg-gray-50 dark:bg-gray-900/20 rounded border border-gray-200 dark:border-gray-600">
                   {user.email}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Change Password */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Change Password</h2>
-            
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Password
-                </label>
-                <input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  placeholder="Enter your current password"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  New Password
-                </label>
-                <input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  placeholder="Enter new password (min 6 characters)"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm New Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  placeholder="Confirm new password"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={updating || !currentPassword || !newPassword || !confirmPassword}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {updating ? 'Updating...' : 'Update Password'}
-              </button>
-            </form>
-          </div>
 
           {/* Data Management */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Data Management</h2>
-            <p className="text-sm text-gray-600 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Data Management</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Manage your data according to European data protection standards. 
               You have full control over your information.
             </p>
             
             <div className="space-y-4">
               {/* Download Data */}
-              <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-                <h3 className="text-sm font-medium text-green-800 mb-2">
+              <div className="border border-green-200 dark:border-green-700 rounded-lg p-4 bg-green-50 dark:bg-green-900/20">
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">
                   Download My Data
                 </h3>
-                <p className="text-xs text-green-700 mb-3">
+                <p className="text-xs text-green-700 dark:text-green-300 mb-3">
                   Download all your personal data in JSON format. This includes your journal entries, 
                   interactions, and account information. GDPR Article 20: Right to data portability.
                 </p>
@@ -398,11 +289,11 @@ export default function AccountSettingsPage() {
                 </button>
               </div>
               {/* Delete Tool Data */}
-              <div className="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
-                <h3 className="text-sm font-medium text-yellow-800 mb-2">
+              <div className="border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-900/20">
+                <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-2">
                   Delete Best Possible Self Tool Data
                 </h3>
-                <p className="text-xs text-yellow-700 mb-3">
+                <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-3">
                   This will delete all your journal entries from the Best Possible Self tool only. 
                   Your account and data from other Recursive.eco tools will remain intact.
                 </p>
@@ -416,11 +307,11 @@ export default function AccountSettingsPage() {
               </div>
 
               {/* Delete All Data */}
-              <div className="border border-red-200 rounded-lg p-4 bg-red-50">
-                <h3 className="text-sm font-medium text-red-800 mb-2">
+              <div className="border border-red-200 dark:border-red-700 rounded-lg p-4 bg-red-50 dark:bg-red-900/20">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
                   Delete Entire Recursive.eco Account
                 </h3>
-                <div className="text-xs text-red-700 mb-3 space-y-2">
+                <div className="text-xs text-red-700 dark:text-red-300 mb-3 space-y-2">
                   <p className="font-semibold">This will permanently delete:</p>
                   <ul className="list-disc list-inside ml-2 space-y-1">
                     <li>Your account and authentication</li>
@@ -436,9 +327,9 @@ export default function AccountSettingsPage() {
                     <li>Anonymized research data (if consented)</li>
                   </ul>
                   
-                  <p className="mt-2 text-gray-700 bg-gray-50 p-2 rounded">
+                  <p className="mt-2 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-2 rounded">
                     {`📧 For complete data removal including public contributions, please contact `}
-                    <a href="mailto:pp@playfulprocess.com" className="text-blue-600 underline">
+                    <a href="mailto:pp@playfulprocess.com" className="text-blue-600 dark:text-blue-400 underline">
                       pp@playfulprocess.com
                     </a>
                     {` with your account email.`}

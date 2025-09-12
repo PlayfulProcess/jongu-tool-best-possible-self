@@ -13,8 +13,9 @@ import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
+import { MagicLinkAuth } from '@/components/MagicLinkAuth';
 
-type DataSavingSetting = 'private' | 'save_private';
+// Simplified: no more complex data saving settings
 
 interface JournalEntry {
   id: string
@@ -29,7 +30,7 @@ interface JournalEntry {
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
 
 export default function BestPossibleSelfPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, status, signOut } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [entriesLoading, setEntriesLoading] = useState(true);
@@ -37,7 +38,6 @@ export default function BestPossibleSelfPage() {
   // Current session state
   const [content, setContent] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
-  const [dataSavingSetting, setDataSavingSetting] = useState<DataSavingSetting>('private');
   const [researchConsent, setResearchConsent] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -46,6 +46,8 @@ export default function BestPossibleSelfPage() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [clearAIChat, setClearAIChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
   
   const supabase = createClient();
 
@@ -101,11 +103,14 @@ export default function BestPossibleSelfPage() {
           if (Date.now() - state.timestamp < 30 * 60 * 1000) {
             setContent(state.content || '');
             setTimeSpent(state.timeSpent || 0);
-            setDataSavingSetting(state.dataSavingSetting || 'private');
             setResearchConsent(state.researchConsent || false);
+            setChatMessages(state.chatMessages || []);
             setHasUnsavedChanges(!!state.content);
+            // Don't remove localStorage immediately - keep it until user saves or session ends
+          } else {
+            // Only remove if expired
+            localStorage.removeItem('journalState');
           }
-          localStorage.removeItem('journalState');
         } catch (error) {
           console.error('Error restoring journal state:', error);
           localStorage.removeItem('journalState');
@@ -126,7 +131,6 @@ export default function BestPossibleSelfPage() {
     setSelectedEntry(entry);
     setContent(entry.content);
     setCurrentEntryId(entry.id);
-    setDataSavingSetting('save_private');
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0); // Reset chat count when switching entries
@@ -146,11 +150,11 @@ export default function BestPossibleSelfPage() {
     setSelectedEntry(null);
     setContent('');
     setCurrentEntryId(null);
-    setDataSavingSetting('private');
     setResearchConsent(false);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0);
     setTimeSpent(0);
+    setChatMessages([]);
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -161,7 +165,7 @@ export default function BestPossibleSelfPage() {
     setHasUnsavedChanges(true);
     
     // Debounced auto-save - only save after user stops typing for 2 seconds
-    if (dataSavingSetting !== 'private' && currentEntryId) {
+    if (currentEntryId) {
       clearTimeout(window.autoSaveTimeout);
       window.autoSaveTimeout = setTimeout(() => {
         setSaveStatus('saving');
@@ -176,12 +180,12 @@ export default function BestPossibleSelfPage() {
       const stateToSave = {
         content,
         timeSpent,
-        dataSavingSetting,
         researchConsent,
+        chatMessages,
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
-      window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`;
+      setShowAuthModal(true);
       return;
     }
     
@@ -189,37 +193,14 @@ export default function BestPossibleSelfPage() {
       return; // Nothing to save
     }
     
-    if (dataSavingSetting === 'private') {
-      // Prompt user to switch to save mode
-      const confirmed = confirm(
-        'You are currently in "Do not save" mode. 🔒\n\n' +
-        'Would you like to switch to "Save mode"?\n\n' +
-        'Click OK to switch to save mode, or Cancel to stay in private mode.'
-      );
-      
-      if (confirmed) {
-        // Switch to save mode
-        setDataSavingSetting('save_private');
-        
-        // Show confirmation that they can now save
-        setTimeout(() => {
-          alert(
-            'Switched to Save mode! 📝✅\n\n' +
-            'You can now save your entry when ready by clicking the Save button again.'
-          );
-        }, 100);
-      }
-      return;
-    }
-    
-    // User is already in save mode, proceed with saving
+    // Proceed with saving
     setSaveStatus('saving');
     saveJournalEntry(content);
   };
 
 
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || dataSavingSetting === 'private' || !contentToSave.trim()) {
+    if (!user || !contentToSave.trim()) {
       setSaveStatus('idle');
       return;
     }
@@ -289,6 +270,8 @@ export default function BestPossibleSelfPage() {
 
       setSaveStatus('saved');
       setHasUnsavedChanges(false);
+      // Clear localStorage since content was successfully saved
+      localStorage.removeItem('journalState');
       // Auto-refresh entries to show updated content
       loadEntries();
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -303,12 +286,12 @@ export default function BestPossibleSelfPage() {
     setChatExchangeCount(prev => prev + 1);
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <main className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </main>
     );
@@ -327,13 +310,13 @@ export default function BestPossibleSelfPage() {
   // Focus Mode - Full screen writing
   if (isFocusMode) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col">
         {/* Focus Mode Header */}
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-          <div className="text-sm text-gray-600">Focus Mode</div>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Focus Mode</div>
           <button
             onClick={() => setIsFocusMode(false)}
-            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             Exit Focus
           </button>
@@ -346,7 +329,7 @@ export default function BestPossibleSelfPage() {
               value={content}
               onChange={(e) => handleContentChange(e.target.value)}
               placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
-              className="w-full h-full resize-none border-none outline-none text-gray-900 placeholder-gray-400 bg-transparent"
+              className="w-full h-full resize-none border-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
               style={{ 
                 fontSize: '20px', 
                 lineHeight: '1.8',
@@ -361,9 +344,9 @@ export default function BestPossibleSelfPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <a href="https://www.recursive.eco" className="flex items-center">
@@ -376,12 +359,12 @@ export default function BestPossibleSelfPage() {
                 style={{ transform: 'rotate(200deg)' }}
               />
             </a>
-            <div className="hidden sm:block text-sm text-gray-600">/ Best Possible Self Tool</div>
+            <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool</div>
           </div>
           <nav className="flex items-center space-x-6">
             <a
               href="https://channels.recursive.eco/"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex items-center gap-1"
             >
               ← Back to Channels
             </a>
@@ -390,21 +373,21 @@ export default function BestPossibleSelfPage() {
               <>
                 <a
                   href="/account"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                 >
                   Account Settings
                 </a>
                 <button
                   onClick={signOut}
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                 >
                   Sign Out
                 </button>
               </>
             ) : (
               <button
-                onClick={() => window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                onClick={() => setShowAuthModal(true)}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
               >
                 Sign In
               </button>
@@ -414,7 +397,7 @@ export default function BestPossibleSelfPage() {
               href="https://github.com/PlayfulProcess/recursive-journal"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex items-center gap-1"
               title="View source code on GitHub"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -439,20 +422,20 @@ export default function BestPossibleSelfPage() {
       <div className={`
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         fixed lg:relative lg:translate-x-0
-        w-80 bg-white border-r border-gray-200 flex flex-col
+        w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col
         transition-transform duration-300 ease-in-out
         z-50 lg:z-auto
         h-full lg:h-auto
       `}>
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex justify-between items-center mb-2">
-            <h1 className="text-lg font-semibold text-gray-900">Best Possible Self</h1>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Best Possible Self</h1>
             <div className="flex items-center gap-2">
               {/* Close button for mobile */}
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-1 text-gray-400 hover:text-gray-600"
+                className="lg:hidden p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 aria-label="Close sidebar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -461,18 +444,22 @@ export default function BestPossibleSelfPage() {
               </button>
             </div>
           </div>
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              📚 Based on research from UC Berkeley&apos;s Greater Good Science Center
+            </span>
             <a 
               href="https://ggia.berkeley.edu/practice/best_possible_self" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+              title="View research on Berkeley's website"
             >
-              📚 Evidence-based practice curated by UC Berkeley&apos;s Greater Good Science Center
+              🔗
             </a>
           </div>
           {/* Save Status */}
-          <div className="text-xs text-gray-500 mb-3 text-center">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
             {saveStatus === 'saving' && '💾 Saving...'}
             {saveStatus === 'saved' && '✅ Saved'}
             {saveStatus === 'error' && '❌ Save Error'}
@@ -495,23 +482,23 @@ export default function BestPossibleSelfPage() {
             {user ? (
               <>
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-sm font-medium text-gray-700">
+                  <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Your Entries ({entries.length})
                   </h2>
                 </div>
-                <div className="text-xs text-gray-500 mb-3 p-2 bg-gray-50 rounded">
-                  💡 Entry previews update after page refresh
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 p-2 bg-gray-50 dark:bg-gray-900/20 rounded">
+                  💡 User data is only saved when prompted
                 </div>
                 
                 {entriesLoading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-500">Loading entries...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
                   </div>
                 ) : entries.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-sm text-gray-500">No saved entries yet</p>
-                    <p className="text-xs text-gray-400 mt-1">Start writing and save to see entries here</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No saved entries yet</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start writing and save to see entries here</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -521,17 +508,17 @@ export default function BestPossibleSelfPage() {
                         onClick={() => handleEntryClick(entry)}
                         className={`p-3 rounded-lg cursor-pointer transition-colors border ${
                           selectedEntry?.id === entry.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
-                        <div className="text-sm font-medium text-gray-900 truncate mb-1">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">
                           {entry.title || 'Untitled Entry'}
                         </div>
-                        <div className="text-xs text-gray-500 mb-2">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                           {formatDate(entry.created_at)}
                         </div>
-                        <div className="text-xs text-gray-600 line-clamp-2">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
                           {entry.content.substring(0, 100)}...
                         </div>
                       </div>
@@ -542,13 +529,13 @@ export default function BestPossibleSelfPage() {
             ) : (
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Try the Tool</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Try the Tool</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Experience the Best Possible Self exercise without signing up. 
                   Your work will be preserved in this session.
                 </p>
-                <p className="text-xs text-gray-500">
-                  Sign in to save your entries permanently and access them across devices.
+                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700 text-center">
+                  📝 Sign in to save your entries permanently and access them across devices!
                 </p>
               </div>
             )}
@@ -559,10 +546,10 @@ export default function BestPossibleSelfPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Mobile menu button - only visible on mobile */}
-        <div className="lg:hidden bg-white border-b border-gray-200 p-2">
+        <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             aria-label="Open sidebar"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -575,15 +562,15 @@ export default function BestPossibleSelfPage() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-6">
             {/* Instructions */}
-            <div className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">How This Works</h2>
-              <p className="text-base text-gray-700 mb-4 leading-relaxed">
+            <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 rounded-lg">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">How This Works</h2>
+              <p className="text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
                 Imagine yourself in the future, having achieved your most important goals. 
                 Write about what you see, feel, and experience in specific life areas. 
                 Be as detailed and vivid as possible - this exercise is most effective when you really 
                 immerse yourself in the vision of your future self.
               </p>
-              <div className="text-sm text-gray-700 mb-4">
+              <div className="text-sm text-gray-700 dark:text-gray-300 mb-4">
                 <strong>Key areas to explore:</strong>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Career & professional achievements</li>
@@ -594,13 +581,13 @@ export default function BestPossibleSelfPage() {
                   <li>Financial security & freedom</li>
                 </ul>
               </div>
-              <div className="text-sm text-amber-700 bg-amber-50 p-3 rounded border border-amber-200 lg:hidden">
+              <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 rounded border border-amber-200 dark:border-amber-700 lg:hidden">
                 💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
               </div>
             </div>
 
             {/* Writing Section */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <div className="mb-4">
                 <Timer onTimeUpdate={setTimeSpent} />
               </div>
@@ -609,17 +596,17 @@ export default function BestPossibleSelfPage() {
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
                 placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
-                className="w-full h-64 p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
               />
 
               <div className="mt-4 flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     Time spent: {Math.floor(timeSpent / 60)}:{(timeSpent % 60).toString().padStart(2, '0')}
                   </div>
                   <button
                     onClick={() => setIsFocusMode(true)}
-                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     🎯 Focus Mode
                   </button>
@@ -638,11 +625,11 @@ export default function BestPossibleSelfPage() {
             {/* AI Assistant */}
             <div className="mt-6">
               {chatExchangeCount >= MAX_CHAT_EXCHANGES ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
-                  <div className="text-amber-800 font-medium mb-2">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 text-center">
+                  <div className="text-amber-800 dark:text-amber-200 font-medium mb-2">
                     Chat Session Limit Reached
                   </div>
-                  <div className="text-sm text-amber-700 mb-4">
+                  <div className="text-sm text-amber-700 dark:text-amber-300 mb-4">
                     You&apos;ve reached the {MAX_CHAT_EXCHANGES} message limit for this session to manage token usage.
                     Save your work and start a new entry to continue chatting with the AI.
                   </div>
@@ -658,14 +645,15 @@ export default function BestPossibleSelfPage() {
                   <AIAssistant 
                     key={`chat-${currentEntryId || 'new'}`}
                     content={content} 
-                    dataSavingSetting={dataSavingSetting}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
                     onMessage={onChatMessage}
                     clearChat={clearAIChat}
+                    initialMessages={chatMessages}
+                    onMessagesChange={setChatMessages}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
-                    <div className="mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                    <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
                       ⚠️ Chat limit approaching: {chatExchangeCount}/{MAX_CHAT_EXCHANGES} messages used
                     </div>
                   )}
@@ -677,7 +665,14 @@ export default function BestPossibleSelfPage() {
       </div>
       </div>
 
-      {/* Auth now redirects to /auth page */}
+      {/* Auth Modal */}
+      <MagicLinkAuth 
+        isOpen={showAuthModal}
+        onClose={() => {
+          setShowAuthModal(false);
+          // Don't clear localStorage - let user continue with unsaved content
+        }}
+      />
     </div>
   );
 }
