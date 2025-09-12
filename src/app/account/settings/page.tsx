@@ -63,7 +63,7 @@ export default function AccountSettingsPage() {
         setNewPassword('');
         setConfirmPassword('');
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'An error occurred while updating password' });
     } finally {
       setUpdating(false);
@@ -83,7 +83,7 @@ export default function AccountSettingsPage() {
     try {
       // In production, you'd call an API endpoint that handles account deletion
       setMessage({ type: 'error', text: 'Account deletion not implemented in demo' });
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to delete account' });
     }
   };

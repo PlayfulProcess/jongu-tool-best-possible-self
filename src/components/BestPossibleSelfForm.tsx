@@ -10,8 +10,8 @@ import { createClient } from '@/lib/supabase-client';
 export function BestPossibleSelfForm() {
   const [content, setContent] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
-  const [dataSavingSetting, setDataSavingSetting] = useState<DataSavingSetting>('private');
-  const [researchConsent, setResearchConsent] = useState<boolean>(false);
+  const [dataSavingSetting] = useState<DataSavingSetting>('private');
+  const [researchConsent] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   
@@ -178,7 +178,6 @@ export function BestPossibleSelfForm() {
 
         <AIAssistant 
           content={content} 
-          dataSavingSetting={dataSavingSetting}
           researchConsent={researchConsent}
           entryId={currentEntryId}
         />

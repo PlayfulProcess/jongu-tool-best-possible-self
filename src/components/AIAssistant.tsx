@@ -140,7 +140,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     }
     return false;
   });
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
