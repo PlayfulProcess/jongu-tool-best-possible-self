@@ -37,18 +37,7 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       
-      // Check if this is a password recovery flow
-      if (type === 'recovery') {
-        if (isLocalEnv) {
-          return NextResponse.redirect(`${origin}/auth/update-password`)
-        } else if (forwardedHost) {
-          return NextResponse.redirect(`https://${forwardedHost}/auth/update-password`)
-        } else {
-          return NextResponse.redirect(`${origin}/auth/update-password`)
-        }
-      }
-      
-      // All other auth flows go to the same place
+      // All auth flows go to the same place (no password recovery needed for magic link only)
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${next}`)
       } else if (forwardedHost) {
