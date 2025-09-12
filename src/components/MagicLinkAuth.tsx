@@ -38,8 +38,8 @@ export function MagicLinkAuth({ isOpen, onClose }: MagicLinkAuthProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-4">Sign In</h2>
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Sign In</h2>
         
         <form onSubmit={handleSubmit}>
           <input
@@ -47,7 +47,7 @@ export function MagicLinkAuth({ isOpen, onClose }: MagicLinkAuthProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="w-full p-3 border rounded-lg mb-4"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             required
             disabled={loading}
           />
@@ -62,14 +62,14 @@ export function MagicLinkAuth({ isOpen, onClose }: MagicLinkAuthProps) {
         </form>
 
         {message && (
-          <p className={`mt-4 text-sm ${message.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+          <p className={`mt-4 text-sm ${message.startsWith('Error') ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
             {message}
           </p>
         )}
 
         <button
           onClick={onClose}
-          className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+          className="mt-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
           Continue without signing in
         </button>
