@@ -18,7 +18,7 @@ export default function AccountSettingsPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth');
+      router.push('/');
     }
   }, [status, router]);
 

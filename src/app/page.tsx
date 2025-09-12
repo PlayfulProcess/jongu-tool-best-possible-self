@@ -386,7 +386,7 @@ export default function BestPossibleSelfPage() {
               </>
             ) : (
               <button
-                onClick={() => window.location.href = `/auth?returnTo=${encodeURIComponent(window.location.href)}`}
+                onClick={() => setShowAuthModal(true)}
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
               >
                 Sign In
@@ -444,14 +444,18 @@ export default function BestPossibleSelfPage() {
               </button>
             </div>
           </div>
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              📚 Based on research from UC Berkeley&apos;s Greater Good Science Center
+            </span>
             <a 
               href="https://ggia.berkeley.edu/practice/best_possible_self" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 underline"
+              className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+              title="View research on Berkeley's website"
             >
-              📚 Based on research from UC Berkeley&apos;s Greater Good Science Center
+              🔗
             </a>
           </div>
           {/* Save Status */}
@@ -483,7 +487,7 @@ export default function BestPossibleSelfPage() {
                   </h2>
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 p-2 bg-gray-50 dark:bg-gray-900/20 rounded">
-                  💡 Entry previews update after page refresh
+                  💡 User data is only saved when prompted
                 </div>
                 
                 {entriesLoading ? (
