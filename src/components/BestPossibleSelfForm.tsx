@@ -118,7 +118,7 @@ export function BestPossibleSelfForm() {
           A playful process of envisioning your brightest future
         </p>
         <p className="text-sm text-gray-500">
-          Based on research from{' '}
+          Evidence-based practice curated by{' '}
           <a href="https://ggia.berkeley.edu/practice/best_possible_self" 
              className="text-blue-600 underline">
             Berkeley&apos;s Greater Good Science Center

@@ -1,6 +1,6 @@
 # Jongu Tool BPS - Best Possible Self Journaling
 
-A focused implementation of the Best Possible Self journaling exercise, based on research from UC Berkeley's Greater Good Science Center.
+A focused implementation of the Best Possible Self journaling exercise, an evidence-based practice curated by UC Berkeley's Greater Good Science Center.
 
 Featured as the www.jongu.org tool.
 
@@ -87,4 +87,4 @@ The app includes privacy controls allowing users to:
 
 ## License
 
-This project is based on research from UC Berkeley's Greater Good Science Center.
+This project features an evidence-based practice curated by UC Berkeley's Greater Good Science Center.
