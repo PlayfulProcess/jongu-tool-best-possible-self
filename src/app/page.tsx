@@ -102,7 +102,6 @@ export default function BestPossibleSelfPage() {
           if (Date.now() - state.timestamp < 30 * 60 * 1000) {
             setContent(state.content || '');
             setTimeSpent(state.timeSpent || 0);
-            setDataSavingSetting(state.dataSavingSetting || 'private');
             setResearchConsent(state.researchConsent || false);
             setHasUnsavedChanges(!!state.content);
             // Don't remove localStorage immediately - keep it until user saves or session ends
@@ -130,7 +129,6 @@ export default function BestPossibleSelfPage() {
     setSelectedEntry(entry);
     setContent(entry.content);
     setCurrentEntryId(entry.id);
-    setDataSavingSetting('save_private');
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0); // Reset chat count when switching entries
@@ -150,7 +148,6 @@ export default function BestPossibleSelfPage() {
     setSelectedEntry(null);
     setContent('');
     setCurrentEntryId(null);
-    setDataSavingSetting('private');
     setResearchConsent(false);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0);
@@ -165,7 +162,7 @@ export default function BestPossibleSelfPage() {
     setHasUnsavedChanges(true);
     
     // Debounced auto-save - only save after user stops typing for 2 seconds
-    if (dataSavingSetting !== 'private' && currentEntryId) {
+    if (currentEntryId) {
       clearTimeout(window.autoSaveTimeout);
       window.autoSaveTimeout = setTimeout(() => {
         setSaveStatus('saving');
@@ -180,7 +177,6 @@ export default function BestPossibleSelfPage() {
       const stateToSave = {
         content,
         timeSpent,
-        dataSavingSetting,
         researchConsent,
         timestamp: Date.now()
       };
@@ -193,37 +189,14 @@ export default function BestPossibleSelfPage() {
       return; // Nothing to save
     }
     
-    if (dataSavingSetting === 'private') {
-      // Prompt user to switch to save mode
-      const confirmed = confirm(
-        'You are currently in "Do not save" mode. 🔒\n\n' +
-        'Would you like to switch to "Save mode"?\n\n' +
-        'Click OK to switch to save mode, or Cancel to stay in private mode.'
-      );
-      
-      if (confirmed) {
-        // Switch to save mode
-        setDataSavingSetting('save_private');
-        
-        // Show confirmation that they can now save
-        setTimeout(() => {
-          alert(
-            'Switched to Save mode! 📝✅\n\n' +
-            'You can now save your entry when ready by clicking the Save button again.'
-          );
-        }, 100);
-      }
-      return;
-    }
-    
-    // User is already in save mode, proceed with saving
+    // Proceed with saving
     setSaveStatus('saving');
     saveJournalEntry(content);
   };
 
 
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || dataSavingSetting === 'private' || !contentToSave.trim()) {
+    if (!user || !contentToSave.trim()) {
       setSaveStatus('idle');
       return;
     }
@@ -664,7 +637,6 @@ export default function BestPossibleSelfPage() {
                   <AIAssistant 
                     key={`chat-${currentEntryId || 'new'}`}
                     content={content} 
-                    dataSavingSetting={dataSavingSetting}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
                     onMessage={onChatMessage}
