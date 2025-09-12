@@ -112,7 +112,6 @@ export function BestPossibleSelfForm() {
       <div className="text-center py-10 px-6 border-b border-gray-200 dark:border-gray-700">
         <h1 className="text-4xl font-serif text-gray-800 dark:text-gray-200 mb-3">
           Best Possible Self
-          <span className="text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 px-2 py-1 rounded ml-3 font-sans">Beta</span>
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-400 italic mb-3">
           A playful process of envisioning your brightest future

@@ -9,10 +9,6 @@ import Image from 'next/image';
 export default function AccountSettingsPage() {
   const { user, status, signOut } = useAuth();
   const router = useRouter();
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [updating, setUpdating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [deletingToolData, setDeletingToolData] = useState(false);
   const [deletingAllData, setDeletingAllData] = useState(false);
@@ -26,52 +22,6 @@ export default function AccountSettingsPage() {
     }
   }, [status, router]);
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'New passwords do not match' });
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
-      return;
-    }
-
-    setUpdating(true);
-    setMessage(null);
-
-    try {
-      // First verify current password by trying to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || '',
-        password: currentPassword
-      });
-
-      if (signInError) {
-        throw new Error('Current password is incorrect');
-      }
-
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateError) throw updateError;
-
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      
-      setTimeout(() => setMessage(null), 5000);
-    } catch (error) {
-      setMessage({ type: 'error', text: (error as Error).message });
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const handleDownloadData = async () => {
     if (!user) return;
@@ -251,13 +201,13 @@ export default function AccountSettingsPage() {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <Image 
-            src="/Recursivelogo.png" 
+            src="/recursive-logo-1756153260128.png" 
             alt="Recursive.eco" 
-            width={80}
-            height={80}
-            className="h-20 w-auto"
+            width={60}
+            height={60}
+            className="h-12 w-auto"
+            style={{ transform: 'rotate(200deg)' }}
           />
-          <span className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 px-2 py-0.5 rounded-full font-medium">BETA</span>
           <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool / Account Settings</div>
         </div>
         <div className="flex items-center space-x-3">
@@ -309,67 +259,6 @@ export default function AccountSettingsPage() {
             </div>
           </div>
 
-          {/* Change Password */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Change Password</h2>
-            
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Current Password
-                </label>
-                <input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
-                  placeholder="Enter your current password"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  New Password
-                </label>
-                <input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
-                  placeholder="Enter new password (min 6 characters)"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Confirm New Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
-                  placeholder="Confirm new password"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={updating || !currentPassword || !newPassword || !confirmPassword}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {updating ? 'Updating...' : 'Update Password'}
-              </button>
-            </form>
-          </div>
 
           {/* Data Management */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
