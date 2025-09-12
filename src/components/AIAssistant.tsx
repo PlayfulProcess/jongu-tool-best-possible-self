@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
-type DataSavingSetting = 'private' | 'save_private';
 import ReactMarkdown from 'react-markdown';
 
 interface AIAssistantProps {
   content: string;
-  dataSavingSetting?: DataSavingSetting;
   researchConsent?: boolean;
   entryId?: string | null;
   onMessage?: () => void;

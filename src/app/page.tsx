@@ -526,8 +526,8 @@ export default function BestPossibleSelfPage() {
                   Experience the Best Possible Self exercise without signing up. 
                   Your work will be preserved in this session.
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Sign in to save your entries permanently and access them across devices.
+                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700 text-center">
+                  📝 Sign in to save your entries permanently and access them across devices!
                 </p>
               </div>
             )}
