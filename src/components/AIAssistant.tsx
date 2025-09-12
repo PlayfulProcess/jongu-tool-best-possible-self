@@ -11,6 +11,8 @@ interface AIAssistantProps {
   entryId?: string | null;
   onMessage?: () => void;
   clearChat?: boolean;
+  initialMessages?: Message[];
+  onMessagesChange?: (messages: Message[]) => void;
 }
 
 interface Message {
@@ -129,7 +131,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, dataSavingSetting = 'private', researchConsent = false, entryId, onMessage, clearChat = false }: AIAssistantProps) {
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(() => {
     // Initialize isOpen state from sessionStorage
     if (typeof window !== 'undefined') {
@@ -283,9 +285,14 @@ export function AIAssistant({ content, dataSavingSetting = 'private', researchCo
     }
   }, [messages, entryId, user]);
 
+  // Notify parent about messages changes for localStorage integration
+  useEffect(() => {
+    onMessagesChange?.(messages);
+  }, [messages, onMessagesChange]);
+
   const saveChatMessage = async (message: string, role: 'user' | 'assistant') => {
-    if (!user || dataSavingSetting === 'private') {
-      console.log('💾 Not saving chat message - user:', !!user, 'dataSetting:', dataSavingSetting);
+    if (!user) {
+      console.log('💾 Not saving chat message - no user');
       return;
     }
 

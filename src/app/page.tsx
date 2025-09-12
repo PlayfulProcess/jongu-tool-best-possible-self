@@ -47,6 +47,7 @@ export default function BestPossibleSelfPage() {
   const [clearAIChat, setClearAIChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
   
   const supabase = createClient();
 
@@ -103,6 +104,7 @@ export default function BestPossibleSelfPage() {
             setContent(state.content || '');
             setTimeSpent(state.timeSpent || 0);
             setResearchConsent(state.researchConsent || false);
+            setChatMessages(state.chatMessages || []);
             setHasUnsavedChanges(!!state.content);
             // Don't remove localStorage immediately - keep it until user saves or session ends
           } else {
@@ -152,6 +154,7 @@ export default function BestPossibleSelfPage() {
     setHasUnsavedChanges(false);
     setChatExchangeCount(0);
     setTimeSpent(0);
+    setChatMessages([]);
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -178,6 +181,7 @@ export default function BestPossibleSelfPage() {
         content,
         timeSpent,
         researchConsent,
+        chatMessages,
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
@@ -641,6 +645,8 @@ export default function BestPossibleSelfPage() {
                     entryId={currentEntryId}
                     onMessage={onChatMessage}
                     clearChat={clearAIChat}
+                    initialMessages={chatMessages}
+                    onMessagesChange={setChatMessages}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
                     <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
