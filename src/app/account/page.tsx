@@ -35,7 +35,7 @@ export default function AccountSettingsPage() {
       const { data: documents, error: docsError } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id as any)
         .order('created_at', { ascending: false });
 
       if (docsError) throw docsError;
@@ -95,7 +95,7 @@ export default function AccountSettingsPage() {
       const { error } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', user.id as any)
         .eq('document_type', 'tool_session')
         .eq('tool_slug', 'best-possible-self');
 
