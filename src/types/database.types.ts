@@ -235,7 +235,7 @@ export type Database = {
           document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction'
           tool_slug?: string
           is_public: boolean
-          document_data: any
+          document_data: Record<string, unknown>
           created_at: string
           updated_at: string
         }
@@ -245,7 +245,7 @@ export type Database = {
           document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction'
           tool_slug?: string
           is_public?: boolean
-          document_data?: any
+          document_data?: Record<string, unknown>
           created_at?: string
           updated_at?: string
         }
@@ -255,7 +255,7 @@ export type Database = {
           document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction'
           tool_slug?: string
           is_public?: boolean
-          document_data?: any
+          document_data?: Record<string, unknown>
           created_at?: string
           updated_at?: string
         }
