@@ -31,10 +31,11 @@ export default function AccountSettingsPage() {
 
     try {
       // Fetch all user data
+      const userId = user.id;
       const { data: documents, error: docsError } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (docsError) throw docsError;
@@ -90,10 +91,11 @@ export default function AccountSettingsPage() {
     setDeletingToolData(true);
 
     try {
+      const userId = user.id;
       const { error } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('document_type', 'tool_session')
         .eq('tool_slug', 'best-possible-self');
 
@@ -151,10 +153,11 @@ export default function AccountSettingsPage() {
 
     try {
       // Delete all user data from user_documents table
+      const userIdForDelete = user.id;
       const { error: documentsError } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', userIdForDelete);
 
       if (documentsError) throw documentsError;
 
