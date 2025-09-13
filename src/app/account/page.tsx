@@ -32,13 +32,15 @@ export default function AccountSettingsPage() {
 
     try {
       // Fetch all user data
-      type UserDocRow = Database['public']['Tables']['user_documents']['Row']
-      const userId = user.id! as NonNullable<UserDocRow['user_id']>
+      const userId = user.id;
+      if (!userId) return;
+      
+      const typedUserId = userId as unknown as Database['public']['Tables']['user_documents']['Row']['user_id'];
       
       const { data: documents, error: docsError } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', typedUserId)
         .order('created_at', { ascending: false });
 
       if (docsError) throw docsError;
@@ -93,11 +95,16 @@ export default function AccountSettingsPage() {
 
     setDeletingToolData(true);
 
+    const userId = user.id;
+    if (!userId) return;
+    
+    const typedUserId = userId as unknown as Database['public']['Tables']['user_documents']['Row']['user_id'];
+
     try {
       const { error } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', typedUserId)
         .eq('document_type', 'tool_session')
         .eq('tool_slug', 'best-possible-self');
 
@@ -153,12 +160,17 @@ export default function AccountSettingsPage() {
 
     setDeletingAllData(true);
 
+    const userId = user.id;
+    if (!userId) return;
+    
+    const typedUserId = userId as unknown as Database['public']['Tables']['user_documents']['Row']['user_id'];
+
     try {
       // Delete all user data from user_documents table
       const { error: documentsError } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', userId);
+        .eq('user_id', typedUserId);
 
       if (documentsError) throw documentsError;
 
