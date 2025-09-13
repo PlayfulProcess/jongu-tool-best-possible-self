@@ -35,7 +35,9 @@ export default function AccountSettingsPage() {
       const userId = user.id;
       if (!userId) return;
       
-      const typedUserId = userId as unknown as Database['public']['Tables']['user_documents']['Row']['user_id'];
+      type UserDocRow = Database['public']['Tables']['user_documents']['Row'];
+      type UserId = NonNullable<UserDocRow['user_id']>;
+      const typedUserId = userId as UserId;
       
       const { data: documents, error: docsError } = await supabase
         .from('user_documents')
@@ -98,7 +100,9 @@ export default function AccountSettingsPage() {
     const userId = user.id;
     if (!userId) return;
     
-    const typedUserId = userId as unknown as Database['public']['Tables']['user_documents']['Row']['user_id'];
+    type UserDocRow = Database['public']['Tables']['user_documents']['Row'];
+    type UserId = NonNullable<UserDocRow['user_id']>;
+    const typedUserId = userId as UserId;
 
     try {
       const { error } = await supabase
@@ -163,7 +167,9 @@ export default function AccountSettingsPage() {
     const userId = user.id;
     if (!userId) return;
     
-    const typedUserId = userId as unknown as Database['public']['Tables']['user_documents']['Row']['user_id'];
+    type UserDocRow = Database['public']['Tables']['user_documents']['Row'];
+    type UserId = NonNullable<UserDocRow['user_id']>;
+    const typedUserId = userId as UserId;
 
     try {
       // Delete all user data from user_documents table
