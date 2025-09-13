@@ -231,9 +231,9 @@ export type Database = {
       user_documents: {
         Row: {
           id: string
-          user_id?: string
-          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction'
-          tool_slug?: string
+          user_id: string | null
+          document_type: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction' | null
+          tool_slug: string | null
           is_public: boolean
           document_data: Record<string, unknown>
           created_at: string
@@ -241,9 +241,9 @@ export type Database = {
         }
         Insert: {
           id?: string
-          user_id?: string
-          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction'
-          tool_slug?: string
+          user_id?: string | null
+          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction' | null
+          tool_slug?: string | null
           is_public?: boolean
           document_data?: Record<string, unknown>
           created_at?: string
@@ -251,9 +251,9 @@ export type Database = {
         }
         Update: {
           id?: string
-          user_id?: string
-          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction'
-          tool_slug?: string
+          user_id?: string | null
+          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction' | null
+          tool_slug?: string | null
           is_public?: boolean
           document_data?: Record<string, unknown>
           created_at?: string

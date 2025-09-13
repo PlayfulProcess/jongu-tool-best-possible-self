@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import Image from 'next/image';
+import type { Database } from '@/types/database.types';
 
 export default function AccountSettingsPage() {
   const { user, status, signOut } = useAuth();
@@ -31,10 +32,13 @@ export default function AccountSettingsPage() {
 
     try {
       // Fetch all user data
+      type UserDocRow = Database['public']['Tables']['user_documents']['Row']
+      const userId = user.id! as NonNullable<UserDocRow['user_id']>
+      
       const { data: documents, error: docsError } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (docsError) throw docsError;
@@ -93,7 +97,7 @@ export default function AccountSettingsPage() {
       const { error } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('document_type', 'tool_session')
         .eq('tool_slug', 'best-possible-self');
 
@@ -154,7 +158,7 @@ export default function AccountSettingsPage() {
       const { error: documentsError } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       if (documentsError) throw documentsError;
 
