@@ -12,6 +12,13 @@ export function createClient() {
         detectSessionInUrl: true,
         storageKey: 'recursive-eco-auth'
       },
+      cookieOptions: {
+        domain: '.recursive.eco',
+        maxAge: 100000000,
+        path: '/',
+        sameSite: 'lax',
+        secure: true,
+      },
     }
   )
 }
