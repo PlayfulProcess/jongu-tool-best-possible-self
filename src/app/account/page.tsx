@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import Image from 'next/image';
-import type { Database } from '@/types/database.types';
 
 export default function AccountSettingsPage() {
   const { user, status, signOut } = useAuth();

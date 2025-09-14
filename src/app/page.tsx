@@ -70,7 +70,7 @@ export default function BestPossibleSelfPage() {
       }
 
       // Transform the data to match the expected JournalEntry format
-      const transformedEntries = (data || []).map((doc: any) => ({
+      const transformedEntries = (data || []).map((doc) => ({
         id: doc.id,
         title: doc.document_data?.title || null,
         content: doc.document_data?.content || '',
