@@ -35,14 +35,10 @@ export default function AccountSettingsPage() {
       const userId = user.id;
       if (!userId) return;
       
-      type UserDocRow = Database['public']['Tables']['user_documents']['Row'];
-      type UserId = NonNullable<UserDocRow['user_id']>;
-      const typedUserId = userId as UserId;
-      
       const { data: documents, error: docsError } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', typedUserId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (docsError) throw docsError;
@@ -99,16 +95,12 @@ export default function AccountSettingsPage() {
 
     const userId = user.id;
     if (!userId) return;
-    
-    type UserDocRow = Database['public']['Tables']['user_documents']['Row'];
-    type UserId = NonNullable<UserDocRow['user_id']>;
-    const typedUserId = userId as UserId;
 
     try {
       const { error } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', typedUserId)
+        .eq('user_id', userId)
         .eq('document_type', 'tool_session')
         .eq('tool_slug', 'best-possible-self');
 
@@ -166,17 +158,13 @@ export default function AccountSettingsPage() {
 
     const userId = user.id;
     if (!userId) return;
-    
-    type UserDocRow = Database['public']['Tables']['user_documents']['Row'];
-    type UserId = NonNullable<UserDocRow['user_id']>;
-    const typedUserId = userId as UserId;
 
     try {
       // Delete all user data from user_documents table
       const { error: documentsError } = await supabase
         .from('user_documents')
         .delete()
-        .eq('user_id', typedUserId);
+        .eq('user_id', userId);
 
       if (documentsError) throw documentsError;
 

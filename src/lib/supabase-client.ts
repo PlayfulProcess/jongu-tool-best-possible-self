@@ -10,13 +10,7 @@ export function createClient() {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        // Enable cross-domain cookie sharing
-        storageKey: 'recursive-eco-auth',
-        cookieOptions: {
-          domain: process.env.NODE_ENV === 'production' ? '.recursive.eco' : undefined,
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === 'production'
-        }
+        storageKey: 'recursive-eco-auth'
       },
     }
   )

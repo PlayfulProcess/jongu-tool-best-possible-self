@@ -228,38 +228,6 @@ export type Database = {
           updated_at?: string
         }
       }
-      user_documents: {
-        Row: {
-          id: string
-          user_id: string | null
-          document_type: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction' | null
-          tool_slug: string | null
-          is_public: boolean
-          document_data: Record<string, unknown>
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction' | null
-          tool_slug?: string | null
-          is_public?: boolean
-          document_data?: Record<string, unknown>
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          document_type?: 'tool_session' | 'creative_work' | 'preference' | 'bookmark' | 'interaction' | 'transaction' | null
-          tool_slug?: string | null
-          is_public?: boolean
-          document_data?: Record<string, unknown>
-          created_at?: string
-          updated_at?: string
-        }
-      }
     }
     Views: {
       [_ in never]: never
