@@ -10,9 +10,8 @@ CREATE TABLE IF NOT EXISTS public.journal_templates (
   updated_at timestamp with time zone DEFAULT now()
 );
 
--- Add template_id to journal_entries
-ALTER TABLE public.journal_entries
-ADD COLUMN IF NOT EXISTS template_id uuid REFERENCES public.journal_templates(id) ON DELETE SET NULL;
+-- Note: template_id is stored in user_documents.document_data JSON field
+-- No need to alter user_documents table as it already stores flexible JSON data
 
 -- Enable RLS
 ALTER TABLE public.journal_templates ENABLE ROW LEVEL SECURITY;
@@ -46,7 +45,6 @@ CREATE POLICY "Users can delete own templates"
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_journal_templates_user_id ON public.journal_templates(user_id);
 CREATE INDEX IF NOT EXISTS idx_journal_templates_created_at ON public.journal_templates(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_journal_entries_template_id ON public.journal_entries(template_id);
 
 -- Insert default template (Best Possible Self)
 INSERT INTO public.journal_templates (
