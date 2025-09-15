@@ -31,7 +31,7 @@ export function TemplateSelector({ selectedTemplateId, onTemplateSelect, onCreat
         // Select default template if none selected
         if (!selectedTemplateId && data.templates.length > 0) {
           const defaultTemplate = data.templates.find((t: JournalTemplate) =>
-            t.id === '00000000-0000-0000-0000-000000000001'
+            t.uuid === '00000000-0000-0000-0000-000000000001'
           ) || data.templates[0];
           onTemplateSelect(defaultTemplate);
         }
@@ -43,7 +43,7 @@ export function TemplateSelector({ selectedTemplateId, onTemplateSelect, onCreat
     }
   };
 
-  const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+  const selectedTemplate = templates.find(t => t.uuid === selectedTemplateId);
 
   if (loading) {
     return (
@@ -110,13 +110,13 @@ export function TemplateSelector({ selectedTemplateId, onTemplateSelect, onCreat
 
             {templates.map((template) => (
               <button
-                key={template.id}
+                key={template.uuid}
                 onClick={() => {
                   onTemplateSelect(template);
                   setIsOpen(false);
                 }}
                 className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                  template.id === selectedTemplateId ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                  template.uuid === selectedTemplateId ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                 }`}
               >
                 <div className="font-medium text-gray-900 dark:text-gray-100">

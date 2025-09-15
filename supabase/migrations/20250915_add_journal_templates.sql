@@ -1,6 +1,10 @@
--- Create journal_templates table
+-- Ensure uuid-ossp extension is available
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA extensions;
+
+-- Create journal_templates table (following Supabase best practices)
 CREATE TABLE IF NOT EXISTS public.journal_templates (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   name text NOT NULL,
   description text,
@@ -16,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.journal_templates (
 -- Enable RLS
 ALTER TABLE public.journal_templates ENABLE ROW LEVEL SECURITY;
 
--- RLS policies for journal_templates
+-- RLS policies for journal_templates (following Supabase best practices)
 -- Everyone can view all public templates (Phase 1: all templates are public)
 CREATE POLICY "Anyone can view templates"
   ON public.journal_templates
@@ -27,20 +31,23 @@ CREATE POLICY "Anyone can view templates"
 CREATE POLICY "Authenticated users can create templates"
   ON public.journal_templates
   FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  TO authenticated
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 -- Users can update their own templates
 CREATE POLICY "Users can update own templates"
   ON public.journal_templates
   FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 -- Users can delete their own templates
 CREATE POLICY "Users can delete own templates"
   ON public.journal_templates
   FOR DELETE
-  USING (auth.uid() = user_id);
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_journal_templates_user_id ON public.journal_templates(user_id);
@@ -48,7 +55,7 @@ CREATE INDEX IF NOT EXISTS idx_journal_templates_created_at ON public.journal_te
 
 -- Insert default template (Best Possible Self)
 INSERT INTO public.journal_templates (
-  id,
+  uuid,
   user_id,
   name,
   description,
@@ -61,7 +68,7 @@ INSERT INTO public.journal_templates (
   'Envision your ideal future and the person you aspire to become',
   'Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible...',
   'You are a supportive life coach helping users explore and articulate their vision of their best possible future self. Be encouraging, ask thoughtful questions to help them dig deeper into their vision, and help them identify concrete steps they might take toward their goals. Focus on growth, possibility, and positive change while remaining grounded and practical.'
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (uuid) DO NOTHING;
 
 -- Insert sample templates for inspiration
 INSERT INTO public.journal_templates (

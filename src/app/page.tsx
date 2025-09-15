@@ -228,7 +228,7 @@ export default function BestPossibleSelfPage() {
               content: contentToSave,
               research_consent: hasResearchConsent,
               tool_name: selectedTemplate?.name || 'Best Possible Self',
-              template_id: selectedTemplate?.id,
+              template_id: selectedTemplate?.uuid,
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
@@ -254,7 +254,7 @@ export default function BestPossibleSelfPage() {
               content: contentToSave,
               research_consent: hasResearchConsent,
               tool_name: selectedTemplate?.name || 'Best Possible Self',
-              template_id: selectedTemplate?.id,
+              template_id: selectedTemplate?.uuid,
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
@@ -575,7 +575,7 @@ export default function BestPossibleSelfPage() {
             {/* Template Selector */}
             <div className="mb-6">
               <TemplateSelector
-                selectedTemplateId={selectedTemplate?.id}
+                selectedTemplateId={selectedTemplate?.uuid}
                 onTemplateSelect={setSelectedTemplate}
                 onCreateNew={() => setShowTemplateCreator(true)}
               />

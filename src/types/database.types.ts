@@ -67,7 +67,8 @@ export type Database = {
       }
       journal_templates: {
         Row: {
-          id: string
+          id: number
+          uuid: string
           user_id?: string
           name: string
           description?: string
@@ -77,7 +78,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          id?: string
+          id?: never // Generated always as identity
+          uuid?: string
           user_id?: string
           name: string
           description?: string
@@ -87,7 +89,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          id?: string
+          id?: never // Cannot update identity column
+          uuid?: string
           user_id?: string
           name?: string
           description?: string

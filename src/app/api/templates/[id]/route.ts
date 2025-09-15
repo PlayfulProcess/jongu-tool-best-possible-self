@@ -11,7 +11,7 @@ export async function GET(
     const { data: template, error } = await supabase
       .from('journal_templates')
       .select('*')
-      .eq('id', params.id)
+      .eq('uuid', params.id)
       .single();
 
     if (error) {
@@ -51,7 +51,7 @@ export async function PUT(
         ai_prompt,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('uuid', params.id)
       .eq('user_id', user.id) // Ensure user owns the template
       .select()
       .single();
@@ -88,7 +88,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('journal_templates')
       .delete()
-      .eq('id', params.id)
+      .eq('uuid', params.id)
       .eq('user_id', user.id); // Ensure user owns the template
 
     if (error) {
