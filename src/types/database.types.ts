@@ -38,6 +38,7 @@ export type Database = {
           content: string
           is_public: boolean
           research_consent: boolean
+          template_id?: string
           created_at: string
           updated_at: string
         }
@@ -48,6 +49,7 @@ export type Database = {
           content: string
           is_public?: boolean
           research_consent?: boolean
+          template_id?: string
           created_at?: string
           updated_at?: string
         }
@@ -58,6 +60,39 @@ export type Database = {
           content?: string
           is_public?: boolean
           research_consent?: boolean
+          template_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      journal_templates: {
+        Row: {
+          id: string
+          user_id?: string
+          name: string
+          description?: string
+          ui_prompt: string
+          ai_prompt?: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          name: string
+          description?: string
+          ui_prompt: string
+          ai_prompt?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          description?: string
+          ui_prompt?: string
+          ai_prompt?: string
           created_at?: string
           updated_at?: string
         }

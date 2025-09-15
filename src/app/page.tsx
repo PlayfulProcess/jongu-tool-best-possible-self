@@ -14,6 +14,11 @@ import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { MagicLinkAuth } from '@/components/MagicLinkAuth';
+import { TemplateSelector } from '@/components/TemplateSelector';
+import { TemplateCreator } from '@/components/TemplateCreator';
+import { Database } from '@/types/database.types';
+
+type JournalTemplate = Database['public']['Tables']['journal_templates']['Row'];
 
 // Simplified: no more complex data saving settings
 
@@ -34,7 +39,7 @@ export default function BestPossibleSelfPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [entriesLoading, setEntriesLoading] = useState(true);
-  
+
   // Current session state
   const [content, setContent] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
@@ -48,6 +53,10 @@ export default function BestPossibleSelfPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+
+  // Template state
+  const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
+  const [showTemplateCreator, setShowTemplateCreator] = useState(false);
   
   const supabase = createClient();
 
@@ -215,10 +224,11 @@ export default function BestPossibleSelfPage() {
           .from('user_documents')
           .update({
             document_data: {
-              title: 'Best Possible Self - ' + new Date().toLocaleDateString(),
+              title: (selectedTemplate?.name || 'Best Possible Self') + ' - ' + new Date().toLocaleDateString(),
               content: contentToSave,
               research_consent: hasResearchConsent,
-              tool_name: 'Best Possible Self',
+              tool_name: selectedTemplate?.name || 'Best Possible Self',
+              template_id: selectedTemplate?.id,
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
@@ -240,10 +250,11 @@ export default function BestPossibleSelfPage() {
             tool_slug: 'best-possible-self',
             is_public: isPublic,
             document_data: {
-              title: 'Best Possible Self - ' + new Date().toLocaleDateString(),
+              title: (selectedTemplate?.name || 'Best Possible Self') + ' - ' + new Date().toLocaleDateString(),
               content: contentToSave,
               research_consent: hasResearchConsent,
-              tool_name: 'Best Possible Self',
+              tool_name: selectedTemplate?.name || 'Best Possible Self',
+              template_id: selectedTemplate?.id,
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
@@ -561,9 +572,20 @@ export default function BestPossibleSelfPage() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto p-6">
+            {/* Template Selector */}
+            <div className="mb-6">
+              <TemplateSelector
+                selectedTemplateId={selectedTemplate?.id}
+                onTemplateSelect={setSelectedTemplate}
+                onCreateNew={() => setShowTemplateCreator(true)}
+              />
+            </div>
+
             {/* Instructions */}
             <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 rounded-lg">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">How This Works</h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                {selectedTemplate?.name || 'How This Works'}
+              </h2>
               <p className="text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
                 Imagine yourself in the future, having achieved your most important goals. 
                 Write about what you see, feel, and experience in specific life areas. 
@@ -595,7 +617,7 @@ export default function BestPossibleSelfPage() {
               <textarea
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
-                placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
+                placeholder={selectedTemplate?.ui_prompt || "Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."}
                 className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
               />
 
@@ -642,15 +664,16 @@ export default function BestPossibleSelfPage() {
                 </div>
               ) : (
                 <div>
-                  <AIAssistant 
+                  <AIAssistant
                     key={`chat-${currentEntryId || 'new'}`}
-                    content={content} 
+                    content={content}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
                     onMessage={onChatMessage}
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
+                    customSystemPrompt={selectedTemplate?.ai_prompt}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
                     <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
@@ -666,11 +689,21 @@ export default function BestPossibleSelfPage() {
       </div>
 
       {/* Auth Modal */}
-      <MagicLinkAuth 
+      <MagicLinkAuth
         isOpen={showAuthModal}
         onClose={() => {
           setShowAuthModal(false);
           // Don't clear localStorage - let user continue with unsaved content
+        }}
+      />
+
+      {/* Template Creator Modal */}
+      <TemplateCreator
+        isOpen={showTemplateCreator}
+        onClose={() => setShowTemplateCreator(false)}
+        onTemplateCreated={() => {
+          // Refresh template selector by triggering re-fetch
+          window.location.reload();
         }}
       />
     </div>

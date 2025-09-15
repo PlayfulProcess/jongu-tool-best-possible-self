@@ -13,6 +13,7 @@ interface AIAssistantProps {
   clearChat?: boolean;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
+  customSystemPrompt?: string;
 }
 
 interface Message {
@@ -131,7 +132,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange }: AIAssistantProps) {
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, customSystemPrompt }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(() => {
     // Initialize isOpen state from sessionStorage
     if (typeof window !== 'undefined') {
@@ -364,7 +365,8 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         },
         body: JSON.stringify({
           message: input,
-          content: content
+          content: content,
+          systemPrompt: customSystemPrompt
         }),
       });
 

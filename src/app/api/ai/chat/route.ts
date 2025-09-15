@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     });
 
-    const { message, content } = await request.json();
+    const { message, content, systemPrompt: customSystemPrompt } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = `You are a positive psychology coach and mentor specializing in the "Best Possible Self" exercise, an evidence-based practice curated by Berkeley's Greater Good Science Center. Your role is to guide users through deep self-reflection and help them envision their most authentic, fulfilled future self.
+    const defaultSystemPrompt = `You are a positive psychology coach and mentor specializing in the "Best Possible Self" exercise, an evidence-based practice curated by Berkeley's Greater Good Science Center. Your role is to guide users through deep self-reflection and help them envision their most authentic, fulfilled future self.
 
 Core principles:
 - Focus on personal growth, values, and authentic self-discovery
@@ -45,6 +45,9 @@ Approach the user as a caring mentor would - with curiosity about their inner wo
 Keep responses warm, insightful, and focused on their personal development rather than writing quality.
 
 IMPORTANT: Format your responses with clear paragraph breaks. Use double line breaks between different thoughts or topics to make your response easy to read and digest. Avoid long blocks of text.`;
+
+    // Use custom system prompt if provided, otherwise use default
+    const systemPrompt = customSystemPrompt || defaultSystemPrompt;
 
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
