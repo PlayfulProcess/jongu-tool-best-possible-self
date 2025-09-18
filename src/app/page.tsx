@@ -339,7 +339,7 @@ export default function BestPossibleSelfPage() {
             <textarea
               value={content}
               onChange={(e) => handleContentChange(e.target.value)}
-              placeholder="Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."
+              placeholder={selectedTemplate?.ui_prompt || "Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."}
               className="w-full h-full resize-none border-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
               style={{ 
                 fontSize: '20px', 
@@ -587,10 +587,8 @@ export default function BestPossibleSelfPage() {
                 {selectedTemplate?.name || 'How This Works'}
               </h2>
               <p className="text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                Imagine yourself in the future, having achieved your most important goals. 
-                Write about what you see, feel, and experience in specific life areas. 
-                Be as detailed and vivid as possible - this exercise is most effective when you really 
-                immerse yourself in the vision of your future self.
+                {selectedTemplate?.ui_prompt || selectedTemplate?.description ||
+                 "Imagine yourself in the future, having achieved your most important goals. Write about what you see, feel, and experience in specific life areas. Be as detailed and vivid as possible - this exercise is most effective when you really immerse yourself in the vision of your future self."}
               </p>
               <div className="text-sm text-gray-700 dark:text-gray-300 mb-4">
                 <strong>Key areas to explore:</strong>
@@ -603,6 +601,16 @@ export default function BestPossibleSelfPage() {
                   <li>Financial security & freedom</li>
                 </ul>
               </div>
+              {/* AI Assistant Prompt Display */}
+              {selectedTemplate?.ai_prompt && (
+                <div className="text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-700 mb-4">
+                  <strong>🤖 AI Assistant Guidance:</strong>
+                  <div className="mt-2 text-gray-700 dark:text-gray-300">
+                    {selectedTemplate.ai_prompt}
+                  </div>
+                </div>
+              )}
+
               <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 rounded border border-amber-200 dark:border-amber-700 lg:hidden">
                 💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
               </div>

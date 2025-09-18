@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user can set AI prompt
+    const userEmail = user.email;
+    const canSetAIPrompt = userEmail?.endsWith('@playfulprocess.com') || false;
+
     const { data: template, error } = await supabase
       .from('journal_templates')
       .insert({
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
         name,
         description,
         ui_prompt,
-        ai_prompt
+        ai_prompt: canSetAIPrompt ? ai_prompt : null
       })
       .select()
       .single();
