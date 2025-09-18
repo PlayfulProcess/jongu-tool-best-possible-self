@@ -19,7 +19,7 @@ export function TemplateCreator({ isOpen, onClose, onTemplateCreated }: Template
     name: '',
     description: '',
     ui_prompt: '',
-    ai_prompt: ''
+    ai_prompt: null
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +58,7 @@ export function TemplateCreator({ isOpen, onClose, onTemplateCreated }: Template
         name: '',
         description: '',
         ui_prompt: '',
-        ai_prompt: ''
+        ai_prompt: null
       });
 
       onTemplateCreated();
@@ -148,21 +148,6 @@ export function TemplateCreator({ isOpen, onClose, onTemplateCreated }: Template
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  AI Assistant Prompt (Optional)
-                </label>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                  Customize how the AI assistant responds to entries using this template
-                </div>
-                <textarea
-                  value={formData.ai_prompt}
-                  onChange={(e) => setFormData({ ...formData, ai_prompt: e.target.value })}
-                  placeholder="e.g., You are a supportive coach helping users explore gratitude. Ask thoughtful questions..."
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-700 dark:border-gray-600 h-32 resize-none"
-                  maxLength={1000}
-                />
-              </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
