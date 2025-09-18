@@ -49,42 +49,20 @@ CREATE POLICY "Anyone can view templates"
   FOR SELECT
   USING (true);
 
--- Authenticated users can create templates (but with restrictions on ai_prompt)
+-- Authenticated users can create templates
 CREATE POLICY "Authenticated users can create templates"
   ON public.journal_templates
   FOR INSERT
   TO authenticated
-  WITH CHECK (
-    -- User must own the template
-    (SELECT auth.uid()) = user_id
-    AND
-    -- Only @playfulprocess.com users can set ai_prompt
-    (
-      ai_prompt IS NULL
-      OR
-      (SELECT auth.jwt() ->> 'email' ILIKE '%@playfulprocess.com')
-    )
-  );
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
--- Users can update their own templates (with ai_prompt restrictions)
+-- Users can update their own templates
 CREATE POLICY "Users can update own templates"
   ON public.journal_templates
   FOR UPDATE
   TO authenticated
   USING ((SELECT auth.uid()) = user_id)
-  WITH CHECK (
-    -- User must own the template
-    (SELECT auth.uid()) = user_id
-    AND
-    -- Only @playfulprocess.com users can modify ai_prompt
-    (
-      -- If ai_prompt is not being changed (comparing new to old)
-      ai_prompt IS NOT DISTINCT FROM (SELECT ai_prompt FROM public.journal_templates WHERE id = journal_templates.id)
-      OR
-      -- Or user has @playfulprocess.com email
-      (SELECT auth.jwt() ->> 'email' ILIKE '%@playfulprocess.com')
-    )
-  );
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 -- Users can delete their own templates
 CREATE POLICY "Users can delete own templates"
@@ -99,20 +77,8 @@ CREATE INDEX IF NOT EXISTS idx_journal_templates_created_at ON public.journal_te
 CREATE INDEX IF NOT EXISTS idx_journal_templates_is_system ON public.journal_templates(is_system);
 CREATE INDEX IF NOT EXISTS idx_journal_templates_name ON public.journal_templates(name);
 
--- =====================================================
--- HELPER FUNCTION TO CHECK USER DOMAIN
--- Using SECURITY INVOKER per Supabase best practices
--- =====================================================
-
-CREATE OR REPLACE FUNCTION public.user_has_domain(domain text)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-AS $$
-  SELECT auth.jwt() ->> 'email' ILIKE '%@' || domain;
-$$;
-
-COMMENT ON FUNCTION public.user_has_domain(text) IS 'Check if current user email matches a domain';
+-- Note: user_has_domain function removed - was for domain-based AI prompt restrictions
+-- Keeping ai_prompt column in database for future development
 
 -- =====================================================
 -- INSERT SYSTEM TEMPLATES
