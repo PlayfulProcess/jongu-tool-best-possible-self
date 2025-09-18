@@ -43,8 +43,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user can set AI prompt
-    const userEmail = user.email;
+    const userEmail = user.email?.toLowerCase();
     const canSetAIPrompt = userEmail?.endsWith('@playfulprocess.com') || false;
+
+    // Debug logging
+    console.log('Template creation attempt:', {
+      userId: user.id,
+      userEmail: userEmail,
+      originalEmail: user.email,
+      canSetAIPrompt,
+      hasAIPrompt: !!ai_prompt,
+      aiPromptValue: ai_prompt
+    });
 
     const { data: template, error } = await supabase
       .from('journal_templates')
@@ -59,7 +69,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating template:', error);
+      console.error('Error creating template:', {
+        error,
+        userEmail: user.email,
+        canSetAIPrompt,
+        insertData: {
+          user_id: user.id,
+          name,
+          description,
+          ui_prompt,
+          ai_prompt: canSetAIPrompt ? ai_prompt : null
+        }
+      });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

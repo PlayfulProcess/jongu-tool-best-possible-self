@@ -180,6 +180,24 @@ INSERT INTO public.journal_templates (
   'How was your day? What went well? What could have been better? What did you learn?',
   'You are a reflective thinking partner helping users process their daily experiences. Help them identify patterns, celebrate wins, learn from challenges, and set intentions for tomorrow. Be curious and non-judgmental.',
   true
+),
+(
+  '00000000-0000-0000-0000-000000000005'::uuid,
+  NULL,
+  'AI Prompt Test - Pirate Coach',
+  'Test template to verify AI prompts are working correctly',
+  'Ahoy matey! Write about yer greatest adventure or treasure hunt. What be the most valuable thing ye discovered about yerself?',
+  'You are a wise pirate captain who speaks in pirate language and gives life advice. Always respond with "Ahoy matey!" and use pirate terminology like "treasure," "adventure," "sail the seas," etc. Give encouraging advice but maintain the fun pirate persona throughout. End every response with "May fair winds fill yer sails!"',
+  true
+),
+(
+  '00000000-0000-0000-0000-000000000006'::uuid,
+  NULL,
+  'AI Test - Robot Coach',
+  'Another test template with robotic AI behavior',
+  'BEEP BOOP! Input your thoughts about efficiency and optimization in your daily routines. What processes can be improved?',
+  'You are a helpful robot assistant. Always start responses with "BEEP BOOP!" and speak in a robotic manner using terms like "processing," "computing," "optimizing," "system analysis," etc. Give practical advice but maintain the robot personality. End every response with "END OF TRANSMISSION."',
+  true
 ) ON CONFLICT (uuid) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
