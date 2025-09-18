@@ -590,26 +590,6 @@ export default function BestPossibleSelfPage() {
                 {selectedTemplate?.ui_prompt || selectedTemplate?.description ||
                  "Imagine yourself in the future, having achieved your most important goals. Write about what you see, feel, and experience in specific life areas. Be as detailed and vivid as possible - this exercise is most effective when you really immerse yourself in the vision of your future self."}
               </p>
-              <div className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Key areas to explore:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Career & professional achievements</li>
-                  <li>Relationships & social connections</li>
-                  <li>Health & physical wellness</li>
-                  <li>Personal growth & learning</li>
-                  <li>Hobbies & creative pursuits</li>
-                  <li>Financial security & freedom</li>
-                </ul>
-              </div>
-              {/* AI Assistant Prompt Display */}
-              {selectedTemplate?.ai_prompt && (
-                <div className="text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-700 mb-4">
-                  <strong>🤖 AI Assistant Guidance:</strong>
-                  <div className="mt-2 text-gray-700 dark:text-gray-300">
-                    {selectedTemplate.ai_prompt}
-                  </div>
-                </div>
-              )}
 
               <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 rounded border border-amber-200 dark:border-amber-700 lg:hidden">
                 💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
