@@ -407,7 +407,6 @@ export default function BestPossibleSelfPage() {
                 style={{ transform: 'rotate(200deg)' }}
               />
             </a>
-            <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool</div>
           </div>
           <nav className="flex items-center space-x-6">
             <a
