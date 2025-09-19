@@ -30,6 +30,15 @@ interface JournalEntry {
   research_consent: boolean
   created_at: string
   updated_at: string
+  template_snapshot?: {
+    id: string
+    name: string
+    description?: string
+    ui_prompt: string
+    is_system: boolean
+    is_private: boolean
+  } | null
+  template_id?: string | null
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -94,8 +103,43 @@ export default function BestPossibleSelfPage() {
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
   const [showTemplateCreator, setShowTemplateCreator] = useState(false);
+
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFilterTemplate, setSelectedFilterTemplate] = useState<string>('all');
   
   const supabase = createClient();
+
+  // Simple filtering logic
+  const filteredEntries = entries.filter(entry => {
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesContent = entry.content.toLowerCase().includes(searchLower);
+      const matchesTemplate = entry.template_snapshot?.name?.toLowerCase().includes(searchLower) || false;
+      if (!matchesContent && !matchesTemplate) return false;
+    }
+
+    // Template filter
+    if (selectedFilterTemplate !== 'all') {
+      const entryTemplateId = entry.template_snapshot?.id || entry.template_id;
+      if (entryTemplateId !== selectedFilterTemplate) return false;
+    }
+
+    return true;
+  });
+
+  // Get unique templates from entries for filter dropdown
+  const templateOptions = entries.reduce((acc, entry) => {
+    if (entry.template_snapshot) {
+      const templateId = entry.template_snapshot.id;
+      const templateName = entry.template_snapshot.name;
+      if (!acc.find(t => t.id === templateId)) {
+        acc.push({ id: templateId, name: templateName });
+      }
+    }
+    return acc;
+  }, [] as { id: string; name: string }[]);
 
   // Handle URL template parameter for deep linking
   useEffect(() => {
@@ -158,7 +202,10 @@ export default function BestPossibleSelfPage() {
         is_public: doc.is_public || false,
         research_consent: doc.document_data?.research_consent || false,
         created_at: doc.created_at,
-        updated_at: doc.updated_at || doc.created_at
+        updated_at: doc.updated_at || doc.created_at,
+        // Add template info for display
+        template_snapshot: doc.document_data?.template_snapshot || null,
+        template_id: doc.document_data?.template_id || null
       }));
 
       setEntries(transformedEntries);
@@ -301,6 +348,14 @@ export default function BestPossibleSelfPage() {
               research_consent: hasResearchConsent,
               tool_name: selectedTemplate?.name || 'Best Possible Self',
               template_id: selectedTemplate?.uuid,
+              template_snapshot: selectedTemplate ? {
+                id: selectedTemplate.uuid,
+                name: selectedTemplate.name,
+                description: selectedTemplate.description,
+                ui_prompt: selectedTemplate.ui_prompt,
+                is_system: selectedTemplate.is_system,
+                is_private: selectedTemplate.is_private
+              } : null,
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
@@ -327,6 +382,14 @@ export default function BestPossibleSelfPage() {
               research_consent: hasResearchConsent,
               tool_name: selectedTemplate?.name || 'Best Possible Self',
               template_id: selectedTemplate?.uuid,
+              template_snapshot: selectedTemplate ? {
+                id: selectedTemplate.uuid,
+                name: selectedTemplate.name,
+                description: selectedTemplate.description,
+                ui_prompt: selectedTemplate.ui_prompt,
+                is_system: selectedTemplate.is_system,
+                is_private: selectedTemplate.is_private
+              } : null,
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
@@ -476,7 +539,7 @@ export default function BestPossibleSelfPage() {
             )}
             
             <a
-              href="https://github.com/PlayfulProcess/recursive-journal"
+              href="https://github.com/PlayfulProcess/jongu-tool-best-possible-self"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex items-center gap-1"
@@ -550,9 +613,34 @@ export default function BestPossibleSelfPage() {
               <>
                 <div className="flex justify-between items-center mb-3">
                   <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Your Entries ({entries.length})
+                    Your Entries ({filteredEntries.length})
                   </h2>
                 </div>
+
+                {/* Simple Filter UI */}
+                <div className="space-y-2 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search entries..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+
+                  <select
+                    value={selectedFilterTemplate}
+                    onChange={(e) => setSelectedFilterTemplate(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="all">All Templates</option>
+                    {templateOptions.map(template => (
+                      <option key={template.id} value={template.id}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 p-2 bg-gray-50 dark:bg-gray-900/20 rounded">
                   💡 User data is only saved when prompted
                 </div>
@@ -567,9 +655,14 @@ export default function BestPossibleSelfPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">No saved entries yet</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start writing and save to see entries here</p>
                   </div>
+                ) : filteredEntries.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No entries match your filters</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Try changing your search or template filter</p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
-                    {entries.map((entry) => (
+                    {filteredEntries.map((entry) => (
                       <div
                         key={entry.id}
                         onClick={() => handleEntryClick(entry)}
@@ -582,9 +675,14 @@ export default function BestPossibleSelfPage() {
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">
                           {entry.title || 'Untitled Entry'}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                           {formatDate(entry.created_at)}
                         </div>
+                        {entry.template_snapshot && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 mb-2 font-medium">
+                            📝 {entry.template_snapshot.name}
+                          </div>
+                        )}
                         <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
                           {entry.content.substring(0, 100)}...
                         </div>
@@ -634,12 +732,12 @@ export default function BestPossibleSelfPage() {
                 selectedTemplateId={selectedTemplate?.uuid}
                 onTemplateSelect={(template) => {
                   setSelectedTemplate(template);
-                  // Update URL with template parameter if not a system template
+                  // Update URL with template parameter for all user-created templates (both private and public)
                   if (template && !template.is_system) {
                     const url = new URL(window.location.href);
                     url.searchParams.set('template', template.uuid);
                     window.history.replaceState({}, '', url.toString());
-                  } else if (!template || template.is_system) {
+                  } else {
                     // Remove template parameter for system templates or no selection
                     const url = new URL(window.location.href);
                     url.searchParams.delete('template');
@@ -649,6 +747,41 @@ export default function BestPossibleSelfPage() {
                 onCreateNew={() => setShowTemplateCreator(true)}
               />
             </div>
+
+            {/* Saved Entry Template Info */}
+            {selectedEntry && selectedEntry.template_snapshot && (
+              <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                      📝 Viewing saved entry
+                    </h3>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      <strong>Template used:</strong> {selectedEntry.template_snapshot.name}
+                    </p>
+                    {selectedEntry.template_snapshot.description && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                        {selectedEntry.template_snapshot.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+                      <strong>Original prompt:</strong> {selectedEntry.template_snapshot.ui_prompt.substring(0, 150)}...
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedEntry(null);
+                      setContent('');
+                      setCurrentEntryId(null);
+                    }}
+                    className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200"
+                    title="Start new entry"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Instructions */}
             <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 rounded-lg">
