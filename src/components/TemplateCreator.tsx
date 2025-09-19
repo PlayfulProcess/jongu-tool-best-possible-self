@@ -120,20 +120,6 @@ export function TemplateCreator({ isOpen, onClose, onTemplateCreated }: Template
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of what this template helps with"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-700 dark:border-gray-600"
-                  maxLength={200}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Journal Prompt *
                 </label>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
@@ -145,6 +131,20 @@ export function TemplateCreator({ isOpen, onClose, onTemplateCreated }: Template
                   placeholder="Write the prompt that will guide users in their journaling..."
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-700 dark:border-gray-600 h-32 resize-none"
                   maxLength={1000}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description (appears in UI chatbox)
+                </label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description of what this template helps with"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-gray-700 dark:border-gray-600"
+                  maxLength={200}
                 />
               </div>
 

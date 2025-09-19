@@ -34,6 +34,43 @@ interface JournalEntry {
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
 
+// Component to render formatted text with paragraphs and hyperlinks
+function FormattedText({ text }: { text: string }) {
+  const paragraphs = text.split('\n\n').filter(p => p.trim());
+
+  const renderTextWithLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {paragraphs.map((paragraph, index) => (
+        <p key={index} className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+          {renderTextWithLinks(paragraph)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export default function BestPossibleSelfPage() {
   const { user, status, signOut } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -339,7 +376,7 @@ export default function BestPossibleSelfPage() {
             <textarea
               value={content}
               onChange={(e) => handleContentChange(e.target.value)}
-              placeholder={selectedTemplate?.ui_prompt || "Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."}
+              placeholder={selectedTemplate?.description || "Write about your thoughts and reflections..."}
               className="w-full h-full resize-none border-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent"
               style={{ 
                 fontSize: '20px', 
@@ -441,7 +478,6 @@ export default function BestPossibleSelfPage() {
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex justify-between items-center mb-2">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Best Possible Self</h1>
             <div className="flex items-center gap-2">
               {/* Close button for mobile */}
               <button
@@ -454,20 +490,6 @@ export default function BestPossibleSelfPage() {
                 </svg>
               </button>
             </div>
-          </div>
-          <div className="mb-4 flex items-center gap-2">
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              📚 Based on research from UC Berkeley&apos;s Greater Good Science Center
-            </span>
-            <a 
-              href="https://ggia.berkeley.edu/practice/best_possible_self" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
-              title="View research on Berkeley's website"
-            >
-              🔗
-            </a>
           </div>
           {/* Save Status */}
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
@@ -586,10 +608,12 @@ export default function BestPossibleSelfPage() {
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
                 {selectedTemplate?.name || 'How This Works'}
               </h2>
-              <p className="text-base text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                {selectedTemplate?.ui_prompt || selectedTemplate?.description ||
-                 "Imagine yourself in the future, having achieved your most important goals. Write about what you see, feel, and experience in specific life areas. Be as detailed and vivid as possible - this exercise is most effective when you really immerse yourself in the vision of your future self."}
-              </p>
+              <div className="mb-4">
+                <FormattedText
+                  text={selectedTemplate?.ui_prompt || selectedTemplate?.description ||
+                    "Imagine yourself in the future, having achieved your most important goals. Write about what you see, feel, and experience in specific life areas. Be as detailed and vivid as possible - this exercise is most effective when you really immerse yourself in the vision of your future self."}
+                />
+              </div>
 
               <div className="text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 rounded border border-amber-200 dark:border-amber-700 lg:hidden">
                 💡 <strong>Best experience:</strong> For deeper reflection and longer writing sessions, we recommend using a desktop or laptop computer.
@@ -605,7 +629,7 @@ export default function BestPossibleSelfPage() {
               <textarea
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
-                placeholder={selectedTemplate?.ui_prompt || "Imagine yourself in the future, having achieved your most important goals and living your best possible life. Write about what you see, feel, and experience. Be as specific and vivid as possible..."}
+                placeholder={selectedTemplate?.description || "Write about your thoughts and reflections..."}
                 className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
               />
 
@@ -662,6 +686,7 @@ export default function BestPossibleSelfPage() {
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
                     customSystemPrompt={selectedTemplate?.ai_prompt}
+                    templateDescription={selectedTemplate?.description}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
                     <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">

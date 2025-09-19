@@ -14,6 +14,7 @@ interface AIAssistantProps {
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
   customSystemPrompt?: string;
+  templateDescription?: string;
 }
 
 interface Message {
@@ -132,7 +133,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, customSystemPrompt }: AIAssistantProps) {
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, customSystemPrompt, templateDescription }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(() => {
     // Initialize isOpen state from sessionStorage
     if (typeof window !== 'undefined') {
@@ -439,7 +440,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
             ) : messages.length === 0 ? (
               <div className="text-center space-y-3">
                 <div className="text-gray-500 dark:text-gray-400 text-sm">
-                  Ask me anything about your Best Possible Self exercise!
+                  {templateDescription || "I'm here to help with your journaling!"}
                 </div>
                 <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700">
                   ⚠️ <strong>Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses.
