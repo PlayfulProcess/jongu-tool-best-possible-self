@@ -74,6 +74,8 @@ export type Database = {
           description?: string
           ui_prompt: string
           ai_prompt?: string
+          is_system: boolean
+          is_private: boolean
           created_at: string
           updated_at: string
         }
@@ -85,6 +87,8 @@ export type Database = {
           description?: string
           ui_prompt: string
           ai_prompt?: string
+          is_system?: boolean
+          is_private?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -96,6 +100,8 @@ export type Database = {
           description?: string
           ui_prompt?: string
           ai_prompt?: string
+          is_system?: boolean
+          is_private?: boolean
           created_at?: string
           updated_at?: string
         }
