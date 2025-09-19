@@ -621,9 +621,14 @@ export default function BestPossibleSelfPage() {
                 <div className="space-y-2 mb-4">
                   <input
                     type="text"
-                    placeholder="Search entries..."
+                    placeholder="Search entries... (real-time)"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault(); // Prevent form submission, search is already working
+                      }
+                    }}
                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   />
 
@@ -642,7 +647,7 @@ export default function BestPossibleSelfPage() {
                 </div>
 
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-3 p-2 bg-gray-50 dark:bg-gray-900/20 rounded">
-                  💡 User data is only saved when prompted
+                  Showing {filteredEntries.length} of {entries.length} entries
                 </div>
                 
                 {entriesLoading ? (
@@ -732,13 +737,13 @@ export default function BestPossibleSelfPage() {
                 selectedTemplateId={selectedTemplate?.uuid}
                 onTemplateSelect={(template) => {
                   setSelectedTemplate(template);
-                  // Update URL with template parameter for all user-created templates (both private and public)
-                  if (template && !template.is_system) {
+                  // Update URL with template parameter for all templates when explicitly selected
+                  if (template) {
                     const url = new URL(window.location.href);
                     url.searchParams.set('template', template.uuid);
                     window.history.replaceState({}, '', url.toString());
                   } else {
-                    // Remove template parameter for system templates or no selection
+                    // Only remove template parameter when no template is selected
                     const url = new URL(window.location.href);
                     url.searchParams.delete('template');
                     window.history.replaceState({}, '', url.toString());

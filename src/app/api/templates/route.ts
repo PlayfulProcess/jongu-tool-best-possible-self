@@ -5,6 +5,29 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
+    // Get user to apply proper filtering
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    // If not authenticated, only show system templates
+    if (authError || !user) {
+      const { data: templates, error } = await supabase
+        .from('journal_templates')
+        .select('*')
+        .eq('is_system', true)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching public templates:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ templates });
+    }
+
+    // For authenticated users, RLS policies will automatically filter:
+    // - System templates (always visible)
+    // - Public templates (is_private = false)
+    // - User's own templates (user_id = auth.uid())
     const { data: templates, error } = await supabase
       .from('journal_templates')
       .select('*')
