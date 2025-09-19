@@ -18,10 +18,10 @@ ORDER BY ordinal_position;
 
 -- =====================================================
 -- STEP 2: Update Schema (if needed)
--- Only run if is_private column doesn't exist
+-- Safe approach for large tables - avoids potential row rewrites
 -- =====================================================
 
--- Check if is_private exists, add if missing
+-- Check if is_private exists, add if missing (safer multi-step approach)
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -30,10 +30,15 @@ BEGIN
         WHERE table_name = 'journal_templates'
         AND column_name = 'is_private'
     ) THEN
+        -- Step 1: Add column without default (no rewrite)
         ALTER TABLE public.journal_templates
-        ADD COLUMN is_private boolean DEFAULT true;
+        ADD COLUMN is_private boolean;
 
-        RAISE NOTICE 'Added is_private column';
+        -- Step 2: Set default for future inserts
+        ALTER TABLE public.journal_templates
+        ALTER COLUMN is_private SET DEFAULT true;
+
+        RAISE NOTICE 'Added is_private column with safe multi-step approach';
     ELSE
         RAISE NOTICE 'is_private column already exists';
     END IF;
@@ -54,6 +59,18 @@ UPDATE public.journal_templates
 SET is_private = true
 WHERE is_system = false
 AND is_private IS NULL;
+
+-- Show update summary
+DO $$
+DECLARE
+    system_count INTEGER;
+    user_count INTEGER;
+BEGIN
+    SELECT COUNT(*) INTO system_count FROM public.journal_templates WHERE is_system = true;
+    SELECT COUNT(*) INTO user_count FROM public.journal_templates WHERE is_system = false;
+
+    RAISE NOTICE 'Data updated: % system templates (public), % user templates (private)', system_count, user_count;
+END $$;
 
 -- =====================================================
 -- STEP 4: Drop Old Policies
@@ -127,20 +144,60 @@ CREATE POLICY "delete_own_templates"
     );
 
 -- =====================================================
--- STEP 6: Create Indexes for Performance
+-- STEP 6: Create Efficient Indexes for Performance
+-- Using partial indexes to minimize size and maximize performance
 -- =====================================================
 
--- Index for privacy filtering
+-- Partial index for public templates (faster public queries)
+CREATE INDEX IF NOT EXISTS idx_public_templates
+    ON public.journal_templates(created_at DESC)
+    WHERE is_private = false;
+
+-- Partial index for user-specific templates (faster user queries)
+CREATE INDEX IF NOT EXISTS idx_user_templates
+    ON public.journal_templates(user_id, created_at DESC)
+    WHERE is_system = false;
+
+-- Index for system templates (always visible)
+CREATE INDEX IF NOT EXISTS idx_system_templates
+    ON public.journal_templates(created_at DESC)
+    WHERE is_system = true;
+
+-- General index for privacy queries (fallback)
 CREATE INDEX IF NOT EXISTS idx_journal_templates_is_private
     ON public.journal_templates(is_private);
 
--- Index for system templates
-CREATE INDEX IF NOT EXISTS idx_journal_templates_is_system
-    ON public.journal_templates(is_system);
+-- =====================================================
+-- INDEX PERFORMANCE EDUCATION
+-- =====================================================
 
--- Composite index for the common SELECT query pattern
-CREATE INDEX IF NOT EXISTS idx_journal_templates_visibility
-    ON public.journal_templates(is_system, is_private, user_id);
+-- How these indexes work and why they're efficient:
+
+-- 1. PARTIAL INDEXES (WHERE clause):
+--    - Only index rows that match the condition
+--    - Smaller index size = faster queries + less storage
+--    - Example: idx_public_templates only indexes public templates
+
+-- 2. QUERY PATTERNS OPTIMIZED:
+--    - "Show all public templates" → uses idx_public_templates
+--    - "Show user X's templates" → uses idx_user_templates
+--    - "Show system templates" → uses idx_system_templates
+--    - Mixed queries → fall back to idx_journal_templates_is_private
+
+-- 3. INDEX SELECTIVITY:
+--    - created_at DESC = good for "recent first" queries
+--    - user_id = excellent selectivity (each user sees only their templates)
+--    - WHERE clauses = eliminate irrelevant rows from index
+
+-- 4. SIZE COMPARISON:
+--    - Full table index: 100% of rows
+--    - Partial index: Only matching rows (maybe 10-30%)
+--    - Result: 3-10x smaller indexes = faster reads
+
+-- 5. QUERY PLANNER USAGE:
+--    PostgreSQL automatically chooses the most selective index
+--    Use EXPLAIN ANALYZE to see which index is used:
+--    EXPLAIN ANALYZE SELECT * FROM journal_templates WHERE is_private = false;
 
 -- =====================================================
 -- STEP 7: Test the Policies
@@ -196,13 +253,13 @@ FROM public.journal_templates;
 
 -- =====================================================
 -- STEP 8: Helper Function for Template Access Check
--- Useful for the application to check access rights
+-- Safer SECURITY INVOKER approach (recommended)
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION public.can_access_template(template_id UUID)
 RETURNS boolean
 LANGUAGE sql
-SECURITY DEFINER
+SECURITY INVOKER  -- Safer: runs with caller's privileges
 STABLE
 AS $$
     SELECT EXISTS (
@@ -232,7 +289,7 @@ RETURNS TABLE(
     is_system boolean
 )
 LANGUAGE sql
-SECURITY DEFINER
+SECURITY INVOKER  -- Safer: runs with caller's privileges
 STABLE
 AS $$
     SELECT
