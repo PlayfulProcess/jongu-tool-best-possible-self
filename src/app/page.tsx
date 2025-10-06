@@ -141,40 +141,6 @@ export default function BestPossibleSelfPage() {
     return acc;
   }, [] as { id: string; name: string }[]);
 
-  // Handle URL template parameter for deep linking
-  useEffect(() => {
-    const handleTemplateFromURL = async () => {
-      // Check for template parameter in URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const templateId = urlParams.get('template');
-
-      if (templateId) {
-        try {
-          // Fetch the specific template
-          const { data: template, error } = await supabase
-            .from('journal_templates')
-            .select('*')
-            .eq('uuid', templateId)
-            .single();
-
-          if (!error && template) {
-            // Check if user has access (public, system, or owned)
-            if (template.is_system || !template.is_private || template.user_id === user?.id) {
-              setSelectedTemplate(template);
-            } else {
-              console.log('Template is private and not owned by user');
-            }
-          } else {
-            console.log('Template not found:', templateId);
-          }
-        } catch (err) {
-          console.error('Error loading template from URL:', err);
-        }
-      }
-    };
-
-    handleTemplateFromURL();
-  }, [user?.id, supabase]);
 
   const loadEntries = useCallback(async () => {
     if (!user) return;
@@ -737,17 +703,6 @@ export default function BestPossibleSelfPage() {
                 selectedTemplateId={selectedTemplate?.uuid}
                 onTemplateSelect={(template) => {
                   setSelectedTemplate(template);
-                  // Update URL with template parameter for all templates when explicitly selected
-                  if (template) {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('template', template.uuid);
-                    window.history.replaceState({}, '', url.toString());
-                  } else {
-                    // Only remove template parameter when no template is selected
-                    const url = new URL(window.location.href);
-                    url.searchParams.delete('template');
-                    window.history.replaceState({}, '', url.toString());
-                  }
                 }}
                 onCreateNew={() => setShowTemplateCreator(true)}
               />
@@ -790,33 +745,10 @@ export default function BestPossibleSelfPage() {
 
             {/* Instructions */}
             <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 rounded-lg">
-              <div className="flex justify-between items-start mb-4">
+              <div className="mb-4">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                   {selectedTemplate?.name || 'How This Works'}
                 </h2>
-                {/* Copy Link button for public templates */}
-                {selectedTemplate && !selectedTemplate.is_private && (
-                  <button
-                    onClick={() => {
-                      const url = `${window.location.origin}${window.location.pathname}?template=${selectedTemplate.uuid}`;
-                      navigator.clipboard.writeText(url).then(() => {
-                        // Simple feedback - could add a toast later
-                        const btn = document.getElementById('copy-link-btn');
-                        if (btn) {
-                          btn.textContent = '✅ Copied!';
-                          setTimeout(() => {
-                            btn.textContent = '🔗 Copy Link';
-                          }, 2000);
-                        }
-                      });
-                    }}
-                    id="copy-link-btn"
-                    className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    title="Copy shareable link for this template"
-                  >
-                    🔗 Copy Link
-                  </button>
-                )}
               </div>
               <div className="mb-4">
                 <FormattedText
