@@ -50,11 +50,11 @@ export default function AuthCodeError() {
       // Success! User is now logged in
       console.log('✅ OTP verification successful, redirecting to main page');
       window.location.href = '/';
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ OTP verification failed:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Invalid code. Please check and try again.',
+        text: error instanceof Error ? error.message : 'Invalid code. Please check and try again.',
       });
     } finally {
       setLoading(false);
@@ -88,10 +88,10 @@ export default function AuthCodeError() {
         type: 'success',
         text: 'New code sent! Check your email.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to resend. Please wait 60 seconds.',
+        text: error instanceof Error ? error.message : 'Failed to resend. Please wait 60 seconds.',
       });
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export default function AuthCodeError() {
         </h1>
 
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
-          We couldn't verify your login link. This could happen if:
+          We couldn&apos;t verify your login link. This could happen if:
         </p>
 
         <ul className="text-sm text-gray-600 dark:text-gray-400 mb-6 space-y-1 list-disc list-inside">
@@ -130,7 +130,7 @@ export default function AuthCodeError() {
             <strong>💡 Try using the 6-digit code instead</strong>
           </p>
           <p className="text-xs text-blue-800 dark:text-blue-300">
-            Check your email for the code. If you're using corporate email (Outlook, etc.), this method works better than the magic link.
+            Check your email for the code. If you&apos;re using corporate email (Outlook, etc.), this method works better than the magic link.
           </p>
         </div>
 

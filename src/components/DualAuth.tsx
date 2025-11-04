@@ -45,10 +45,10 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
         text: `Check your email! We sent you a magic link and a 6-digit code to ${email}`,
       });
       setMode('verify');
-    } catch (error: any) {
+    } catch (error: unknown) {
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to send email. Please try again.',
+        text: error instanceof Error ? error.message : 'Failed to send email. Please try again.',
       });
     } finally {
       setLoading(false);
@@ -86,11 +86,11 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
       // Success! User is now logged in
       console.log('✅ OTP verification successful, redirecting to main page');
       window.location.href = '/';
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ OTP verification failed:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Invalid code. Please check and try again.',
+        text: error instanceof Error ? error.message : 'Invalid code. Please check and try again.',
       });
     } finally {
       setLoading(false);
@@ -117,10 +117,10 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
         type: 'success',
         text: 'New code sent! Check your email.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to resend. Please wait 60 seconds.',
+        text: error instanceof Error ? error.message : 'Failed to resend. Please wait 60 seconds.',
       });
     } finally {
       setLoading(false);
@@ -137,7 +137,7 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
           <>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Sign In</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              We'll send you an email with both a clickable link and a 6-digit code
+              We&apos;ll send you an email with both a clickable link and a 6-digit code
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4 text-xs text-left space-y-1">
@@ -151,7 +151,7 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
                 • <strong>Option 2:</strong> Enter the 6-digit code (works everywhere, including Outlook)
               </p>
               <p className="text-blue-800 dark:text-blue-300 mt-2">
-                • Check your <strong>Spam folder</strong> if you don't see it
+                • Check your <strong>Spam folder</strong> if you don&apos;t see it
               </p>
               <p className="text-blue-800 dark:text-blue-300">
                 • Need help? Email <strong>pp@playfulprocess.com</strong>
