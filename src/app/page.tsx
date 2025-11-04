@@ -13,7 +13,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
-import { MagicLinkAuth } from '@/components/MagicLinkAuth';
+import { DualAuth } from '@/components/DualAuth';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { TemplateCreator } from '@/components/TemplateCreator';
 import { Database } from '@/types/database.types';
@@ -844,7 +844,7 @@ export default function BestPossibleSelfPage() {
       </div>
 
       {/* Auth Modal */}
-      <MagicLinkAuth
+      <DualAuth
         isOpen={showAuthModal}
         onClose={() => {
           setShowAuthModal(false);
