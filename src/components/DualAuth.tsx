@@ -250,7 +250,7 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
                   📧 Enter the 6-digit code from your email below
                 </p>
                 <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
-                  Don't see it? Check your spam folder
+                  Don&apos;t see it? Check your spam folder
                 </p>
               </div>
             </div>
