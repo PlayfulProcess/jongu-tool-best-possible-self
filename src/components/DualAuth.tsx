@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase-client';
 
 type AuthMode = 'email' | 'verify';
@@ -15,26 +15,57 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const supabase = createClient();
 
-  // Step 1: Send email with magic link + OTP
+  // Auto-close modal on successful auth
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        onClose();
+        setEmail('');
+        setOtp('');
+        setMode('email');
+        setMessage(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth, onClose]);
+
+  // Escape key handler
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
+  // Step 1: Send OTP code via email
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
     try {
-      // Store email in sessionStorage so error page can access it
+      // Store email in sessionStorage for error page fallback
       sessionStorage.setItem('auth-email', email);
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          // This will send BOTH magic link and OTP in one email
-          shouldCreateUser: true, // Allow signup via auth
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          shouldCreateUser: true,
         },
       });
 
@@ -42,7 +73,7 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
 
       setMessage({
         type: 'success',
-        text: `Check your email! We sent you a magic link and a 6-digit code to ${email}`,
+        text: `Check your email! We sent a 6-digit code to ${email}`,
       });
       setMode('verify');
     } catch (error: unknown) {
@@ -83,9 +114,8 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
 
       if (error) throw error;
 
-      // Success! User is now logged in
-      console.log('✅ OTP verification successful, redirecting to main page');
-      window.location.href = '/';
+      // Success! Modal will auto-close via onAuthStateChange listener
+      console.log('✅ OTP verification successful');
     } catch (error: unknown) {
       console.error('❌ OTP verification failed:', error);
       setMessage({
@@ -107,7 +137,6 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -131,24 +160,27 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg max-w-md w-full">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg max-w-md w-full shadow-xl">
         {/* Step 1: Enter Email */}
         {mode === 'email' && (
           <>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Sign In</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              We&apos;ll send you an email with both a clickable link and a 6-digit code
+              Enter your email to receive a 6-digit verification code
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4 text-xs text-left space-y-1">
               <p className="text-blue-900 dark:text-blue-200">
-                <strong>📧 Two ways to sign in:</strong>
+                <strong>📧 How it works:</strong>
               </p>
               <p className="text-blue-800 dark:text-blue-300">
-                • <strong>Option 1:</strong> Click the magic link (may not work on corporate email)
+                1. Enter your email address
               </p>
               <p className="text-blue-800 dark:text-blue-300">
-                • <strong>Option 2:</strong> Enter the 6-digit code (works everywhere, including Outlook)
+                2. Check your email for a 6-digit code
+              </p>
+              <p className="text-blue-800 dark:text-blue-300">
+                3. Enter the code to sign in
               </p>
               <p className="text-blue-800 dark:text-blue-300 mt-2">
                 • Check your <strong>Spam folder</strong> if you don&apos;t see it
@@ -192,13 +224,13 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
                 disabled={loading}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                {loading ? 'Sending...' : 'Send Magic Link & Code'}
+                {loading ? 'Sending...' : 'Send Verification Code'}
               </button>
             </form>
 
             <button
               onClick={onClose}
-              className="mt-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              className="mt-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 w-full"
             >
               Continue without signing in
             </button>
@@ -211,14 +243,14 @@ export function DualAuth({ isOpen, onClose }: DualAuthProps) {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Check Your Email</h2>
               <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                We sent an email to <strong className="text-gray-900 dark:text-gray-100">{email}</strong>
+                We sent a 6-digit code to <strong className="text-gray-900 dark:text-gray-100">{email}</strong>
               </p>
               <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-900 dark:text-blue-200 mb-2">
-                  <strong>Option 1:</strong> Click the magic link in the email
-                </p>
                 <p className="text-sm text-blue-900 dark:text-blue-200">
-                  <strong>Option 2:</strong> Enter the 6-digit code below
+                  📧 Enter the 6-digit code from your email below
+                </p>
+                <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+                  Don't see it? Check your spam folder
                 </p>
               </div>
             </div>
