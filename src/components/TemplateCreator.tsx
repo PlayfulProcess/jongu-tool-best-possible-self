@@ -148,13 +148,6 @@ export function TemplateCreator({ isOpen, onClose, onTemplateCreated }: Template
                 />
               </div>
 
-
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  💡 In Phase 1, all templates are public and can be used by anyone. Private templates coming soon!
-                </p>
-              </div>
-
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
