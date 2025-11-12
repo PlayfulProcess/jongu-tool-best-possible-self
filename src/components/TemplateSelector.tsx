@@ -8,10 +8,10 @@ type JournalTemplate = Database['public']['Tables']['journal_templates']['Row'];
 interface TemplateSelectorProps {
   selectedTemplateId?: string;
   onTemplateSelect: (template: JournalTemplate) => void;
-  onCreateNew: () => void;
+  onAskTarot: () => void;
 }
 
-export function TemplateSelector({ selectedTemplateId, onTemplateSelect, onCreateNew }: TemplateSelectorProps) {
+export function TemplateSelector({ selectedTemplateId, onTemplateSelect, onAskTarot }: TemplateSelectorProps) {
   const [templates, setTemplates] = useState<JournalTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -96,16 +96,16 @@ export function TemplateSelector({ selectedTemplateId, onTemplateSelect, onCreat
             <div className="py-2">
               <button
                 onClick={() => {
-                  onCreateNew();
+                  onAskTarot();
                   setIsOpen(false);
                 }}
-                className="w-full px-4 py-3 text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-100 dark:border-gray-700"
+                className="w-full px-4 py-3 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors border-b border-gray-100 dark:border-gray-700"
               >
-                <div className="font-medium text-blue-600 dark:text-blue-400">
-                  + Create New Template
+                <div className="font-medium text-purple-700 dark:text-purple-300">
+                  Ask a Question to the Tarot
                 </div>
-                <div className="text-sm text-blue-500 dark:text-blue-300 mt-1">
-                  Design your own journaling prompt
+                <div className="text-sm text-purple-600 dark:text-purple-200 mt-1">
+                  Open a guidance prompt for this session
                 </div>
               </button>
 

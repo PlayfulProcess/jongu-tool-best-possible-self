@@ -15,7 +15,7 @@ import { Timer } from '@/components/Timer';
 import { AIAssistant } from '@/components/AIAssistant';
 import { DualAuth } from '@/components/DualAuth';
 import { TemplateSelector } from '@/components/TemplateSelector';
-import { TemplateCreator } from '@/components/TemplateCreator';
+import { TarotQuestionModal } from '@/components/TarotQuestionModal';
 import { Database } from '@/types/database.types';
 
 type JournalTemplate = Database['public']['Tables']['journal_templates']['Row'];
@@ -39,6 +39,7 @@ interface JournalEntry {
     is_private: boolean
   } | null
   template_id?: string | null
+  tarot_question?: string | null
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -88,6 +89,7 @@ export default function BestPossibleSelfPage() {
 
   // Current session state
   const [content, setContent] = useState('');
+  const [tarotQuestion, setTarotQuestion] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
   const [researchConsent, setResearchConsent] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
@@ -102,7 +104,7 @@ export default function BestPossibleSelfPage() {
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
-  const [showTemplateCreator, setShowTemplateCreator] = useState(false);
+  const [showTarotModal, setShowTarotModal] = useState(false);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -141,6 +143,14 @@ export default function BestPossibleSelfPage() {
     return acc;
   }, [] as { id: string; name: string }[]);
 
+  const writingPlaceholder = tarotQuestion
+    ? `Reflect on your tarot question:\n"${tarotQuestion}"\n\nLet your journal entry explore the symbols, feelings, and possibilities that come up.`
+    : (selectedTemplate?.description || 'Write about your thoughts and reflections...');
+
+  const aiContentContext = tarotQuestion
+    ? `Tarot question for this session: ${tarotQuestion}\n\nJournal entry:\n${content}`
+    : content;
+
 
   const loadEntries = useCallback(async () => {
     if (!user) return;
@@ -171,7 +181,8 @@ export default function BestPossibleSelfPage() {
         updated_at: doc.updated_at || doc.created_at,
         // Add template info for display
         template_snapshot: doc.document_data?.template_snapshot || null,
-        template_id: doc.document_data?.template_id || null
+        template_id: doc.document_data?.template_id || null,
+        tarot_question: doc.document_data?.tarot_question || null
       }));
 
       setEntries(transformedEntries);
@@ -199,6 +210,7 @@ export default function BestPossibleSelfPage() {
             setTimeSpent(state.timeSpent || 0);
             setResearchConsent(state.researchConsent || false);
             setChatMessages(state.chatMessages || []);
+            setTarotQuestion(state.tarotQuestion || '');
             setHasUnsavedChanges(!!state.content);
             // Don't remove localStorage immediately - keep it until user saves or session ends
           } else {
@@ -226,8 +238,14 @@ export default function BestPossibleSelfPage() {
     setContent(entry.content);
     setCurrentEntryId(entry.id);
     setResearchConsent(entry.research_consent);
+    setTarotQuestion(entry.tarot_question || '');
     setHasUnsavedChanges(false);
     setChatExchangeCount(0); // Reset chat count when switching entries
+  };
+
+  const handleTarotQuestionSubmit = (question: string) => {
+    setTarotQuestion(question);
+    setHasUnsavedChanges(true);
   };
 
   const handleNewEntry = () => {
@@ -245,6 +263,8 @@ export default function BestPossibleSelfPage() {
     setContent('');
     setCurrentEntryId(null);
     setResearchConsent(false);
+    setTarotQuestion('');
+    setShowTarotModal(false);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0);
     setTimeSpent(0);
@@ -276,6 +296,7 @@ export default function BestPossibleSelfPage() {
         timeSpent,
         researchConsent,
         chatMessages,
+        tarotQuestion,
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
@@ -312,6 +333,7 @@ export default function BestPossibleSelfPage() {
               title: (selectedTemplate?.name || 'Best Possible Self') + ' - ' + new Date().toLocaleDateString(),
               content: contentToSave,
               research_consent: hasResearchConsent,
+              tarot_question: tarotQuestion || null,
               tool_name: selectedTemplate?.name || 'Best Possible Self',
               template_id: selectedTemplate?.uuid,
               template_snapshot: selectedTemplate ? {
@@ -346,6 +368,7 @@ export default function BestPossibleSelfPage() {
               title: (selectedTemplate?.name || 'Best Possible Self') + ' - ' + new Date().toLocaleDateString(),
               content: contentToSave,
               research_consent: hasResearchConsent,
+              tarot_question: tarotQuestion || null,
               tool_name: selectedTemplate?.name || 'Best Possible Self',
               template_id: selectedTemplate?.uuid,
               template_snapshot: selectedTemplate ? {
@@ -704,8 +727,44 @@ export default function BestPossibleSelfPage() {
                 onTemplateSelect={(template) => {
                   setSelectedTemplate(template);
                 }}
-                onCreateNew={() => setShowTemplateCreator(true)}
+                onAskTarot={() => setShowTarotModal(true)}
               />
+            </div>
+
+            <div className="mb-6">
+              {tarotQuestion ? (
+                <div className="p-4 border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-300">
+                      Tarot Question
+                    </p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">
+                      {tarotQuestion}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      This question shapes both your writing and the AI guidance.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowTarotModal(true)}
+                    className="px-4 py-2 text-sm font-medium text-purple-700 dark:text-purple-200 border border-purple-200 dark:border-purple-600 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800/40 transition-colors"
+                  >
+                    Refine Question
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 border border-dashed border-purple-300 dark:border-purple-600 rounded-lg text-center">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                    Invite the tarot into this session with a question or situation you want guidance on.
+                  </p>
+                  <button
+                    onClick={() => setShowTarotModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Ask a Question to the Tarot
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Saved Entry Template Info */}
@@ -722,6 +781,11 @@ export default function BestPossibleSelfPage() {
                     {selectedEntry.template_snapshot.description && (
                       <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
                         {selectedEntry.template_snapshot.description}
+                      </p>
+                    )}
+                    {selectedEntry.tarot_question && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+                        <strong>Tarot question:</strong> {selectedEntry.tarot_question}
                       </p>
                     )}
                     <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
@@ -771,7 +835,7 @@ export default function BestPossibleSelfPage() {
               <textarea
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
-                placeholder={selectedTemplate?.description || "Write about your thoughts and reflections..."}
+                placeholder={writingPlaceholder}
                 className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
               />
 
@@ -820,7 +884,7 @@ export default function BestPossibleSelfPage() {
                 <div>
                   <AIAssistant
                     key={`chat-${currentEntryId || 'new'}`}
-                    content={content}
+                    content={aiContentContext}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
                     onMessage={onChatMessage}
@@ -852,14 +916,11 @@ export default function BestPossibleSelfPage() {
         }}
       />
 
-      {/* Template Creator Modal */}
-      <TemplateCreator
-        isOpen={showTemplateCreator}
-        onClose={() => setShowTemplateCreator(false)}
-        onTemplateCreated={() => {
-          // Refresh template selector by triggering re-fetch
-          window.location.reload();
-        }}
+      <TarotQuestionModal
+        isOpen={showTarotModal}
+        onClose={() => setShowTarotModal(false)}
+        onSubmit={handleTarotQuestionSubmit}
+        initialQuestion={tarotQuestion}
       />
     </div>
   );
