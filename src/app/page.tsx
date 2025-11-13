@@ -891,8 +891,6 @@ export default function BestPossibleSelfPage() {
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
-                    customSystemPrompt={selectedTemplate?.ai_prompt}
-                    templateDescription={selectedTemplate?.description}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
                     <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
