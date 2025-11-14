@@ -144,7 +144,13 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
-  
+  const [usageInfo, setUsageInfo] = useState<{
+    messages_today: number;
+    daily_limit: number;
+    credits_remaining: number;
+    used_credits: boolean;
+  } | null>(null);
+
   const { user } = useAuth();
   const supabase = createClient();
 
@@ -369,19 +375,26 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
       });
 
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response body:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      // Parse response data (may be error or success)
       const data = await response.json();
       console.log('Response data:', data);
-      
-      if (data.error) {
-        throw new Error(data.error);
+
+      // Handle error responses
+      if (!response.ok || data.error) {
+        const errorMessage = data.error || `Request failed with status ${response.status}`;
+
+        // Save usage info if provided (even on error)
+        if (data.usage) {
+          setUsageInfo(data.usage);
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      // Success - save usage info
+      if (data.usage) {
+        setUsageInfo(data.usage);
       }
 
       const aiMessage: Message = {
@@ -390,17 +403,19 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      
+
       // Save assistant message
       await saveChatMessage(aiMessage.content, 'assistant');
-      
+
       setIsLoading(false);
 
     } catch (error) {
       console.error('Error sending message:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your internet connection and try again.`
+        content: `${errorMessage}`
       }]);
       setIsLoading(false);
     }
@@ -408,12 +423,35 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
 
   return (
     <div>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-      >
-        🤖 AI Help {isOpen ? '▼' : '▶'}
-      </button>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          🤖 AI Help {isOpen ? '▼' : '▶'}
+        </button>
+
+        {/* Usage Info */}
+        {usageInfo && (
+          <div className="text-sm">
+            {usageInfo.used_credits ? (
+              <span className="text-green-600 dark:text-green-400">
+                💎 Credits: ${usageInfo.credits_remaining.toFixed(2)}
+              </span>
+            ) : (
+              <span className={`${
+                usageInfo.messages_today >= usageInfo.daily_limit
+                  ? 'text-red-600 dark:text-red-400 font-semibold'
+                  : usageInfo.messages_today >= usageInfo.daily_limit * 0.8
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-gray-600 dark:text-gray-400'
+              }`}>
+                {usageInfo.messages_today} / {usageInfo.daily_limit} free messages today
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {isOpen && (
         <div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm">

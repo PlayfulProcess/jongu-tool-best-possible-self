@@ -42,6 +42,7 @@ interface JournalEntry {
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
+const MAX_CONTENT_LENGTH = 10000; // Maximum characters per journal entry
 
 // Component to render formatted text with paragraphs and hyperlinks
 function FormattedText({ text }: { text: string }) {
@@ -255,9 +256,14 @@ export default function BestPossibleSelfPage() {
   };
 
   const handleContentChange = (newContent: string) => {
+    // Enforce character limit
+    if (newContent.length > MAX_CONTENT_LENGTH) {
+      return; // Don't update if over limit
+    }
+
     setContent(newContent);
     setHasUnsavedChanges(true);
-    
+
     // Debounced auto-save - only save after user stops typing for 2 seconds
     if (currentEntryId) {
       clearTimeout(window.autoSaveTimeout);
@@ -425,7 +431,18 @@ export default function BestPossibleSelfPage() {
       <div className="min-h-screen bg-white dark:bg-gray-800 flex flex-col">
         {/* Focus Mode Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <div className="text-sm text-gray-600 dark:text-gray-400">Focus Mode</div>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Focus Mode</div>
+            <div className={`text-sm ${
+              content.length >= MAX_CONTENT_LENGTH
+                ? 'text-red-600 dark:text-red-400 font-semibold'
+                : content.length >= MAX_CONTENT_LENGTH * 0.9
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-gray-500 dark:text-gray-400'
+            }`}>
+              {content.length.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()}
+            </div>
+          </div>
           <button
             onClick={() => setIsFocusMode(false)}
             className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -774,6 +791,24 @@ export default function BestPossibleSelfPage() {
                 placeholder={selectedTemplate?.description || "Write about your thoughts and reflections..."}
                 className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
               />
+
+              {/* Character Counter */}
+              <div className="mt-2 text-sm text-right">
+                <span className={`${
+                  content.length >= MAX_CONTENT_LENGTH
+                    ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : content.length >= MAX_CONTENT_LENGTH * 0.9
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-gray-500 dark:text-gray-400'
+                }`}>
+                  {content.length.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()} characters
+                </span>
+                {content.length >= MAX_CONTENT_LENGTH && (
+                  <span className="ml-2 text-red-600 dark:text-red-400">
+                    (Limit reached)
+                  </span>
+                )}
+              </div>
 
               <div className="mt-4 flex justify-between items-center">
                 <div className="flex items-center gap-4">
