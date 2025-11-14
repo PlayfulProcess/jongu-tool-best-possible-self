@@ -577,7 +577,6 @@ export default function BestPossibleSelfPage() {
             {saveStatus === 'saved' && '✅ Saved'}
             {saveStatus === 'error' && '❌ Save Error'}
             {hasUnsavedChanges && saveStatus === 'idle' && user && '⚠️ Unsaved changes'}
-            {hasUnsavedChanges && !user && '📝 Writing in session mode'}
           </div>
           {user ? (
             <button
@@ -684,11 +683,11 @@ export default function BestPossibleSelfPage() {
                 <div className="text-6xl mb-4">📝</div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Try the Tool</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Experience the Best Possible Self exercise without signing up. 
+                  Experience this tool without signing up.
                   Your work will be preserved in this session.
                 </p>
                 <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700 text-center">
-                  📝 Sign in to save your entries permanently and access them across devices!
+                  📝 Sign in to save your entries permanently, access them across devices, and use the AI assistant!
                 </p>
               </div>
             )}
@@ -863,11 +862,6 @@ export default function BestPossibleSelfPage() {
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
                   />
-                  {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
-                    <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
-                      ⚠️ Chat limit approaching: {chatExchangeCount}/{MAX_CHAT_EXCHANGES} messages used
-                    </div>
-                  )}
                 </div>
               )}
             </div>

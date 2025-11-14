@@ -150,6 +150,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     credits_remaining: number;
     used_credits: boolean;
   } | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const { user } = useAuth();
   const supabase = createClient();
@@ -421,6 +422,112 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     }
   };
 
+  // Full-screen mode
+  if (isFullScreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
+          <div className="flex items-center gap-4">
+            <h3 className="font-semibold text-gray-800 dark:text-gray-200">AI Assistant - Full Screen</h3>
+            {usageInfo && (
+              <div className="text-sm">
+                {usageInfo.used_credits ? (
+                  <span className="text-green-600 dark:text-green-400">
+                    💎 Credits: ${usageInfo.credits_remaining.toFixed(2)}
+                  </span>
+                ) : (
+                  <span className={`${
+                    usageInfo.messages_today >= usageInfo.daily_limit
+                      ? 'text-red-600 dark:text-red-400 font-semibold'
+                      : usageInfo.messages_today >= usageInfo.daily_limit * 0.8
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    {usageInfo.messages_today} / {usageInfo.daily_limit} free messages today
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setIsFullScreen(false)}
+            className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            Exit Full Screen
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-6 max-w-4xl w-full mx-auto">
+          <div className="space-y-4">
+            {!messagesLoaded ? (
+              <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
+                Loading conversation...
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center space-y-3">
+                <div className="text-gray-500 dark:text-gray-400 text-sm">
+                  Ask me anything about your journal!
+                </div>
+              </div>
+            ) : null}
+
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`max-w-[80%] p-4 rounded-lg text-gray-900 dark:text-gray-100 ${
+                  message.role === 'user'
+                    ? 'ml-auto bg-blue-100 dark:bg-blue-900/20'
+                    : 'bg-gray-100 dark:bg-gray-700'
+                }`}
+              >
+                {message.role === 'user' ? (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                ) : (
+                  <div className="prose dark:prose-invert max-w-none">
+                    <ReactMarkdown>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
+                <span className="text-sm">Thinking...</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
+          <div className="max-w-4xl mx-auto">
+            <form onSubmit={sendMessage} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask the AI assistant..."
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center gap-4">
@@ -458,12 +565,21 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20">
             <h3 className="font-semibold text-gray-800 dark:text-gray-200">AI Assistant</h3>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsFullScreen(true)}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="Open full screen"
+              >
+                ⛶
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
