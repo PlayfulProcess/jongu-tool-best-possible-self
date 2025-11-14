@@ -42,7 +42,7 @@ interface JournalEntry {
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
-const MAX_CONTENT_LENGTH = 10000; // Maximum characters per journal entry
+const MAX_CONTENT_LENGTH = 100000; // Maximum characters per journal entry
 
 // Component to render formatted text with paragraphs and hyperlinks
 function FormattedText({ text }: { text: string }) {

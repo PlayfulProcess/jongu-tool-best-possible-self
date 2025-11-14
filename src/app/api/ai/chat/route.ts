@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase-server';
 
 const DAILY_FREE_LIMIT = 10;
-const COST_PER_MESSAGE = 0.01; // $0.01 per message
+const COST_PER_MESSAGE = 0.01; // $0.01 per message (actual OpenAI cost: ~$0.001 with gpt-4o-mini)
 
 export async function POST(request: NextRequest) {
   try {
@@ -113,12 +113,12 @@ Keep responses warm, insightful, and focused on their personal development rathe
 IMPORTANT: Format your responses with clear paragraph breaks. Use double line breaks between different thoughts or topics to make your response easy to read and digest. Avoid long blocks of text.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message }
       ],
-      max_tokens: 400,
+      max_tokens: 500,
       temperature: 0.7,
     });
 
