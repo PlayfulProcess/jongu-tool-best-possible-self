@@ -13,6 +13,12 @@ interface AIAssistantProps {
   clearChat?: boolean;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
+  tarotQuestion?: string;
+  templateId?: string;
+  templateDescription?: string;
+  sessionUsd?: number;
+  sessionUsdLimit?: number;
+  onUsage?: (usage: { usdCost: number; promptTokens: number; completionTokens: number; source: 'live' | 'cache' }) => void;
 }
 
 interface Message {
@@ -131,7 +137,21 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange }: AIAssistantProps) {
+export function AIAssistant({
+  content,
+  researchConsent = false,
+  entryId,
+  onMessage,
+  clearChat = false,
+  initialMessages = [],
+  onMessagesChange,
+  tarotQuestion,
+  templateId,
+  templateDescription,
+  sessionUsd = 0,
+  sessionUsdLimit = 0.45,
+  onUsage,
+}: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(() => {
     // Initialize isOpen state from sessionStorage
     if (typeof window !== 'undefined') {
@@ -144,6 +164,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const { user } = useAuth();
   const supabase = createClient();
@@ -336,8 +357,10 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
   };
 
 
+  const sessionLocked = sessionUsdLimit > 0 && sessionUsd >= sessionUsdLimit;
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || sessionLocked) return;
 
     const userMessage: Message = {
       role: 'user',
@@ -355,7 +378,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     await saveChatMessage(input, 'user');
 
     try {
-      console.log('Sending request to AI API:', { message: input, content: content });
+      console.log('Sending request to AI API:', { message: input, content });
       
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -364,24 +387,19 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         },
         body: JSON.stringify({
           message: input,
-          content: content
+          content,
+          tarotQuestion,
+          templateId
         }),
       });
 
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response body:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const data = await response.json();
       console.log('Response data:', data);
-      
-      if (data.error) {
-        throw new Error(data.error);
+
+      if (!response.ok || data.error) {
+        throw new Error(data?.error || `HTTP error! status: ${response.status}`);
       }
 
       const aiMessage: Message = {
@@ -390,17 +408,29 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      if (onUsage && data.usage) {
+        onUsage({
+          usdCost: Number(data.usage.usdCost ?? 0),
+          promptTokens: Number(data.usage.promptTokens ?? 0),
+          completionTokens: Number(data.usage.completionTokens ?? 0),
+          source: data.usage.source === 'cache' ? 'cache' : 'live'
+        });
+      }
       
       // Save assistant message
       await saveChatMessage(aiMessage.content, 'assistant');
       
       setIsLoading(false);
+      setErrorMessage('');
 
     } catch (error) {
       console.error('Error sending message:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setErrorMessage(message);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your internet connection and try again.`
+        content: `Sorry, I encountered an error: ${message}. Please check your internet connection and try again.`
       }]);
       setIsLoading(false);
     }
@@ -434,13 +464,16 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
               <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
                 Loading conversation...
               </div>
-            ) : messages.length === 0 ? (
+             ) : messages.length === 0 ? (
               <div className="text-center space-y-3">
                 <div className="text-gray-500 dark:text-gray-400 text-sm">
-                  Ask me anything about your Best Possible Self exercise!
+                  {templateDescription || "I'm here to help with your journaling!"}
                 </div>
                 <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700">
-                  ⚠️ <strong>Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses.
+                  <strong>Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses.
+                </div>
+                <div className="text-xs text-purple-700 dark:text-purple-300">
+                  Session spend:  / 
                 </div>
               </div>
             ) : null}
@@ -476,7 +509,17 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
           </div>
 
           {/* Input */}
-          <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20">
+          <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 space-y-2">
+            {errorMessage && (
+              <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded">
+                {errorMessage}
+              </div>
+            )}
+            {sessionLocked && (
+              <div className="text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
+                You’ve reached the tarot guidance limit for this journaling session. Save and start a new entry to continue chatting.
+              </div>
+            )}
             <div className="flex gap-2">
               <input
                 type="text"
@@ -485,11 +528,11 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Ask for help..."
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
-                disabled={isLoading}
+                disabled={isLoading || sessionLocked}
               />
               <button
                 onClick={sendMessage}
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || !input.trim() || sessionLocked}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
                 Send

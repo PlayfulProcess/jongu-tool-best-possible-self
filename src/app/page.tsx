@@ -39,9 +39,11 @@ interface JournalEntry {
     is_private: boolean
   } | null
   template_id?: string | null
+  tarot_question?: string | null
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
+const SESSION_USD_LIMIT = 0.45;
 
 // Component to render formatted text with paragraphs and hyperlinks
 function FormattedText({ text }: { text: string }) {
@@ -88,6 +90,7 @@ export default function BestPossibleSelfPage() {
 
   // Current session state
   const [content, setContent] = useState('');
+  const [tarotQuestion, setTarotQuestion] = useState('');
   const [timeSpent, setTimeSpent] = useState(0);
   const [researchConsent, setResearchConsent] = useState<boolean>(false);
   const [currentEntryId, setCurrentEntryId] = useState<string | null>(null);
@@ -99,6 +102,7 @@ export default function BestPossibleSelfPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+  const [sessionUsd, setSessionUsd] = useState(0);
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
@@ -199,6 +203,8 @@ export default function BestPossibleSelfPage() {
             setTimeSpent(state.timeSpent || 0);
             setResearchConsent(state.researchConsent || false);
             setChatMessages(state.chatMessages || []);
+            setTarotQuestion(state.tarotQuestion || '');
+            setSessionUsd(state.sessionUsd || 0);
             setHasUnsavedChanges(!!state.content);
             // Don't remove localStorage immediately - keep it until user saves or session ends
           } else {
@@ -226,6 +232,8 @@ export default function BestPossibleSelfPage() {
     setContent(entry.content);
     setCurrentEntryId(entry.id);
     setResearchConsent(entry.research_consent);
+    setTarotQuestion(entry.tarot_question || '');
+    setSessionUsd(0);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0); // Reset chat count when switching entries
   };
@@ -245,10 +253,12 @@ export default function BestPossibleSelfPage() {
     setContent('');
     setCurrentEntryId(null);
     setResearchConsent(false);
+    setTarotQuestion('');
     setHasUnsavedChanges(false);
     setChatExchangeCount(0);
     setTimeSpent(0);
     setChatMessages([]);
+    setSessionUsd(0);
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -276,6 +286,8 @@ export default function BestPossibleSelfPage() {
         timeSpent,
         researchConsent,
         chatMessages,
+        tarotQuestion,
+        sessionUsd,
         timestamp: Date.now()
       };
       localStorage.setItem('journalState', JSON.stringify(stateToSave));
@@ -397,6 +409,15 @@ export default function BestPossibleSelfPage() {
   const onChatMessage = () => {
     setChatExchangeCount(prev => prev + 1);
   };
+
+  const handleAiUsage = useCallback((usage: { usdCost: number }) => {
+    const delta = usage?.usdCost ?? 0;
+    if (!delta) return;
+    setSessionUsd(prev => {
+      const next = prev + delta;
+      return Number(Math.min(SESSION_USD_LIMIT, Number(next.toFixed(4))));
+    });
+  }, []);
 
   if (status === 'loading') {
     return (
@@ -827,6 +848,12 @@ export default function BestPossibleSelfPage() {
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
+                    tarotQuestion={tarotQuestion}
+                    templateId={selectedTemplate?.uuid}
+                    templateDescription={selectedTemplate?.description}
+                    sessionUsd={sessionUsd}
+                    sessionUsdLimit={SESSION_USD_LIMIT}
+                    onUsage={handleAiUsage}
                   />
                   {chatExchangeCount > MAX_CHAT_EXCHANGES - 5 && (
                     <div className="mt-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
