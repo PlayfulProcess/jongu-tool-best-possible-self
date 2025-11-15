@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import ReactMarkdown from 'react-markdown';
@@ -154,6 +155,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
 
   const { user } = useAuth();
   const supabase = createClient();
+  const router = useRouter();
 
   // Persist isOpen state to sessionStorage
   useEffect(() => {
@@ -414,9 +416,13 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
       console.error('Error sending message:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
+      // Check if this is a limit error
+      const isLimitError = errorMessage.toLowerCase().includes('daily limit') ||
+                          errorMessage.toLowerCase().includes('purchase credits');
+
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `${errorMessage}`
+        content: `${errorMessage}${isLimitError ? '|||BUY_CREDITS|||' : ''}`
       }]);
       setIsLoading(false);
     }
@@ -486,9 +492,23 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                   <div className="whitespace-pre-wrap">{message.content}</div>
                 ) : (
                   <div className="prose dark:prose-invert max-w-none">
-                    <ReactMarkdown>
-                      {message.content}
-                    </ReactMarkdown>
+                    {message.content.includes('|||BUY_CREDITS|||') ? (
+                      <div>
+                        <ReactMarkdown>
+                          {message.content.replace('|||BUY_CREDITS|||', '')}
+                        </ReactMarkdown>
+                        <button
+                          onClick={() => router.push('/credits')}
+                          className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors"
+                        >
+                          💎 Buy Credits
+                        </button>
+                      </div>
+                    ) : (
+                      <ReactMarkdown>
+                        {message.content}
+                      </ReactMarkdown>
+                    )}
                   </div>
                 )}
               </div>
@@ -612,7 +632,21 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                   <div className="whitespace-pre-wrap">{message.content}</div>
                 ) : (
                   <div className="prose prose-sm max-w-none">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                    {message.content.includes('|||BUY_CREDITS|||') ? (
+                      <div>
+                        <ReactMarkdown>
+                          {message.content.replace('|||BUY_CREDITS|||', '')}
+                        </ReactMarkdown>
+                        <button
+                          onClick={() => router.push('/credits')}
+                          className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm transition-colors w-full"
+                        >
+                          💎 Buy Credits
+                        </button>
+                      </div>
+                    ) : (
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    )}
                   </div>
                 )}
               </div>
