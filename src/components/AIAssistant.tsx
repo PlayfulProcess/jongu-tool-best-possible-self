@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
@@ -152,6 +152,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     used_credits: boolean;
   } | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const previousEntryIdRef = useRef<string | null>(null);
 
   const { user } = useAuth();
   const supabase = createClient();
@@ -183,11 +184,16 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
   useEffect(() => {
     const loadMessages = async () => {
       console.log('Loading messages for entryId:', entryId, 'user:', user?.id);
-      
-      
-      // Always start fresh - clear messages when loading
-      setMessages([]);
-      setMessagesLoaded(false);
+
+      // Only clear messages if the entryId actually changed
+      // This prevents losing chat history when errors occur or component re-renders
+      const entryIdChanged = previousEntryIdRef.current !== entryId;
+      if (entryIdChanged) {
+        console.log('EntryId changed from', previousEntryIdRef.current, 'to', entryId, '- clearing messages');
+        setMessages([]);
+        setMessagesLoaded(false);
+        previousEntryIdRef.current = entryId || null;
+      }
 
       if (!user || !entryId) {
         // For new entries or anonymous users, try to load from sessionStorage first
@@ -493,16 +499,26 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                 ) : (
                   <div className="prose dark:prose-invert max-w-none">
                     {message.content.includes('|||BUY_CREDITS|||') ? (
-                      <div>
-                        <ReactMarkdown>
-                          {message.content.replace('|||BUY_CREDITS|||', '')}
-                        </ReactMarkdown>
-                        <button
-                          onClick={() => router.push('/credits')}
-                          className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors"
-                        >
-                          💎 Buy Credits
-                        </button>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 rounded">
+                          <ReactMarkdown>
+                            {message.content.replace('|||BUY_CREDITS|||', '')}
+                          </ReactMarkdown>
+                        </div>
+                        <div className="flex flex-col items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 text-center">
+                            Want to continue? Purchase credits to keep using the AI assistant.
+                          </p>
+                          <button
+                            onClick={() => router.push('/credits')}
+                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                          >
+                            💎 Buy Credits Now
+                          </button>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Packages starting at $5 for 500 messages
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       <ReactMarkdown>
@@ -633,16 +649,26 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                 ) : (
                   <div className="prose prose-sm max-w-none">
                     {message.content.includes('|||BUY_CREDITS|||') ? (
-                      <div>
-                        <ReactMarkdown>
-                          {message.content.replace('|||BUY_CREDITS|||', '')}
-                        </ReactMarkdown>
-                        <button
-                          onClick={() => router.push('/credits')}
-                          className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm transition-colors w-full"
-                        >
-                          💎 Buy Credits
-                        </button>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 rounded text-sm">
+                          <ReactMarkdown>
+                            {message.content.replace('|||BUY_CREDITS|||', '')}
+                          </ReactMarkdown>
+                        </div>
+                        <div className="flex flex-col items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-xs text-gray-700 dark:text-gray-300 text-center">
+                            Want to continue? Purchase credits to keep using the AI assistant.
+                          </p>
+                          <button
+                            onClick={() => router.push('/credits')}
+                            className="w-full px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                          >
+                            💎 Buy Credits Now
+                          </button>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Starting at $5 for 500 messages
+                          </p>
+                        </div>
                       </div>
                     ) : (
                       <ReactMarkdown>{message.content}</ReactMarkdown>
