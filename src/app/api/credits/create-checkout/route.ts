@@ -15,16 +15,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { packageId } = await request.json();
+    const { packageId, customAmount } = await request.json();
 
-    if (!packageId || !(packageId in CREDIT_PACKAGES)) {
-      return NextResponse.json(
-        { error: 'Invalid package selected' },
-        { status: 400 }
-      );
+    let pkg: { amount: number; credits: number; bonus: number; totalCredits: number; label: string; description: string };
+
+    if (customAmount) {
+      // Handle custom amount
+      const amount = parseFloat(customAmount);
+      if (isNaN(amount) || amount < 5 || amount > 1000) {
+        return NextResponse.json(
+          { error: 'Custom amount must be between $5 and $1000' },
+          { status: 400 }
+        );
+      }
+
+      // Calculate credits (no bonus for custom amounts)
+      const credits = Math.floor(amount * 100);
+      pkg = {
+        amount,
+        credits,
+        bonus: 0,
+        totalCredits: credits,
+        label: `$${amount.toFixed(2)}`,
+        description: `${credits} messages`
+      };
+    } else {
+      // Handle predefined packages
+      if (!packageId || !(packageId in CREDIT_PACKAGES)) {
+        return NextResponse.json(
+          { error: 'Invalid package selected' },
+          { status: 400 }
+        );
+      }
+      pkg = CREDIT_PACKAGES[packageId as CreditPackageId];
     }
-
-    const pkg = CREDIT_PACKAGES[packageId as CreditPackageId];
 
     // Get or create customer email
     const { data: profile } = await supabase
@@ -69,7 +93,8 @@ export async function POST(request: NextRequest) {
       client_reference_id: user.id,
       metadata: {
         user_id: user.id,
-        package_id: packageId,
+        package_id: packageId || 'custom',
+        custom_amount: customAmount ? customAmount.toString() : '',
         credits: pkg.credits.toString(),
         bonus_credits: pkg.bonus.toString(),
         total_credits: pkg.totalCredits.toString(),

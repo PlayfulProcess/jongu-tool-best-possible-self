@@ -442,9 +442,9 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800">
           <div className="flex items-center gap-4">
             <h3 className="font-semibold text-gray-800 dark:text-gray-200">AI Assistant - Full Screen</h3>
-            {usageInfo && (
+            {usageInfo && (usageInfo.used_credits || usageInfo.credits_remaining > 0 || usageInfo.messages_today >= usageInfo.daily_limit - 10) && (
               <div className="text-sm">
-                {usageInfo.used_credits ? (
+                {usageInfo.used_credits || usageInfo.credits_remaining > 0 ? (
                   <span className="text-green-600 dark:text-green-400">
                     💎 Credits: ${usageInfo.credits_remaining.toFixed(2)}
                   </span>
@@ -575,9 +575,9 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         </button>
 
         {/* Usage Info */}
-        {usageInfo && (
+        {usageInfo && (usageInfo.used_credits || usageInfo.credits_remaining > 0 || usageInfo.messages_today >= usageInfo.daily_limit - 10) && (
           <div className="text-sm">
-            {usageInfo.used_credits ? (
+            {usageInfo.used_credits || usageInfo.credits_remaining > 0 ? (
               <span className="text-green-600 dark:text-green-400">
                 💎 Credits: ${usageInfo.credits_remaining.toFixed(2)}
               </span>

@@ -13,7 +13,9 @@ export default function AccountSettingsPage() {
   const [deletingToolData, setDeletingToolData] = useState(false);
   const [deletingAllData, setDeletingAllData] = useState(false);
   const [downloadingData, setDownloadingData] = useState(false);
-  
+  const [creditsBalance, setCreditsBalance] = useState<{ credits: number; bonus: number } | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -21,6 +23,42 @@ export default function AccountSettingsPage() {
       router.push('/');
     }
   }, [status, router]);
+
+  // Fetch credits balance
+  useEffect(() => {
+    const fetchCredits = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('user_ai_wallets')
+          .select('credits_usd, bonus_credits')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching credits:', error);
+          setCreditsBalance({ credits: 0, bonus: 0 });
+        } else if (data) {
+          setCreditsBalance({
+            credits: data.credits_usd || 0,
+            bonus: data.bonus_credits || 0
+          });
+        } else {
+          setCreditsBalance({ credits: 0, bonus: 0 });
+        }
+      } catch (error) {
+        console.error('Error fetching credits:', error);
+        setCreditsBalance({ credits: 0, bonus: 0 });
+      } finally {
+        setLoadingCredits(false);
+      }
+    };
+
+    if (user) {
+      fetchCredits();
+    }
+  }, [user, supabase]);
 
 
   const handleDownloadData = async () => {
@@ -129,9 +167,7 @@ export default function AccountSettingsPage() {
       '• Your personal settings\n' +
       '• Your starred items\n\n' +
       'WILL REMAIN PUBLIC:\n' +
-      '• Tools you submitted to the community\n' +
-      '• Public comments or contributions\n' +
-      '• Anonymized research data (if consented)\n\n' +
+      '• Published information (they remain public), like channels submissions\n\n' +
       'Contact pp@playfulprocess.com for complete removal including public content.\n\n' +
       'This action cannot be undone.'
     );
@@ -270,6 +306,52 @@ export default function AccountSettingsPage() {
             </div>
           </div>
 
+          {/* AI Credits */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">AI Credits</h2>
+            {loadingCredits ? (
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading credits...</p>
+            ) : creditsBalance ? (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Credits</p>
+                      <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        💎 ${(creditsBalance.credits + creditsBalance.bonus).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400">Regular Credits</p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">${creditsBalance.credits.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400">Bonus Credits</p>
+                      <p className="font-semibold text-green-600 dark:text-green-400">${creditsBalance.bonus.toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-3">
+                    Credits are used at $0.01 per AI message. Bonus credits are used first.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => router.push('/credits')}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                >
+                  💎 Buy More Credits
+                </button>
+
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                  Packages starting at $5 for 500 messages
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 dark:text-gray-400">Unable to load credits.</p>
+            )}
+          </div>
 
           {/* Data Management */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -331,9 +413,7 @@ export default function AccountSettingsPage() {
                   
                   <p className="font-semibold mt-2">This will NOT delete:</p>
                   <ul className="list-disc list-inside ml-2 space-y-1">
-                    <li>Tools you submitted to the community (they remain public)</li>
-                    <li>Public comments or contributions</li>
-                    <li>Anonymized research data (if consented)</li>
+                    <li>Published information (they remain public), like channels submissions</li>
                   </ul>
                   
                   <p className="mt-2 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-2 rounded">

@@ -16,6 +16,7 @@ export default function CreditsPage() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [customAmount, setCustomAmount] = useState<string>('');
 
   // Check for success/cancel parameters
   useEffect(() => {
@@ -67,6 +68,50 @@ export default function CreditsPage() {
 
       if (url) {
         // Redirect to Stripe Checkout
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to start checkout');
+      setLoading(false);
+    }
+  };
+
+  const handleCustomPurchase = async () => {
+    const amount = parseFloat(customAmount);
+
+    if (isNaN(amount) || amount < 5) {
+      setError('Please enter an amount of at least $5');
+      return;
+    }
+
+    if (amount > 1000) {
+      setError('Maximum custom amount is $1000. Please contact support for larger purchases.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/credits/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customAmount: amount }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+
+      if (url) {
         window.location.href = url;
       } else {
         throw new Error('No checkout URL received');
@@ -156,6 +201,50 @@ export default function CreditsPage() {
             onSelect={handlePurchase}
             loading={loading}
           />
+        </div>
+
+        {/* Custom Amount Section */}
+        <div className="max-w-md mx-auto mb-12">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-dashed border-gray-300 dark:border-gray-600 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+              Custom Amount
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Enter any amount you&apos;d like to purchase (minimum $5, maximum $1000)
+            </p>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-semibold">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    min="5"
+                    max="1000"
+                    step="1"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    disabled={loading}
+                  />
+                </div>
+                {customAmount && parseFloat(customAmount) >= 5 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    = {Math.floor(parseFloat(customAmount) * 100)} messages
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={handleCustomPurchase}
+                disabled={loading || !customAmount || parseFloat(customAmount) < 5}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              >
+                Buy Now
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Info Section */}
