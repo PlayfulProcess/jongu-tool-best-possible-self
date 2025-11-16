@@ -379,7 +379,8 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         },
         body: JSON.stringify({
           message: input,
-          content: content
+          content: content,
+          history: messages  // Send full conversation history
         }),
       });
 

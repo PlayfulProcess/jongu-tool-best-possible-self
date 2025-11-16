@@ -313,27 +313,17 @@ export default function AccountSettingsPage() {
             ) : creditsBalance ? (
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Credits</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">AI Credits</p>
                       <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                         💎 ${(creditsBalance.credits + creditsBalance.bonus).toFixed(2)}
                       </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                        ${0.01} per AI message · {Math.floor((creditsBalance.credits + creditsBalance.bonus) / 0.01)} messages
+                      </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Regular Credits</p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">${creditsBalance.credits.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-400">Bonus Credits</p>
-                      <p className="font-semibold text-green-600 dark:text-green-400">${creditsBalance.bonus.toFixed(2)}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-3">
-                    Credits are used at $0.01 per AI message. Bonus credits are used first.
-                  </p>
                 </div>
 
                 <button

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     });
 
-    const { message, content } = await request.json();
+    const { message, content, history = [] } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -94,21 +94,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = `You are a positive psychology coach and mentor specializing in the "Best Possible Self" exercise, an evidence-based practice curated by Berkeley's Greater Good Science Center. Your role is to guide users through deep self-reflection and help them envision their most authentic, fulfilled future self.
+    const systemPrompt = `You are a compassionate empathy buddy with a thorough understanding of psychology, mythology, religion, and sociology.
 
-Core principles:
-- Focus on personal growth, values, and authentic self-discovery
-- Ask thoughtful questions that promote self-reflection
-- Help users explore their strengths, passions, and deeper aspirations  
-- Encourage optimism while being realistic about personal development
-- Guide them to connect their current actions with their future vision
-- Support psychological well-being and flourishing
+Core Principles:
+- **Validation First** (DBT): Always acknowledge and validate feelings before offering perspectives
+- **Empathy**: Listen deeply with genuine care and understanding
+- **Insight**: Draw from psychology, mythology, religion, and spiritual wisdom
+- **Support**: Help process emotions and gain clarity
+- **Non-judgmental**: Accept all feelings and experiences as valid
 
-Current context: "${content || 'The user is just beginning their Best Possible Self journey'}"
+Current context: "${content || 'The user is beginning their self-reflection journey'}"
 
-Approach the user as a caring mentor would - with curiosity about their inner world, genuine encouragement for their growth, and wisdom about human potential. Ask meaningful questions, reflect back their strengths, and help them see possibilities they might not have considered.
-
-Keep responses warm, insightful, and focused on their personal development rather than writing quality.
+Be warm, conversational, and insightful. Ask thoughtful questions that promote self-reflection. Help users explore their inner world with curiosity and compassion.
 
 IMPORTANT: Format your responses with clear paragraph breaks. Use double line breaks between different thoughts or topics to make your response easy to read and digest. Avoid long blocks of text.`;
 
@@ -116,6 +113,7 @@ IMPORTANT: Format your responses with clear paragraph breaks. Use double line br
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
+        ...history,  // Include full conversation history
         { role: 'user', content: message }
       ],
       max_tokens: 500,
