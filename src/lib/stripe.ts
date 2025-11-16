@@ -51,7 +51,7 @@ export const CREDIT_PACKAGES = {
     totalCredits: 1100,
     label: '$10',
     description: '1,100 messages',
-    popular: true,
+    popular: false,
     savings: '10% bonus',
   },
   large: {

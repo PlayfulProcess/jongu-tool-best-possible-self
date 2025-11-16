@@ -82,8 +82,8 @@ export default function CreditsPage() {
   const handleCustomPurchase = async () => {
     const amount = parseFloat(customAmount);
 
-    if (isNaN(amount) || amount < 5) {
-      setError('Please enter an amount of at least $5');
+    if (isNaN(amount) || amount < 1) {
+      setError('Please enter an amount of at least $1');
       return;
     }
 
@@ -124,9 +124,26 @@ export default function CreditsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Navigation Header */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/')}
+            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
+          >
+            <span className="text-xl">←</span>
+            <span className="font-medium">Back to Journal</span>
+          </button>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Purchase Credits
+          </h1>
+          <div className="w-32"></div> {/* Spacer for centering */}
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        {/* Page Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Purchase AI Credits
@@ -192,7 +209,7 @@ export default function CreditsPage() {
                 Purchase Any Amount
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
-                Choose exactly how much you need (minimum $5, maximum $1000)
+                Choose exactly how much you need (minimum $1, maximum $1000)
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -203,7 +220,7 @@ export default function CreditsPage() {
                   </span>
                   <input
                     type="number"
-                    min="5"
+                    min="1"
                     max="1000"
                     step="1"
                     value={customAmount}
@@ -213,7 +230,7 @@ export default function CreditsPage() {
                     disabled={loading}
                   />
                 </div>
-                {customAmount && parseFloat(customAmount) >= 5 && (
+                {customAmount && parseFloat(customAmount) >= 1 && (
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 font-semibold">
                     ≈ {Math.floor(parseFloat(customAmount) * 100)} AI messages
                   </p>
@@ -221,7 +238,7 @@ export default function CreditsPage() {
               </div>
               <button
                 onClick={handleCustomPurchase}
-                disabled={loading || !customAmount || parseFloat(customAmount) < 5}
+                disabled={loading || !customAmount || parseFloat(customAmount) < 1}
                 className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
               >
                 Purchase Now
@@ -266,16 +283,6 @@ export default function CreditsPage() {
             <li>• Secure payment processing via Stripe</li>
             <li>• Get 10 free messages daily without credits</li>
           </ul>
-        </div>
-
-        {/* Back Button */}
-        <div className="text-center mt-8">
-          <button
-            onClick={() => router.push('/')}
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            ← Back to Journal
-          </button>
         </div>
       </div>
     </div>

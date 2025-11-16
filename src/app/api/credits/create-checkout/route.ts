@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
     if (customAmount) {
       // Handle custom amount
       const amount = parseFloat(customAmount);
-      if (isNaN(amount) || amount < 5 || amount > 1000) {
+      if (isNaN(amount) || amount < 1 || amount > 1000) {
         return NextResponse.json(
-          { error: 'Custom amount must be between $5 and $1000' },
+          { error: 'Custom amount must be between $1 and $1000' },
           { status: 400 }
         );
       }
