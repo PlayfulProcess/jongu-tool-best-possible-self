@@ -184,38 +184,21 @@ export default function CreditsPage() {
           </div>
         )}
 
-        {/* Credit Packages */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <CreditPackageCard
-            packageId="small"
-            onSelect={handlePurchase}
-            loading={loading}
-          />
-          <CreditPackageCard
-            packageId="medium"
-            onSelect={handlePurchase}
-            loading={loading}
-          />
-          <CreditPackageCard
-            packageId="large"
-            onSelect={handlePurchase}
-            loading={loading}
-          />
-        </div>
-
-        {/* Custom Amount Section */}
-        <div className="max-w-md mx-auto mb-12">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-dashed border-gray-300 dark:border-gray-600 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-              Custom Amount
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Enter any amount you&apos;d like to purchase (minimum $5, maximum $1000)
-            </p>
-            <div className="flex gap-3">
+        {/* Custom Amount Section - Featured */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-xl shadow-lg border-2 border-blue-200 dark:border-blue-900 p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Purchase Any Amount
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Choose exactly how much you need (minimum $5, maximum $1000)
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-semibold">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-300 font-bold text-lg">
                     $
                   </span>
                   <input
@@ -226,24 +209,48 @@ export default function CreditsPage() {
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
                     placeholder="Enter amount"
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-4 text-lg border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     disabled={loading}
                   />
                 </div>
                 {customAmount && parseFloat(customAmount) >= 5 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    = {Math.floor(parseFloat(customAmount) * 100)} messages
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 font-semibold">
+                    ≈ {Math.floor(parseFloat(customAmount) * 100)} AI messages
                   </p>
                 )}
               </div>
               <button
                 onClick={handleCustomPurchase}
                 disabled={loading || !customAmount || parseFloat(customAmount) < 5}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
               >
-                Buy Now
+                Purchase Now
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Credit Packages - De-emphasized */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <h3 className="text-center text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4 uppercase tracking-wide">
+            Or choose a package
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-75">
+            <CreditPackageCard
+              packageId="small"
+              onSelect={handlePurchase}
+              loading={loading}
+            />
+            <CreditPackageCard
+              packageId="medium"
+              onSelect={handlePurchase}
+              loading={loading}
+            />
+            <CreditPackageCard
+              packageId="large"
+              onSelect={handlePurchase}
+              loading={loading}
+            />
           </div>
         </div>
 

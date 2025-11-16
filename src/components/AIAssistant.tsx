@@ -445,9 +445,18 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
             {usageInfo && (usageInfo.used_credits || usageInfo.credits_remaining > 0 || usageInfo.messages_today >= usageInfo.daily_limit - 10) && (
               <div className="text-sm">
                 {usageInfo.used_credits || usageInfo.credits_remaining > 0 ? (
-                  <span className="text-green-600 dark:text-green-400">
-                    💎 Credits: ${usageInfo.credits_remaining.toFixed(2)}
-                  </span>
+                  // Show message count for paid users (only when ≤10 messages remaining)
+                  Math.floor(usageInfo.credits_remaining / 0.01) <= 10 ? (
+                    <span className={`${
+                      Math.floor(usageInfo.credits_remaining / 0.01) === 0
+                        ? 'text-red-600 dark:text-red-400 font-semibold'
+                        : Math.floor(usageInfo.credits_remaining / 0.01) <= 5
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {Math.floor(usageInfo.credits_remaining / 0.01)} messages remaining
+                    </span>
+                  ) : null
                 ) : (
                   <span className={`${
                     usageInfo.messages_today >= usageInfo.daily_limit
@@ -578,9 +587,18 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         {usageInfo && (usageInfo.used_credits || usageInfo.credits_remaining > 0 || usageInfo.messages_today >= usageInfo.daily_limit - 10) && (
           <div className="text-sm">
             {usageInfo.used_credits || usageInfo.credits_remaining > 0 ? (
-              <span className="text-green-600 dark:text-green-400">
-                💎 Credits: ${usageInfo.credits_remaining.toFixed(2)}
-              </span>
+              // Show message count for paid users (only when ≤10 messages remaining)
+              Math.floor(usageInfo.credits_remaining / 0.01) <= 10 ? (
+                <span className={`${
+                  Math.floor(usageInfo.credits_remaining / 0.01) === 0
+                    ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : Math.floor(usageInfo.credits_remaining / 0.01) <= 5
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-gray-600 dark:text-gray-400'
+                }`}>
+                  {Math.floor(usageInfo.credits_remaining / 0.01)} messages remaining
+                </span>
+              ) : null
             ) : (
               <span className={`${
                 usageInfo.messages_today >= usageInfo.daily_limit
