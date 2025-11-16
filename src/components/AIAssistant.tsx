@@ -524,9 +524,6 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                           >
                             💎 Buy Credits Now
                           </button>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Packages starting at $5 for 500 messages
-                          </p>
                         </div>
                       </div>
                     ) : (
@@ -683,9 +680,6 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
                           >
                             💎 Buy Credits Now
                           </button>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Starting at $5 for 500 messages
-                          </p>
                         </div>
                       </div>
                     ) : (

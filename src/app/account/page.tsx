@@ -255,7 +255,6 @@ export default function AccountSettingsPage() {
               style={{ transform: 'rotate(200deg)' }}
             />
           </a>
-          <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">/ Best Possible Self Tool / Account Settings</div>
         </div>
         <div className="flex items-center space-x-3">
           <button
@@ -343,10 +342,6 @@ export default function AccountSettingsPage() {
                 >
                   💎 Buy More Credits
                 </button>
-
-                <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                  Packages starting at $5 for 500 messages
-                </p>
               </div>
             ) : (
               <p className="text-sm text-gray-600 dark:text-gray-400">Unable to load credits.</p>
