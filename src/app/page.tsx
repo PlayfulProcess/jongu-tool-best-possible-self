@@ -42,6 +42,7 @@ interface JournalEntry {
   } | null
   template_id?: string | null
   iching_reading?: HexagramReading | null
+  chat_messages?: {role: 'user' | 'assistant', content: string}[] | null
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -180,7 +181,9 @@ export default function BestPossibleSelfPage() {
         template_snapshot: doc.document_data?.template_snapshot || null,
         template_id: doc.document_data?.template_id || null,
         // Load I Ching reading from saved data
-        iching_reading: doc.document_data?.iching_reading || null
+        iching_reading: doc.document_data?.iching_reading || null,
+        // Load chat messages from saved data
+        chat_messages: doc.document_data?.chat_messages || null
       }));
 
       setEntries(transformedEntries);
@@ -236,10 +239,13 @@ export default function BestPossibleSelfPage() {
     setCurrentEntryId(entry.id);
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
-    setChatExchangeCount(0); // Reset chat count when switching entries
 
     // Load I Ching reading if present
     setIchingReading(entry.iching_reading || null);
+
+    // Load chat messages if present
+    setChatMessages(entry.chat_messages || []);
+    setChatExchangeCount(entry.chat_messages?.length || 0);
   };
 
   const handleNewEntry = () => {
@@ -345,7 +351,9 @@ export default function BestPossibleSelfPage() {
                 word_count: contentToSave.split(' ').length
               },
               // Save full I Ching reading for reconstruction
-              iching_reading: ichingReading || null
+              iching_reading: ichingReading || null,
+              // Save chat messages for reconstruction
+              chat_messages: chatMessages.length > 0 ? chatMessages : null
             },
             is_public: isPublic,
             updated_at: new Date().toISOString()
@@ -381,7 +389,9 @@ export default function BestPossibleSelfPage() {
                 word_count: contentToSave.split(' ').length
               },
               // Save full I Ching reading for reconstruction
-              iching_reading: ichingReading || null
+              iching_reading: ichingReading || null,
+              // Save chat messages for reconstruction
+              chat_messages: chatMessages.length > 0 ? chatMessages : null
             }
           })
           .select()
