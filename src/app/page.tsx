@@ -299,7 +299,7 @@ export default function BestPossibleSelfPage() {
       return;
     }
     
-    if (!content.trim()) {
+    if (!content.trim() && !ichingReading) {
       return; // Nothing to save
     }
     
@@ -310,7 +310,7 @@ export default function BestPossibleSelfPage() {
 
 
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || !contentToSave.trim()) {
+    if (!user || (!contentToSave.trim() && !ichingReading)) {
       setSaveStatus('idle');
       return;
     }
@@ -837,7 +837,7 @@ export default function BestPossibleSelfPage() {
                 </div>
                 <button
                   onClick={handleManualSave}
-                  disabled={!content.trim() || saveStatus === 'saving'}
+                  disabled={(!content.trim() && !ichingReading) || saveStatus === 'saving'}
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {saveStatus === 'saving' ? '💾 Saving...' : 
