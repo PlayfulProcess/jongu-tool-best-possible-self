@@ -16,7 +16,9 @@ import { AIAssistant } from '@/components/AIAssistant';
 import { DualAuth } from '@/components/DualAuth';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { TemplateCreator } from '@/components/TemplateCreator';
+import { IChingOracle } from '@/components/IChingOracle';
 import { Database } from '@/types/database.types';
+import { HexagramReading } from '@/types/iching.types';
 
 type JournalTemplate = Database['public']['Tables']['journal_templates']['Row'];
 
@@ -39,6 +41,7 @@ interface JournalEntry {
     is_private: boolean
   } | null
   template_id?: string | null
+  iching_reading?: HexagramReading | null
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -100,6 +103,9 @@ export default function BestPossibleSelfPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+
+  // Oracle state
+  const [ichingReading, setIchingReading] = useState<HexagramReading | null>(null);
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
@@ -172,7 +178,9 @@ export default function BestPossibleSelfPage() {
         updated_at: doc.updated_at || doc.created_at,
         // Add template info for display
         template_snapshot: doc.document_data?.template_snapshot || null,
-        template_id: doc.document_data?.template_id || null
+        template_id: doc.document_data?.template_id || null,
+        // Load I Ching reading from saved data
+        iching_reading: doc.document_data?.iching_reading || null
       }));
 
       setEntries(transformedEntries);
@@ -229,6 +237,9 @@ export default function BestPossibleSelfPage() {
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0); // Reset chat count when switching entries
+
+    // Load I Ching reading if present
+    setIchingReading(entry.iching_reading || null);
   };
 
   const handleNewEntry = () => {
@@ -250,6 +261,7 @@ export default function BestPossibleSelfPage() {
     setChatExchangeCount(0);
     setTimeSpent(0);
     setChatMessages([]);
+    setIchingReading(null); // Clear oracle reading
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -289,7 +301,7 @@ export default function BestPossibleSelfPage() {
       return;
     }
     
-    if (!content.trim()) {
+    if (!content.trim() && !ichingReading) {
       return; // Nothing to save
     }
     
@@ -300,7 +312,7 @@ export default function BestPossibleSelfPage() {
 
 
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || !contentToSave.trim()) {
+    if (!user || (!contentToSave.trim() && !ichingReading)) {
       setSaveStatus('idle');
       return;
     }
@@ -331,7 +343,9 @@ export default function BestPossibleSelfPage() {
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
-              }
+              },
+              // Save full I Ching reading for reconstruction
+              iching_reading: ichingReading || null
             },
             is_public: isPublic,
             updated_at: new Date().toISOString()
@@ -365,7 +379,9 @@ export default function BestPossibleSelfPage() {
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
-              }
+              },
+              // Save full I Ching reading for reconstruction
+              iching_reading: ichingReading || null
             }
           })
           .select()
@@ -823,13 +839,23 @@ export default function BestPossibleSelfPage() {
                 </div>
                 <button
                   onClick={handleManualSave}
-                  disabled={!content.trim() || saveStatus === 'saving'}
+                  disabled={(!content.trim() && !ichingReading) || saveStatus === 'saving'}
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {saveStatus === 'saving' ? '💾 Saving...' : 
                    currentEntryId ? '💾 Update' : '💾 Save'}
                 </button>
               </div>
+            </div>
+
+            {/* Oracle Tools */}
+            <div className="mt-6">
+              <IChingOracle
+                currentReading={ichingReading}
+                onReadingComplete={setIchingReading}
+                onReadingClear={() => setIchingReading(null)}
+              />
+              {/* Future: Tarot component will go here */}
             </div>
 
             {/* AI Assistant */}
@@ -861,6 +887,7 @@ export default function BestPossibleSelfPage() {
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
+                    ichingReading={ichingReading}
                   />
                 </div>
               )}

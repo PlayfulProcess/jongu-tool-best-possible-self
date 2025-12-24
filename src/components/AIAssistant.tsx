@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import ReactMarkdown from 'react-markdown';
+import { HexagramReading } from '@/types/iching.types';
 
 interface AIAssistantProps {
   content: string;
@@ -14,6 +15,7 @@ interface AIAssistantProps {
   clearChat?: boolean;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
+  ichingReading?: HexagramReading | null;
 }
 
 interface Message {
@@ -132,15 +134,9 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange }: AIAssistantProps) {
-  const [isOpen, setIsOpen] = useState(() => {
-    // Initialize isOpen state from sessionStorage
-    if (typeof window !== 'undefined') {
-      const savedIsOpen = sessionStorage.getItem('ai_chat_isOpen');
-      return savedIsOpen === 'true';
-    }
-    return false;
-  });
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReading }: AIAssistantProps) {
+  // Always start collapsed
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -158,25 +154,16 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
   const supabase = createClient();
   const router = useRouter();
 
-  // Persist isOpen state to sessionStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('ai_chat_isOpen', isOpen.toString());
-    }
-  }, [isOpen]);
-
   // Clear chat when clearChat prop is true
   useEffect(() => {
     if (clearChat) {
       setMessages([]);
-      setIsOpen(false); // Also close the chat when clearing
+      setIsOpen(false);
       // Clear sessionStorage for new entries
       if (user) {
         const sessionKey = `chat_messages_new_${user.id}`;
         sessionStorage.removeItem(sessionKey);
       }
-      // Clear the isOpen state from sessionStorage too
-      sessionStorage.removeItem('ai_chat_isOpen');
     }
   }, [clearChat, user]);
 
@@ -370,8 +357,36 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     await saveChatMessage(input, 'user');
 
     try {
-      console.log('Sending request to AI API:', { message: input, content: content });
-      
+      // Build oracle context if I Ching reading is available
+      const oracleContext = ichingReading ? {
+        type: 'iching' as const,
+        question: ichingReading.question,
+        primaryHexagram: {
+          number: ichingReading.primaryHexagram.number,
+          english_name: ichingReading.primaryHexagram.english_name,
+          chinese_name: ichingReading.primaryHexagram.chinese_name,
+          pinyin: ichingReading.primaryHexagram.pinyin,
+          judgment: ichingReading.primaryHexagram.judgment,
+          image: ichingReading.primaryHexagram.image,
+          meaning: ichingReading.primaryHexagram.meaning,
+          unicode: ichingReading.primaryHexagram.unicode,
+        },
+        changingLines: ichingReading.changingLines,
+        lineTexts: ichingReading.changingLines.reduce((acc, lineNum) => {
+          acc[lineNum] = ichingReading.primaryHexagram.lines[lineNum as keyof typeof ichingReading.primaryHexagram.lines];
+          return acc;
+        }, {} as Record<number, string>),
+        transformedHexagram: ichingReading.transformedHexagram ? {
+          number: ichingReading.transformedHexagram.number,
+          english_name: ichingReading.transformedHexagram.english_name,
+          chinese_name: ichingReading.transformedHexagram.chinese_name,
+          judgment: ichingReading.transformedHexagram.judgment,
+          meaning: ichingReading.transformedHexagram.meaning,
+        } : null,
+      } : undefined;
+
+      console.log('Sending request to AI API:', { message: input, content: content, hasOracle: !!oracleContext });
+
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
@@ -380,7 +395,8 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         body: JSON.stringify({
           message: input,
           content: content,
-          history: messages  // Send full conversation history
+          history: messages,  // Send full conversation history
+          oracleContext,      // Include oracle reading if available
         }),
       });
 

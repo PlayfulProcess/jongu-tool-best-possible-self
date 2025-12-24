@@ -5,6 +5,88 @@ import { createClient } from '@/lib/supabase-server';
 const DAILY_FREE_LIMIT = 10;
 const COST_PER_MESSAGE = 0.01; // $0.01 per message (actual OpenAI cost: ~$0.001 with gpt-4o-mini)
 
+// Oracle context types for I Ching and future oracles
+interface IChingContext {
+  type: 'iching';
+  question: string;
+  primaryHexagram: {
+    number: number;
+    english_name: string;
+    chinese_name: string;
+    pinyin: string;
+    judgment: string;
+    image: string;
+    meaning: string;
+    unicode: string;
+  };
+  changingLines: number[];
+  lineTexts?: Record<number, string>;
+  transformedHexagram?: {
+    number: number;
+    english_name: string;
+    chinese_name: string;
+    judgment: string;
+    meaning: string;
+  } | null;
+}
+
+type OracleContext = IChingContext; // Will expand to IChingContext | TarotContext in future
+
+function buildOraclePromptSection(oracle: OracleContext): string {
+  if (oracle.type === 'iching') {
+    let section = `
+
+---
+I CHING READING CONTEXT:
+
+The user has cast an I Ching reading for this session.
+
+THEIR QUESTION: "${oracle.question}"
+
+PRIMARY HEXAGRAM (#${oracle.primaryHexagram.number} - ${oracle.primaryHexagram.english_name}):
+${oracle.primaryHexagram.unicode} ${oracle.primaryHexagram.chinese_name} (${oracle.primaryHexagram.pinyin})
+
+The Judgment: ${oracle.primaryHexagram.judgment}
+
+The Image: ${oracle.primaryHexagram.image}
+
+Overall Meaning: ${oracle.primaryHexagram.meaning}`;
+
+    if (oracle.changingLines.length > 0 && oracle.lineTexts) {
+      section += `
+
+CHANGING LINES (especially significant):`;
+      for (const lineNum of oracle.changingLines) {
+        if (oracle.lineTexts[lineNum]) {
+          section += `
+- Line ${lineNum}: ${oracle.lineTexts[lineNum]}`;
+        }
+      }
+    }
+
+    if (oracle.transformedHexagram) {
+      section += `
+
+TRANSFORMED HEXAGRAM (#${oracle.transformedHexagram.number} - ${oracle.transformedHexagram.english_name}):
+The situation is evolving toward: ${oracle.transformedHexagram.meaning}`;
+    }
+
+    section += `
+
+When discussing the I Ching reading:
+- Connect the hexagram's wisdom to the user's question and journal content
+- Explain symbolism in accessible terms
+- The changing lines show where transformation is occurring
+- Be supportive but honest - I Ching readings can contain warnings
+- Encourage the user's own insight rather than prescriptive advice
+---`;
+
+    return section;
+  }
+
+  return '';
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Check if API key is configured
@@ -34,7 +116,7 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     });
 
-    const { message, content, history = [] } = await request.json();
+    const { message, content, history = [], oracleContext } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -42,6 +124,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Build oracle context section if provided
+    const oracleSection = oracleContext ? buildOraclePromptSection(oracleContext as OracleContext) : '';
 
     // Get user profile to check usage
     const { data: profile, error: profileError } = await supabase
@@ -103,7 +188,8 @@ Core Principles:
 - **Support**: Help process emotions and gain clarity
 - **Non-judgmental**: Accept all feelings and experiences as valid
 
-Current context: "${content || 'The user is beginning their self-reflection journey'}"
+Current journal context: "${content || 'The user is beginning their self-reflection journey'}"
+${oracleSection}
 
 Be warm, conversational, and insightful. Ask thoughtful questions that promote self-reflection. Help users explore their inner world with curiosity and compassion.
 
