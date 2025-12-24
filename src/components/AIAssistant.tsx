@@ -135,14 +135,8 @@ if (typeof window !== 'undefined') {
 }
 
 export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReading }: AIAssistantProps) {
-  const [isOpen, setIsOpen] = useState(() => {
-    // Initialize isOpen state from sessionStorage
-    if (typeof window !== 'undefined') {
-      const savedIsOpen = sessionStorage.getItem('ai_chat_isOpen');
-      return savedIsOpen === 'true';
-    }
-    return false;
-  });
+  // Always start collapsed
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -160,25 +154,16 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
   const supabase = createClient();
   const router = useRouter();
 
-  // Persist isOpen state to sessionStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('ai_chat_isOpen', isOpen.toString());
-    }
-  }, [isOpen]);
-
   // Clear chat when clearChat prop is true
   useEffect(() => {
     if (clearChat) {
       setMessages([]);
-      setIsOpen(false); // Also close the chat when clearing
+      setIsOpen(false);
       // Clear sessionStorage for new entries
       if (user) {
         const sessionKey = `chat_messages_new_${user.id}`;
         sessionStorage.removeItem(sessionKey);
       }
-      // Clear the isOpen state from sessionStorage too
-      sessionStorage.removeItem('ai_chat_isOpen');
     }
   }, [clearChat, user]);
 

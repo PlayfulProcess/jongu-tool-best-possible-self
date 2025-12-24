@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { HexagramReading } from '@/types/iching.types';
 import { getLinePositionName } from '@/lib/iching';
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface ReadingInterpretationProps {
   reading: HexagramReading;
@@ -13,142 +11,95 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
   const { primaryHexagram, changingLines, transformedHexagram, lines } = reading;
 
   return (
-    <div className="space-y-4">
-      {/* Primary Hexagram */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="font-serif text-lg text-gray-900 dark:text-white">
-            {primaryHexagram.unicode} {primaryHexagram.english_name}
-            <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
-              ({primaryHexagram.chinese_name} {primaryHexagram.pinyin})
-            </span>
-          </h3>
-        </div>
+    <div className="space-y-6 text-gray-700 dark:text-gray-300">
+      {/* Primary Hexagram Header */}
+      <div className="text-center">
+        <div className="text-4xl mb-2">{primaryHexagram.unicode}</div>
+        <h3 className="font-serif text-xl text-gray-900 dark:text-white">
+          Hexagram {primaryHexagram.number}: {primaryHexagram.english_name}
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {primaryHexagram.chinese_name} ({primaryHexagram.pinyin})
+        </p>
+      </div>
 
-        <AccordionSection title="The Judgment" defaultOpen>
-          <p className="text-gray-700 dark:text-gray-300">{primaryHexagram.judgment}</p>
-        </AccordionSection>
+      {/* The Judgment */}
+      <div>
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Judgment</h4>
+        <p>{primaryHexagram.judgment}</p>
+      </div>
 
-        <AccordionSection title="The Image">
-          <p className="text-gray-700 dark:text-gray-300">{primaryHexagram.image}</p>
-        </AccordionSection>
+      {/* The Image */}
+      <div>
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Image</h4>
+        <p>{primaryHexagram.image}</p>
+      </div>
 
-        {changingLines.length > 0 && (
-          <AccordionSection title={`Changing Lines (${changingLines.join(', ')})`} defaultOpen>
-            <div className="space-y-3">
-              {changingLines.map((lineNum) => {
-                const line = lines[lineNum - 1];
-                const positionName = getLinePositionName(lineNum, line.type);
-                const lineText = primaryHexagram.lines[lineNum as keyof typeof primaryHexagram.lines];
+      {/* Overall Meaning */}
+      <div>
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Meaning</h4>
+        <p>{primaryHexagram.meaning}</p>
+      </div>
 
-                return (
-                  <div
-                    key={lineNum}
-                    className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded border-l-4 border-amber-500"
-                  >
-                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">
-                      Line {lineNum} ({positionName}) - {line.type === 'yang' ? 'Yang → Yin' : 'Yin → Yang'}
-                    </p>
-                    <p className="text-gray-700 dark:text-gray-300">{lineText}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </AccordionSection>
-        )}
-
-        <AccordionSection title="Overall Meaning">
-          <p className="text-gray-700 dark:text-gray-300">{primaryHexagram.meaning}</p>
-        </AccordionSection>
-
-        <AccordionSection title="All Lines">
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5, 6].map((lineNum) => {
+      {/* Changing Lines - highlighted if present */}
+      {changingLines.length > 0 && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+          <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-3">
+            Changing Lines ({changingLines.join(', ')})
+          </h4>
+          <div className="space-y-3">
+            {changingLines.map((lineNum) => {
               const line = lines[lineNum - 1];
               const positionName = getLinePositionName(lineNum, line.type);
               const lineText = primaryHexagram.lines[lineNum as keyof typeof primaryHexagram.lines];
-              const isChangingLine = changingLines.includes(lineNum);
 
               return (
-                <div
-                  key={lineNum}
-                  className={`p-2 rounded ${
-                    isChangingLine
-                      ? 'bg-amber-50 dark:bg-amber-900/20 border-l-2 border-amber-500'
-                      : 'bg-gray-50 dark:bg-gray-700/50'
-                  }`}
-                >
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Line {lineNum} ({positionName})
-                    {isChangingLine && (
-                      <span className="ml-2 text-amber-600 dark:text-amber-400">changing</span>
-                    )}
+                <div key={lineNum}>
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">
+                    Line {lineNum} ({positionName}) — {line.type === 'yang' ? 'Yang → Yin' : 'Yin → Yang'}
                   </p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{lineText}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{lineText}</p>
                 </div>
               );
             })}
           </div>
-        </AccordionSection>
-      </div>
+        </div>
+      )}
 
       {/* Transformed Hexagram */}
       {transformedHexagram && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-900/20">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <div className="text-center mb-4">
             <p className="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">
-              Transforms Into
+              → Transforms Into →
             </p>
+            <div className="text-3xl mb-1">{transformedHexagram.unicode}</div>
             <h3 className="font-serif text-lg text-gray-900 dark:text-white">
-              {transformedHexagram.unicode} {transformedHexagram.english_name}
-              <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
-                ({transformedHexagram.chinese_name} {transformedHexagram.pinyin})
-              </span>
+              Hexagram {transformedHexagram.number}: {transformedHexagram.english_name}
             </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {transformedHexagram.chinese_name} ({transformedHexagram.pinyin})
+            </p>
           </div>
 
-          <AccordionSection title="The Judgment" defaultOpen>
-            <p className="text-gray-700 dark:text-gray-300">{transformedHexagram.judgment}</p>
-          </AccordionSection>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Judgment</h4>
+              <p>{transformedHexagram.judgment}</p>
+            </div>
 
-          <AccordionSection title="The Image">
-            <p className="text-gray-700 dark:text-gray-300">{transformedHexagram.image}</p>
-          </AccordionSection>
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">The Image</h4>
+              <p>{transformedHexagram.image}</p>
+            </div>
 
-          <AccordionSection title="Overall Meaning">
-            <p className="text-gray-700 dark:text-gray-300">{transformedHexagram.meaning}</p>
-          </AccordionSection>
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Meaning</h4>
+              <p>{transformedHexagram.meaning}</p>
+            </div>
+          </div>
         </div>
       )}
-    </div>
-  );
-}
-
-interface AccordionSectionProps {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}
-
-function AccordionSection({ title, children, defaultOpen = false }: AccordionSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 flex items-center justify-between
-                   text-left text-gray-700 dark:text-gray-300
-                   hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-      >
-        <span className="font-medium">{title}</span>
-        {isOpen ? (
-          <ChevronDownIcon className="w-5 h-5 text-gray-400" />
-        ) : (
-          <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-        )}
-      </button>
-      {isOpen && <div className="px-4 pb-4">{children}</div>}
     </div>
   );
 }

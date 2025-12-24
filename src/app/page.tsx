@@ -839,26 +839,13 @@ export default function BestPossibleSelfPage() {
             </div>
 
             {/* Oracle Tools */}
-            <div className="mt-6 space-y-4">
-              {/* I Ching Reading Display (if cast) */}
-              {ichingReading && (
-                <IChingOracle
-                  currentReading={ichingReading}
-                  onReadingComplete={setIchingReading}
-                  onReadingClear={() => setIchingReading(null)}
-                />
-              )}
-
-              {/* Oracle Buttons Row */}
-              <div className="flex flex-wrap gap-3 items-center">
-                {!ichingReading && (
-                  <IChingOracle
-                    onReadingComplete={setIchingReading}
-                    onReadingClear={() => setIchingReading(null)}
-                  />
-                )}
-                {/* Future: Tarot button will go here */}
-              </div>
+            <div className="mt-6">
+              <IChingOracle
+                currentReading={ichingReading}
+                onReadingComplete={setIchingReading}
+                onReadingClear={() => setIchingReading(null)}
+              />
+              {/* Future: Tarot component will go here */}
             </div>
 
             {/* AI Assistant */}
