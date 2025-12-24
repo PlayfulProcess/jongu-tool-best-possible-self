@@ -16,7 +16,7 @@ import { DualAuth } from '@/components/DualAuth';
 import { QuestionInput, HexagramDisplay, ReadingInterpretation, CoinCastingAnimation } from '@/components/iching';
 import { castHexagram, reconstructReading } from '@/lib/iching';
 import { HexagramReading, IChingDocumentData } from '@/types/iching.types';
-import { buildIChingSystemPrompt, buildInitialGreeting } from '@/lib/iching-ai-prompt';
+import { buildIChingSystemPrompt, buildInitialGreeting, buildPreCastPrompt } from '@/lib/iching-ai-prompt';
 
 interface IChingEntry {
   id: string;
@@ -31,16 +31,15 @@ interface IChingEntry {
 
 const MAX_CONTENT_LENGTH = 100000;
 
-type AppState = 'question' | 'casting' | 'reading';
-
 export default function IChingReaderPage() {
   const { user, status, signOut } = useAuth();
   const [entries, setEntries] = useState<IChingEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<IChingEntry | null>(null);
   const [entriesLoading, setEntriesLoading] = useState(true);
 
-  // App state
-  const [appState, setAppState] = useState<AppState>('question');
+  // App state - simplified: just tracking if we're casting
+  const [isCasting, setIsCasting] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState('');
   const [currentReading, setCurrentReading] = useState<HexagramReading | null>(null);
   const [journalContent, setJournalContent] = useState('');
   const [researchConsent, setResearchConsent] = useState(false);
@@ -97,17 +96,22 @@ export default function IChingReaderPage() {
     }
   }, [user, loadEntries]);
 
-  // Update AI system prompt when reading changes
+  // Update AI system prompt when reading or question changes
   useEffect(() => {
     if (currentReading) {
       const prompt = buildIChingSystemPrompt(currentReading, journalContent);
       setAiSystemPrompt(prompt);
+    } else {
+      // Pre-cast: AI can help refine the question
+      const prompt = buildPreCastPrompt(currentQuestion, journalContent);
+      setAiSystemPrompt(prompt);
     }
-  }, [currentReading, journalContent]);
+  }, [currentReading, journalContent, currentQuestion]);
 
   // Cast a new hexagram
   const handleCastHexagram = async (question: string) => {
-    setAppState('casting');
+    setCurrentQuestion(question);
+    setIsCasting(true);
 
     try {
       const reading = await castHexagram(question);
@@ -115,16 +119,18 @@ export default function IChingReaderPage() {
 
       // Add initial AI greeting
       const greeting = buildInitialGreeting(reading);
-      setChatMessages([{ role: 'assistant', content: greeting }]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: greeting }]);
 
-      // Small delay before showing reading to let animation complete
-      setTimeout(() => {
-        setAppState('reading');
-      }, 4000);
+      // Animation will call onComplete when done
     } catch (error) {
       console.error('Error casting hexagram:', error);
-      setAppState('question');
+      setIsCasting(false);
     }
+  };
+
+  // Called when coin animation completes
+  const handleCastingComplete = () => {
+    setIsCasting(false);
   };
 
   // Load a past reading
@@ -158,11 +164,12 @@ export default function IChingReaderPage() {
 
       setSelectedEntry(entry);
       setCurrentReading(reading);
+      setCurrentQuestion(docData.question);
       setJournalContent(docData.journalContent || '');
       setCurrentEntryId(entry.id);
       setResearchConsent(docData.research_consent);
       setHasUnsavedChanges(false);
-      setAppState('reading');
+      setIsCasting(false);
       setChatMessages([]);
 
       // Add greeting for loaded reading
@@ -182,11 +189,12 @@ export default function IChingReaderPage() {
 
     setSelectedEntry(null);
     setCurrentReading(null);
+    setCurrentQuestion('');
     setJournalContent('');
     setCurrentEntryId(null);
     setResearchConsent(false);
     setHasUnsavedChanges(false);
-    setAppState('question');
+    setIsCasting(false);
     setChatMessages([]);
     setClearAIChat(true);
     setTimeout(() => setClearAIChat(false), 100);
@@ -405,91 +413,130 @@ export default function IChingReaderPage() {
           </button>
         )}
 
-        {/* Main Area */}
-        <main className="flex-1 flex flex-col md:flex-row">
-          {/* Left: Reading Area */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            {appState === 'question' && (
-              <div className="max-w-2xl mx-auto py-12">
-                <div className="text-center mb-8">
-                  <div className="text-6xl mb-4">☰</div>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    The Book of Changes awaits your question
-                  </p>
+        {/* Main Area - Always shows full flow */}
+        <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          {/* Left: Reading Flow */}
+          <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+            <div className="max-w-3xl mx-auto space-y-6">
+              {/* Section 1: Question Input */}
+              <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="font-serif text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                    <span className="text-2xl">1</span>
+                    <span>Ask Your Question</span>
+                  </h2>
                 </div>
-                <QuestionInput onCast={handleCastHexagram} />
-              </div>
-            )}
-
-            {appState === 'casting' && currentReading && (
-              <CoinCastingAnimation
-                lines={currentReading.lines}
-                onComplete={() => setAppState('reading')}
-                isAnimating={true}
-              />
-            )}
-
-            {appState === 'reading' && currentReading && (
-              <div className="space-y-6">
-                {/* Question */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Your Question</p>
-                  <p className="text-gray-900 dark:text-white font-medium">
-                    &ldquo;{currentReading.question}&rdquo;
-                  </p>
+                <div className="p-4">
+                  {currentReading ? (
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Your Question</p>
+                        <p className="text-gray-900 dark:text-white font-medium">
+                          &ldquo;{currentReading.question}&rdquo;
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleNewReading}
+                        className="text-sm text-amber-600 hover:text-amber-700 whitespace-nowrap"
+                      >
+                        New Reading
+                      </button>
+                    </div>
+                  ) : (
+                    <QuestionInput onCast={handleCastHexagram} disabled={isCasting} />
+                  )}
                 </div>
+              </section>
 
-                {/* Hexagram Display */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                  <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                    <HexagramDisplay
+              {/* Section 2: Hexagram Display */}
+              <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="font-serif text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                    <span className="text-2xl">2</span>
+                    <span>Your Hexagram</span>
+                  </h2>
+                </div>
+                <div className="p-6">
+                  {isCasting && currentReading ? (
+                    <CoinCastingAnimation
                       lines={currentReading.lines}
-                      hexagram={currentReading.primaryHexagram}
-                      label="Primary Hexagram"
+                      onComplete={handleCastingComplete}
+                      isAnimating={true}
                     />
+                  ) : currentReading ? (
+                    <div className="flex flex-col md:flex-row items-center md:items-start justify-center gap-8">
+                      <HexagramDisplay
+                        lines={currentReading.lines}
+                        hexagram={currentReading.primaryHexagram}
+                        label="Primary Hexagram"
+                      />
 
-                    {currentReading.transformedHexagram && (
-                      <>
-                        <div className="flex items-center text-2xl text-gray-400">→</div>
-                        <HexagramDisplay
-                          lines={currentReading.lines.map(l => ({
-                            ...l,
-                            type: l.isChanging ? (l.type === 'yin' ? 'yang' : 'yin') : l.type,
-                            isChanging: false,
-                            symbol: l.isChanging ? (l.type === 'yin' ? '———' : '— —') : l.symbol,
-                          }))}
-                          hexagram={currentReading.transformedHexagram}
-                          showChanging={false}
-                          label="Transformed Hexagram"
-                        />
-                      </>
-                    )}
-                  </div>
+                      {currentReading.transformedHexagram && (
+                        <>
+                          <div className="flex items-center text-3xl text-amber-500">→</div>
+                          <HexagramDisplay
+                            lines={currentReading.lines.map(l => ({
+                              ...l,
+                              type: l.isChanging ? (l.type === 'yin' ? 'yang' : 'yin') : l.type,
+                              isChanging: false,
+                              symbol: l.isChanging ? (l.type === 'yin' ? '———' : '— —') : l.symbol,
+                            }))}
+                            hexagram={currentReading.transformedHexagram}
+                            showChanging={false}
+                            label="Transformed Hexagram"
+                          />
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-6xl mb-4 opacity-30">☰</div>
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Your hexagram will appear here after you cast
+                      </p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                        Take time to reflect on your question first
+                      </p>
+                    </div>
+                  )}
                 </div>
+              </section>
 
-                {/* Interpretation */}
-                <ReadingInterpretation reading={currentReading} />
+              {/* Section 3: Interpretation (only shown after casting) */}
+              {currentReading && !isCasting && (
+                <section>
+                  <ReadingInterpretation reading={currentReading} />
+                </section>
+              )}
 
-                {/* Journal */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      Your Reflection
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Write about how this reading relates to your question...
-                    </p>
-                  </div>
-                  <div className="p-4">
-                    <textarea
-                      value={journalContent}
-                      onChange={(e) => handleJournalChange(e.target.value)}
-                      placeholder="What thoughts or insights does this reading bring to mind?"
-                      className="w-full h-40 p-3 border border-gray-300 dark:border-gray-600 rounded-lg
-                                 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                                 placeholder-gray-400 dark:placeholder-gray-500
-                                 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
-                    />
+              {/* Section 4: Journal - Always visible */}
+              <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="font-serif text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                    <span className="text-2xl">{currentReading ? '4' : '3'}</span>
+                    <span>Your Reflection</span>
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {currentReading
+                      ? 'Write about how this reading relates to your question...'
+                      : 'Reflect on your situation before casting, or take notes...'}
+                  </p>
+                </div>
+                <div className="p-4">
+                  <textarea
+                    value={journalContent}
+                    onChange={(e) => handleJournalChange(e.target.value)}
+                    placeholder={
+                      currentReading
+                        ? 'What thoughts or insights does this reading bring to mind?'
+                        : 'What is on your mind? What brought you here today?'
+                    }
+                    className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg
+                               bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                               placeholder-gray-400 dark:placeholder-gray-500
+                               focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                  />
+                  {currentReading && (
                     <div className="flex items-center justify-between mt-3">
                       <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <input
@@ -512,15 +559,25 @@ export default function IChingReaderPage() {
                         {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'error' ? 'Error' : 'Save Reading'}
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
-              </div>
-            )}
+              </section>
+            </div>
           </div>
 
-          {/* Right: AI Assistant */}
-          {appState === 'reading' && currentReading && (
-            <div className="w-full md:w-96 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          {/* Right: AI Assistant - Always visible */}
+          <div className="w-full lg:w-96 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col min-h-[400px] lg:min-h-0">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="font-medium text-gray-900 dark:text-white">
+                {currentReading ? 'Oracle Assistant' : 'Preparation Guide'}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {currentReading
+                  ? 'Ask about your reading'
+                  : 'Chat to refine your question'}
+              </p>
+            </div>
+            <div className="flex-1 min-h-0">
               <AIAssistant
                 content={journalContent}
                 entryId={currentEntryId}
@@ -532,7 +589,7 @@ export default function IChingReaderPage() {
                 toolSlug="iching-reader"
               />
             </div>
-          )}
+          </div>
         </main>
       </div>
 
