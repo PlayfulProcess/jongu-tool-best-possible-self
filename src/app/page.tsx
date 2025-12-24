@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 
 declare global {
   interface Window {
@@ -436,7 +435,7 @@ export default function IChingReaderPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Your Question</p>
                   <p className="text-gray-900 dark:text-white font-medium">
-                    "{currentReading.question}"
+                    &ldquo;{currentReading.question}&rdquo;
                   </p>
                 </div>
 
