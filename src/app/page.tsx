@@ -16,7 +16,9 @@ import { AIAssistant } from '@/components/AIAssistant';
 import { DualAuth } from '@/components/DualAuth';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { TemplateCreator } from '@/components/TemplateCreator';
+import { IChingOracle } from '@/components/IChingOracle';
 import { Database } from '@/types/database.types';
+import { HexagramReading } from '@/types/iching.types';
 
 type JournalTemplate = Database['public']['Tables']['journal_templates']['Row'];
 
@@ -100,6 +102,9 @@ export default function BestPossibleSelfPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+
+  // Oracle state
+  const [ichingReading, setIchingReading] = useState<HexagramReading | null>(null);
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
@@ -250,6 +255,7 @@ export default function BestPossibleSelfPage() {
     setChatExchangeCount(0);
     setTimeSpent(0);
     setChatMessages([]);
+    setIchingReading(null); // Clear oracle reading
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -832,6 +838,29 @@ export default function BestPossibleSelfPage() {
               </div>
             </div>
 
+            {/* Oracle Tools */}
+            <div className="mt-6 space-y-4">
+              {/* I Ching Reading Display (if cast) */}
+              {ichingReading && (
+                <IChingOracle
+                  currentReading={ichingReading}
+                  onReadingComplete={setIchingReading}
+                  onReadingClear={() => setIchingReading(null)}
+                />
+              )}
+
+              {/* Oracle Buttons Row */}
+              <div className="flex flex-wrap gap-3 items-center">
+                {!ichingReading && (
+                  <IChingOracle
+                    onReadingComplete={setIchingReading}
+                    onReadingClear={() => setIchingReading(null)}
+                  />
+                )}
+                {/* Future: Tarot button will go here */}
+              </div>
+            </div>
+
             {/* AI Assistant */}
             <div className="mt-6">
               {chatExchangeCount >= MAX_CHAT_EXCHANGES ? (
@@ -853,7 +882,7 @@ export default function BestPossibleSelfPage() {
               ) : (
                 <div>
                   <AIAssistant
-                    key={`chat-${currentEntryId || 'new'}`}
+                    key={`chat-${currentEntryId || 'new'}-${ichingReading?.primaryHexagram.number || 'no-iching'}`}
                     content={content}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
@@ -861,6 +890,7 @@ export default function BestPossibleSelfPage() {
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
+                    ichingReading={ichingReading}
                   />
                 </div>
               )}
