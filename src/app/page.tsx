@@ -869,7 +869,7 @@ export default function BestPossibleSelfPage() {
               ) : (
                 <div>
                   <AIAssistant
-                    key={`chat-${currentEntryId || 'new'}-${ichingReading?.primaryHexagram.number || 'no-iching'}`}
+                    key={`chat-${currentEntryId || 'new'}`}
                     content={content}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
