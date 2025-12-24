@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { HexagramReading, Line } from '@/types/iching.types';
+import { HexagramReading } from '@/types/iching.types';
 import { getLinePositionName } from '@/lib/iching';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 

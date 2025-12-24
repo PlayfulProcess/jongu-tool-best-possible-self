@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     });
 
-    const { message, content, history = [] } = await request.json();
+    const { message, content, history = [], customSystemPrompt } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = `You are a compassionate empathy buddy with a thorough understanding of psychology, mythology, religion, and sociology.
+    // Use custom system prompt if provided (e.g., for I Ching readings), otherwise use default
+    const systemPrompt = customSystemPrompt || `You are a compassionate empathy buddy with a thorough understanding of psychology, mythology, religion, and sociology.
 
 Core Principles:
 - **Validation First** (DBT): Always acknowledge and validate feelings before offering perspectives

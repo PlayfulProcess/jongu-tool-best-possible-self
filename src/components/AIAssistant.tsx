@@ -14,6 +14,8 @@ interface AIAssistantProps {
   clearChat?: boolean;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
+  customSystemPrompt?: string;
+  toolSlug?: string;
 }
 
 interface Message {
@@ -132,7 +134,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange }: AIAssistantProps) {
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, customSystemPrompt, toolSlug = 'best-possible-self' }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(() => {
     // Initialize isOpen state from sessionStorage
     if (typeof window !== 'undefined') {
@@ -224,23 +226,23 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
           .select('document_data, created_at')
           .eq('user_id', user.id)
           .eq('document_type', 'interaction')
-          .eq('tool_slug', 'best-possible-self')
+          .eq('tool_slug', toolSlug)
           .eq('document_data->>interaction_type', 'chat_message')
           .order('created_at', { ascending: true });
-          
+
         console.log('📋 All chat messages for user:', allUserMessages?.length || 0);
         if (allUserMessages && allUserMessages.length > 0) {
           const targetIds = allUserMessages.map(msg => msg.document_data?.target_id).filter((v, i, a) => a.indexOf(v) === i);
           console.log('🎯 Available target_ids:', targetIds);
         }
-        
+
         // Now query for the specific entry
         const { data: chatMessages, error: chatError } = await supabase
           .from('user_documents')
           .select('document_data, created_at')
           .eq('user_id', user.id)
           .eq('document_type', 'interaction')
-          .eq('tool_slug', 'best-possible-self')
+          .eq('tool_slug', toolSlug)
           .eq('document_data->>interaction_type', 'chat_message')
           .eq('document_data->>target_id', entryId)
           .order('created_at', { ascending: true });
@@ -290,7 +292,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     };
 
     loadMessages();
-  }, [user, entryId, supabase]);
+  }, [user, entryId, supabase, toolSlug]);
 
   // Auto-save messages to sessionStorage for persistence
   useEffect(() => {
@@ -324,7 +326,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
       const insertData = {
         user_id: user.id,
         document_type: 'interaction',
-        tool_slug: 'best-possible-self',
+        tool_slug: toolSlug,
         is_public: false,
         document_data: {
           target_type: 'tool_session',
@@ -380,7 +382,8 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         body: JSON.stringify({
           message: input,
           content: content,
-          history: messages  // Send full conversation history
+          history: messages,  // Send full conversation history
+          customSystemPrompt: customSystemPrompt,  // Optional custom system prompt for I Ching etc.
         }),
       });
 
