@@ -23,7 +23,6 @@ export function IChingOracle({
 }: IChingOracleProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [step, setStep] = useState<'question' | 'casting' | 'reading'>('question')
-  const [question, setQuestion] = useState('')
   const [reading, setReading] = useState<HexagramReading | null>(externalReading || null)
   const [isCasting, setIsCasting] = useState(false)
 
@@ -31,12 +30,11 @@ export function IChingOracle({
   useEffect(() => {
     if (externalReading) {
       setReading(externalReading)
-      setQuestion(externalReading.question)
       setStep('reading')
     }
   }, [externalReading])
 
-  const handleCast = async () => {
+  const handleCast = async (question: string) => {
     if (!question.trim()) return
 
     setIsCasting(true)
@@ -66,7 +64,6 @@ export function IChingOracle({
 
   const handleClearReading = () => {
     setReading(null)
-    setQuestion('')
     setStep('question')
     onReadingClear?.()
   }
@@ -176,24 +173,17 @@ export function IChingOracle({
                   </div>
 
                   <QuestionInput
-                    value={question}
-                    onChange={setQuestion}
-                    onSubmit={handleCast}
+                    onCast={handleCast}
                     isLoading={isCasting}
                   />
-
-                  <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
-                    <strong>Tip:</strong> The I Ching works best with open-ended questions about situations,
-                    not yes/no questions. Try starting with &ldquo;What should I understand about...&rdquo; or
-                    &ldquo;How can I best approach...&rdquo;
-                  </div>
                 </div>
               )}
 
-              {step === 'casting' && (
+              {step === 'casting' && reading && (
                 <div className="py-8">
                   <CoinCastingAnimation
-                    isActive={isCasting}
+                    lines={reading.lines}
+                    isAnimating={isCasting}
                     onComplete={handleCastingComplete}
                   />
                 </div>
@@ -208,7 +198,10 @@ export function IChingOracle({
                     </div>
                   </div>
 
-                  <HexagramDisplay reading={reading} />
+                  <HexagramDisplay
+                    lines={reading.lines}
+                    hexagram={reading.primaryHexagram}
+                  />
 
                   <ReadingInterpretation reading={reading} />
 
