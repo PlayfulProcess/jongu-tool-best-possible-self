@@ -178,7 +178,9 @@ export default function BestPossibleSelfPage() {
         updated_at: doc.updated_at || doc.created_at,
         // Add template info for display
         template_snapshot: doc.document_data?.template_snapshot || null,
-        template_id: doc.document_data?.template_id || null
+        template_id: doc.document_data?.template_id || null,
+        // Load I Ching reading from saved data
+        iching_reading: doc.document_data?.iching_reading || null
       }));
 
       setEntries(transformedEntries);

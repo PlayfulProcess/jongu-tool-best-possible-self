@@ -23,10 +23,10 @@ export function IChingOracle({
   const [reading, setReading] = useState<HexagramReading | null>(externalReading || null)
   const [isCasting, setIsCasting] = useState(false)
 
-  // Sync with external reading if provided
+  // Sync with external reading (including when cleared)
   useEffect(() => {
+    setReading(externalReading || null)
     if (externalReading) {
-      setReading(externalReading)
       setIsOpen(true) // Auto-open when there's a reading
     }
   }, [externalReading])
