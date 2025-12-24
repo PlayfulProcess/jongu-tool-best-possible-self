@@ -1,0 +1,47 @@
+{
+  "hexagrams": [
+    {
+      "number": 1,
+      "chinese_name": "乾",
+      "pinyin": "Qián",
+      "english_name": "The Creative",
+      "binary": "111111",
+      "unicode": "䷀",
+      "trigram_above": { "name": "Heaven", "chinese": "乾" },
+      "trigram_below": { "name": "Heaven", "chinese": "乾" },
+      "judgment": "The Creative works sublime success, furthering through perseverance.",
+      "image": "The movement of heaven is full of power. Thus the superior person makes themselves strong and untiring.",
+      "lines": {
+        "1": "Hidden dragon. Do not act.",
+        "2": "Dragon appearing in the field. It furthers one to see the great person.",
+        "3": "All day long the superior person is creatively active. At nightfall their mind is still beset with cares. Danger. No blame.",
+        "4": "Wavering flight over the depths. No blame.",
+        "5": "Flying dragon in the heavens. It furthers one to see the great person.",
+        "6": "Arrogant dragon will have cause to repent."
+      },
+      "meaning": "Pure creative energy. The time for initiative, power, and persistent effort. Like the dragon rising through the clouds, this hexagram represents the full expression of yang energy."
+    },
+    {
+      "number": 2,
+      "chinese_name": "坤",
+      "pinyin": "Kūn",
+      "english_name": "The Receptive",
+      "binary": "000000",
+      "unicode": "䷁",
+      "trigram_above": { "name": "Earth", "chinese": "坤" },
+      "trigram_below": { "name": "Earth", "chinese": "坤" },
+      "judgment": "The Receptive brings about sublime success, furthering through the perseverance of a mare. When the superior person has somewhere to go, they may be confused at first but later finds guidance.",
+      "image": "The earth's condition is receptive devotion. Thus the superior person who has breadth of character carries the outer world.",
+      "lines": {
+        "1": "When there is hoarfrost underfoot, solid ice is not far off.",
+        "2": "Straight, square, great. Without purpose, yet nothing remains unfurthered.",
+        "3": "Hidden lines. One is able to remain persevering.",
+        "4": "A tied-up sack. No blame, no praise.",
+        "5": "A yellow lower garment brings supreme good fortune.",
+        "6": "Dragons fight in the meadow. Their blood is black and yellow."
+      },
+      "meaning": "Pure receptive energy. The time for devotion, support, and nourishment. Like the earth that supports all things, this hexagram represents the full expression of yin energy."
+    }
+  ],
+  "_note": "PLACEHOLDER DATA - Replace with complete 64 hexagrams from ChatGPT"
+}
