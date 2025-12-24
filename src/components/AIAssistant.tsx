@@ -167,20 +167,6 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     }
   }, [clearChat, user]);
 
-  // Sync with initialMessages from parent (when loading saved entries)
-  useEffect(() => {
-    // Only sync if parent provides messages (entry was loaded with chat history)
-    if (initialMessages && initialMessages.length > 0) {
-      setMessages(initialMessages);
-      setMessagesLoaded(true);
-      setIsOpen(true); // Auto-open when there are messages
-    } else if (initialMessages && initialMessages.length === 0) {
-      // Parent explicitly set empty messages (new entry or entry without chat)
-      setMessages([]);
-      setMessagesLoaded(true);
-    }
-  }, [initialMessages]);
-
   // Load existing chat messages when component mounts or entryId changes
   useEffect(() => {
     const loadMessages = async () => {

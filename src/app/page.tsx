@@ -42,7 +42,7 @@ interface JournalEntry {
   } | null
   template_id?: string | null
   iching_readings?: HexagramReading[] | null  // Array of readings for multiple casts per session
-  chat_messages?: {role: 'user' | 'assistant', content: string}[] | null
+  // Note: chat_messages are stored separately in user_documents with document_type='interaction'
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -236,9 +236,8 @@ export default function BestPossibleSelfPage() {
         template_id: doc.document_data?.template_id || null,
         // Load I Ching readings - handle migration from old single reading to new array format
         iching_readings: doc.document_data?.iching_readings ||
-          (doc.document_data?.iching_reading ? [doc.document_data.iching_reading] : null),
-        // Load chat messages from saved data
-        chat_messages: doc.document_data?.chat_messages || null
+          (doc.document_data?.iching_reading ? [doc.document_data.iching_reading] : null)
+        // Note: chat_messages are loaded separately by AIAssistant from interaction records
       }));
 
       setEntries(transformedEntries);
@@ -298,9 +297,9 @@ export default function BestPossibleSelfPage() {
     // Load I Ching readings if present
     setIchingReadings(entry.iching_readings || []);
 
-    // Load chat messages if present
-    setChatMessages(entry.chat_messages || []);
-    setChatExchangeCount(entry.chat_messages?.length || 0);
+    // Note: Chat messages are loaded by AIAssistant from interaction records
+    // Reset exchange count - AIAssistant will update when it loads messages
+    setChatExchangeCount(0);
   };
 
   const handleNewEntry = () => {
@@ -406,9 +405,8 @@ export default function BestPossibleSelfPage() {
                 word_count: contentToSave.split(' ').length
               },
               // Save I Ching readings array
-              iching_readings: ichingReadings.length > 0 ? ichingReadings : null,
-              // Save chat messages for reconstruction
-              chat_messages: chatMessages.length > 0 ? chatMessages : null
+              iching_readings: ichingReadings.length > 0 ? ichingReadings : null
+              // Note: chat messages are saved separately by AIAssistant to interaction records
             },
             is_public: isPublic,
             updated_at: new Date().toISOString()
@@ -444,9 +442,8 @@ export default function BestPossibleSelfPage() {
                 word_count: contentToSave.split(' ').length
               },
               // Save I Ching readings array
-              iching_readings: ichingReadings.length > 0 ? ichingReadings : null,
-              // Save chat messages for reconstruction
-              chat_messages: chatMessages.length > 0 ? chatMessages : null
+              iching_readings: ichingReadings.length > 0 ? ichingReadings : null
+              // Note: chat messages are saved separately by AIAssistant to interaction records
             }
           })
           .select()
