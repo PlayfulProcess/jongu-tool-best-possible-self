@@ -122,6 +122,12 @@ export default function BestPossibleSelfPage() {
   const isInitialLoad = useRef(true);
   const previousReadingsLength = useRef(0);
   const previousMessagesLength = useRef(0);
+  const contentRef = useRef(content); // Track content without causing re-renders
+
+  // Keep contentRef in sync
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
 
   // Auto-save when I Ching readings or chat messages change (after initial load)
   useEffect(() => {
@@ -148,15 +154,16 @@ export default function BestPossibleSelfPage() {
     if (readingsAdded || messagesAdded) {
       // Short delay to ensure state is fully updated
       const saveTimeout = setTimeout(() => {
-        if (content.trim() || ichingReadings.length > 0) {
+        const currentContent = contentRef.current;
+        if (currentContent.trim() || ichingReadings.length > 0) {
           setSaveStatus('saving');
-          saveJournalEntry(content);
+          saveJournalEntry(currentContent);
         }
       }, 500);
 
       return () => clearTimeout(saveTimeout);
     }
-  }, [ichingReadings.length, chatMessages.length, user, content]);
+  }, [ichingReadings.length, chatMessages.length, user]); // Removed content dependency
 
   // Reset initial load flag when switching entries
   useEffect(() => {
