@@ -16,9 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: config.seo.title,
-  description: config.seo.description,
-  keywords: config.seo.keywords,
+  title: "I Ching Reader | 易經",
+  description: "Consult the ancient Book of Changes with AI-powered interpretation",
+  keywords: ["I Ching", "Yi Jing", "Book of Changes", "divination", "oracle", "hexagram"],
+  icons: {
+    icon: '/Jongulogo.png',
+    apple: '/Jongulogo.png',
+  },
 };
 
 export default function RootLayout({
