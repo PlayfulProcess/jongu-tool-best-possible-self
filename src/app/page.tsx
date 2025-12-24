@@ -41,6 +41,7 @@ interface JournalEntry {
     is_private: boolean
   } | null
   template_id?: string | null
+  iching_reading?: HexagramReading | null
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -234,6 +235,9 @@ export default function BestPossibleSelfPage() {
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
     setChatExchangeCount(0); // Reset chat count when switching entries
+
+    // Load I Ching reading if present
+    setIchingReading(entry.iching_reading || null);
   };
 
   const handleNewEntry = () => {
@@ -337,7 +341,9 @@ export default function BestPossibleSelfPage() {
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
-              }
+              },
+              // Save full I Ching reading for reconstruction
+              iching_reading: ichingReading || null
             },
             is_public: isPublic,
             updated_at: new Date().toISOString()
@@ -371,7 +377,9 @@ export default function BestPossibleSelfPage() {
               session_data: {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
-              }
+              },
+              // Save full I Ching reading for reconstruction
+              iching_reading: ichingReading || null
             }
           })
           .select()
