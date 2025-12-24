@@ -6,8 +6,7 @@ const DAILY_FREE_LIMIT = 10;
 const COST_PER_MESSAGE = 0.01; // $0.01 per message (actual OpenAI cost: ~$0.001 with gpt-4o-mini)
 
 // Oracle context types for I Ching and future oracles
-interface IChingContext {
-  type: 'iching';
+interface IChingReading {
   question: string;
   primaryHexagram: {
     number: number;
@@ -30,58 +29,73 @@ interface IChingContext {
   } | null;
 }
 
+interface IChingContext {
+  type: 'iching';
+  readings: IChingReading[];
+}
+
 type OracleContext = IChingContext; // Will expand to IChingContext | TarotContext in future
 
-function buildOraclePromptSection(oracle: OracleContext): string {
-  if (oracle.type === 'iching') {
-    let section = `
+function buildSingleReadingSection(reading: IChingReading, index: number, total: number): string {
+  const prefix = total > 1 ? `\n### Reading ${index + 1} of ${total}\n` : '';
 
----
-I CHING READING CONTEXT:
+  let section = `${prefix}
+QUESTION: "${reading.question}"
 
-The user has cast an I Ching reading for this session.
+PRIMARY HEXAGRAM (#${reading.primaryHexagram.number} - ${reading.primaryHexagram.english_name}):
+${reading.primaryHexagram.unicode} ${reading.primaryHexagram.chinese_name} (${reading.primaryHexagram.pinyin})
 
-THEIR QUESTION: "${oracle.question}"
+The Judgment: ${reading.primaryHexagram.judgment}
 
-PRIMARY HEXAGRAM (#${oracle.primaryHexagram.number} - ${oracle.primaryHexagram.english_name}):
-${oracle.primaryHexagram.unicode} ${oracle.primaryHexagram.chinese_name} (${oracle.primaryHexagram.pinyin})
+The Image: ${reading.primaryHexagram.image}
 
-The Judgment: ${oracle.primaryHexagram.judgment}
+Overall Meaning: ${reading.primaryHexagram.meaning}`;
 
-The Image: ${oracle.primaryHexagram.image}
-
-Overall Meaning: ${oracle.primaryHexagram.meaning}`;
-
-    if (oracle.changingLines.length > 0 && oracle.lineTexts) {
-      section += `
-
-CHANGING LINES (especially significant):`;
-      for (const lineNum of oracle.changingLines) {
-        if (oracle.lineTexts[lineNum]) {
-          section += `
-- Line ${lineNum}: ${oracle.lineTexts[lineNum]}`;
-        }
-      }
-    }
-
-    if (oracle.transformedHexagram) {
-      section += `
-
-TRANSFORMED HEXAGRAM (#${oracle.transformedHexagram.number} - ${oracle.transformedHexagram.english_name}):
-The situation is evolving toward: ${oracle.transformedHexagram.meaning}`;
-    }
-
+  if (reading.changingLines.length > 0 && reading.lineTexts) {
     section += `
 
-When discussing the I Ching reading:
+CHANGING LINES (especially significant):`;
+    for (const lineNum of reading.changingLines) {
+      if (reading.lineTexts[lineNum]) {
+        section += `
+- Line ${lineNum}: ${reading.lineTexts[lineNum]}`;
+      }
+    }
+  }
+
+  if (reading.transformedHexagram) {
+    section += `
+
+TRANSFORMED HEXAGRAM (#${reading.transformedHexagram.number} - ${reading.transformedHexagram.english_name}):
+The situation is evolving toward: ${reading.transformedHexagram.meaning}`;
+  }
+
+  return section;
+}
+
+function buildOraclePromptSection(oracle: OracleContext): string {
+  if (oracle.type === 'iching' && oracle.readings.length > 0) {
+    const readingsText = oracle.readings
+      .map((reading, index) => buildSingleReadingSection(reading, index, oracle.readings.length))
+      .join('\n\n---\n');
+
+    return `
+
+---
+I CHING READING${oracle.readings.length > 1 ? 'S' : ''} CONTEXT:
+
+The user has cast ${oracle.readings.length} I Ching reading${oracle.readings.length > 1 ? 's' : ''} for this session.
+
+${readingsText}
+
+When discussing the I Ching reading${oracle.readings.length > 1 ? 's' : ''}:
 - Connect the hexagram's wisdom to the user's question and journal content
 - Explain symbolism in accessible terms
 - The changing lines show where transformation is occurring
 - Be supportive but honest - I Ching readings can contain warnings
 - Encourage the user's own insight rather than prescriptive advice
+${oracle.readings.length > 1 ? '- Consider how multiple readings might relate to each other or show evolution of thought' : ''}
 ---`;
-
-    return section;
   }
 
   return '';

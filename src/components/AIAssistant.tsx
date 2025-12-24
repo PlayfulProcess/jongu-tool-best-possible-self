@@ -15,7 +15,7 @@ interface AIAssistantProps {
   clearChat?: boolean;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
-  ichingReading?: HexagramReading | null;
+  ichingReadings?: HexagramReading[];
 }
 
 interface Message {
@@ -134,7 +134,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReading }: AIAssistantProps) {
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReadings = [] }: AIAssistantProps) {
   // Always start collapsed
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -371,32 +371,34 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     await saveChatMessage(input, 'user');
 
     try {
-      // Build oracle context if I Ching reading is available
-      const oracleContext = ichingReading ? {
+      // Build oracle context if I Ching readings are available
+      const oracleContext = ichingReadings.length > 0 ? {
         type: 'iching' as const,
-        question: ichingReading.question,
-        primaryHexagram: {
-          number: ichingReading.primaryHexagram.number,
-          english_name: ichingReading.primaryHexagram.english_name,
-          chinese_name: ichingReading.primaryHexagram.chinese_name,
-          pinyin: ichingReading.primaryHexagram.pinyin,
-          judgment: ichingReading.primaryHexagram.judgment,
-          image: ichingReading.primaryHexagram.image,
-          meaning: ichingReading.primaryHexagram.meaning,
-          unicode: ichingReading.primaryHexagram.unicode,
-        },
-        changingLines: ichingReading.changingLines,
-        lineTexts: ichingReading.changingLines.reduce((acc, lineNum) => {
-          acc[lineNum] = ichingReading.primaryHexagram.lines[lineNum as keyof typeof ichingReading.primaryHexagram.lines];
-          return acc;
-        }, {} as Record<number, string>),
-        transformedHexagram: ichingReading.transformedHexagram ? {
-          number: ichingReading.transformedHexagram.number,
-          english_name: ichingReading.transformedHexagram.english_name,
-          chinese_name: ichingReading.transformedHexagram.chinese_name,
-          judgment: ichingReading.transformedHexagram.judgment,
-          meaning: ichingReading.transformedHexagram.meaning,
-        } : null,
+        readings: ichingReadings.map(reading => ({
+          question: reading.question,
+          primaryHexagram: {
+            number: reading.primaryHexagram.number,
+            english_name: reading.primaryHexagram.english_name,
+            chinese_name: reading.primaryHexagram.chinese_name,
+            pinyin: reading.primaryHexagram.pinyin,
+            judgment: reading.primaryHexagram.judgment,
+            image: reading.primaryHexagram.image,
+            meaning: reading.primaryHexagram.meaning,
+            unicode: reading.primaryHexagram.unicode,
+          },
+          changingLines: reading.changingLines,
+          lineTexts: reading.changingLines.reduce((acc, lineNum) => {
+            acc[lineNum] = reading.primaryHexagram.lines[lineNum as keyof typeof reading.primaryHexagram.lines];
+            return acc;
+          }, {} as Record<number, string>),
+          transformedHexagram: reading.transformedHexagram ? {
+            number: reading.transformedHexagram.number,
+            english_name: reading.transformedHexagram.english_name,
+            chinese_name: reading.transformedHexagram.chinese_name,
+            judgment: reading.transformedHexagram.judgment,
+            meaning: reading.transformedHexagram.meaning,
+          } : null,
+        })),
       } : undefined;
 
       console.log('Sending request to AI API:', { message: input, content: content, hasOracle: !!oracleContext });

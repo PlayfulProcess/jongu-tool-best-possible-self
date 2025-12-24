@@ -41,7 +41,7 @@ interface JournalEntry {
     is_private: boolean
   } | null
   template_id?: string | null
-  iching_reading?: HexagramReading | null
+  iching_readings?: HexagramReading[] | null  // Array of readings for multiple casts per session
   chat_messages?: {role: 'user' | 'assistant', content: string}[] | null
 }
 
@@ -105,8 +105,8 @@ export default function BestPossibleSelfPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
 
-  // Oracle state
-  const [ichingReading, setIchingReading] = useState<HexagramReading | null>(null);
+  // Oracle state - array to support multiple readings per session
+  const [ichingReadings, setIchingReadings] = useState<HexagramReading[]>([]);
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
@@ -180,8 +180,9 @@ export default function BestPossibleSelfPage() {
         // Add template info for display
         template_snapshot: doc.document_data?.template_snapshot || null,
         template_id: doc.document_data?.template_id || null,
-        // Load I Ching reading from saved data
-        iching_reading: doc.document_data?.iching_reading || null,
+        // Load I Ching readings - handle migration from old single reading to new array format
+        iching_readings: doc.document_data?.iching_readings ||
+          (doc.document_data?.iching_reading ? [doc.document_data.iching_reading] : null),
         // Load chat messages from saved data
         chat_messages: doc.document_data?.chat_messages || null
       }));
@@ -240,8 +241,8 @@ export default function BestPossibleSelfPage() {
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
 
-    // Load I Ching reading if present
-    setIchingReading(entry.iching_reading || null);
+    // Load I Ching readings if present
+    setIchingReadings(entry.iching_readings || []);
 
     // Load chat messages if present
     setChatMessages(entry.chat_messages || []);
@@ -267,7 +268,7 @@ export default function BestPossibleSelfPage() {
     setChatExchangeCount(0);
     setTimeSpent(0);
     setChatMessages([]);
-    setIchingReading(null); // Clear oracle reading
+    setIchingReadings([]); // Clear oracle readings
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -307,7 +308,7 @@ export default function BestPossibleSelfPage() {
       return;
     }
     
-    if (!content.trim() && !ichingReading) {
+    if (!content.trim() && ichingReadings.length === 0) {
       return; // Nothing to save
     }
     
@@ -318,7 +319,7 @@ export default function BestPossibleSelfPage() {
 
 
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || (!contentToSave.trim() && !ichingReading)) {
+    if (!user || (!contentToSave.trim() && ichingReadings.length === 0)) {
       setSaveStatus('idle');
       return;
     }
@@ -350,8 +351,8 @@ export default function BestPossibleSelfPage() {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
               },
-              // Save full I Ching reading for reconstruction
-              iching_reading: ichingReading || null,
+              // Save I Ching readings array
+              iching_readings: ichingReadings.length > 0 ? ichingReadings : null,
               // Save chat messages for reconstruction
               chat_messages: chatMessages.length > 0 ? chatMessages : null
             },
@@ -388,8 +389,8 @@ export default function BestPossibleSelfPage() {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
               },
-              // Save full I Ching reading for reconstruction
-              iching_reading: ichingReading || null,
+              // Save I Ching readings array
+              iching_readings: ichingReadings.length > 0 ? ichingReadings : null,
               // Save chat messages for reconstruction
               chat_messages: chatMessages.length > 0 ? chatMessages : null
             }
@@ -849,10 +850,10 @@ export default function BestPossibleSelfPage() {
                 </div>
                 <button
                   onClick={handleManualSave}
-                  disabled={(!content.trim() && !ichingReading) || saveStatus === 'saving'}
+                  disabled={(!content.trim() && ichingReadings.length === 0) || saveStatus === 'saving'}
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {saveStatus === 'saving' ? '💾 Saving...' : 
+                  {saveStatus === 'saving' ? '💾 Saving...' :
                    currentEntryId ? '💾 Update' : '💾 Save'}
                 </button>
               </div>
@@ -861,9 +862,9 @@ export default function BestPossibleSelfPage() {
             {/* Oracle Tools */}
             <div className="mt-6">
               <IChingOracle
-                currentReading={ichingReading}
-                onReadingComplete={setIchingReading}
-                onReadingClear={() => setIchingReading(null)}
+                readings={ichingReadings}
+                onReadingComplete={(reading) => setIchingReadings(prev => [...prev, reading])}
+                onReadingClear={() => setIchingReadings([])}
               />
               {/* Future: Tarot component will go here */}
             </div>
@@ -897,7 +898,7 @@ export default function BestPossibleSelfPage() {
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
-                    ichingReading={ichingReading}
+                    ichingReadings={ichingReadings}
                   />
                 </div>
               )}
