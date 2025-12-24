@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 
 declare global {
@@ -117,6 +117,53 @@ export default function BestPossibleSelfPage() {
   const [selectedFilterTemplate, setSelectedFilterTemplate] = useState<string>('all');
   
   const supabase = createClient();
+
+  // Ref to track if this is the initial load (to prevent auto-save on mount)
+  const isInitialLoad = useRef(true);
+  const previousReadingsLength = useRef(0);
+  const previousMessagesLength = useRef(0);
+
+  // Auto-save when I Ching readings or chat messages change (after initial load)
+  useEffect(() => {
+    // Skip initial load and when not logged in
+    if (isInitialLoad.current || !user) {
+      // After first render, start tracking
+      if (isInitialLoad.current) {
+        previousReadingsLength.current = ichingReadings.length;
+        previousMessagesLength.current = chatMessages.length;
+        isInitialLoad.current = false;
+      }
+      return;
+    }
+
+    // Check if readings were added (not just loaded)
+    const readingsAdded = ichingReadings.length > previousReadingsLength.current;
+    const messagesAdded = chatMessages.length > previousMessagesLength.current;
+
+    // Update previous lengths
+    previousReadingsLength.current = ichingReadings.length;
+    previousMessagesLength.current = chatMessages.length;
+
+    // Trigger auto-save if something was added
+    if (readingsAdded || messagesAdded) {
+      // Short delay to ensure state is fully updated
+      const saveTimeout = setTimeout(() => {
+        if (content.trim() || ichingReadings.length > 0) {
+          setSaveStatus('saving');
+          saveJournalEntry(content);
+        }
+      }, 500);
+
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [ichingReadings.length, chatMessages.length, user, content]);
+
+  // Reset initial load flag when switching entries
+  useEffect(() => {
+    isInitialLoad.current = true;
+    previousReadingsLength.current = ichingReadings.length;
+    previousMessagesLength.current = chatMessages.length;
+  }, [currentEntryId]);
 
   // Simple filtering logic
   const filteredEntries = entries.filter(entry => {
