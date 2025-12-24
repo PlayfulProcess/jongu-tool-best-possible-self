@@ -538,7 +538,7 @@ export default function IChingReaderPage() {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <DualAuth onClose={() => setShowAuthModal(false)} />
+        <DualAuth isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       )}
     </div>
   );
