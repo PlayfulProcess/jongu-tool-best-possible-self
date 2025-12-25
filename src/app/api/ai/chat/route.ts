@@ -125,7 +125,7 @@ ${positionLabels[card.position]}:
 }
 
 function buildOraclePromptSection(oracle: OracleContext): string {
-  let sections: string[] = [];
+  const sections: string[] = [];
 
   // Handle I Ching readings
   if (oracle.iching && oracle.iching.readings && oracle.iching.readings.length > 0) {
