@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase-server';
 const DAILY_FREE_LIMIT = 10;
 const COST_PER_MESSAGE = 0.01; // $0.01 per message (actual OpenAI cost: ~$0.001 with gpt-4o-mini)
 
-// Oracle context types for I Ching and future oracles
+// Oracle context types for I Ching and Tarot
 interface IChingReading {
   question: string;
   primaryHexagram: {
@@ -29,12 +29,35 @@ interface IChingReading {
   } | null;
 }
 
+interface TarotCard {
+  name: string;
+  position: 'past' | 'present' | 'future';
+  isReversed: boolean;
+  keywords: string[];
+  arcana: 'major' | 'minor';
+  suit?: 'wands' | 'cups' | 'swords' | 'pentacles';
+}
+
+interface TarotReading {
+  question: string;
+  timestamp: string;
+  cards: TarotCard[];
+}
+
 interface IChingContext {
   type: 'iching';
   readings: IChingReading[];
 }
 
-type OracleContext = IChingContext; // Will expand to IChingContext | TarotContext in future
+interface TarotContext {
+  type: 'tarot';
+  readings: TarotReading[];
+}
+
+interface OracleContext {
+  iching?: IChingContext;
+  tarot?: TarotContext;
+}
 
 function buildSingleReadingSection(reading: IChingReading, index: number, total: number): string {
   const prefix = total > 1 ? `\n### Reading ${index + 1} of ${total}\n` : '';
@@ -73,32 +96,90 @@ The situation is evolving toward: ${reading.transformedHexagram.meaning}`;
   return section;
 }
 
+function buildSingleTarotReadingSection(reading: TarotReading, index: number, total: number): string {
+  const prefix = total > 1 ? `\n### Reading ${index + 1} of ${total}\n` : '';
+
+  const positionLabels = {
+    past: 'Past (influences from the past)',
+    present: 'Present (current situation)',
+    future: 'Future (potential outcome)'
+  };
+
+  let section = `${prefix}
+QUESTION: "${reading.question}"
+
+THREE-CARD SPREAD:`;
+
+  for (const card of reading.cards) {
+    const reversedNote = card.isReversed ? ' (REVERSED)' : '';
+    const arcanaInfo = card.arcana === 'major' ? 'Major Arcana' : `Minor Arcana - ${card.suit}`;
+    section += `
+
+${positionLabels[card.position]}:
+- ${card.name}${reversedNote}
+- ${arcanaInfo}
+- Keywords: ${card.keywords.join(', ')}`;
+  }
+
+  return section;
+}
+
 function buildOraclePromptSection(oracle: OracleContext): string {
-  if (oracle.type === 'iching' && oracle.readings.length > 0) {
-    const readingsText = oracle.readings
-      .map((reading, index) => buildSingleReadingSection(reading, index, oracle.readings.length))
+  let sections: string[] = [];
+
+  // Handle I Ching readings
+  if (oracle.iching && oracle.iching.readings && oracle.iching.readings.length > 0) {
+    const ichingReadings = oracle.iching.readings;
+    const readingsText = ichingReadings
+      .map((reading, index) => buildSingleReadingSection(reading, index, ichingReadings.length))
       .join('\n\n---\n');
 
-    return `
-
+    sections.push(`
 ---
-I CHING READING${oracle.readings.length > 1 ? 'S' : ''} CONTEXT:
+I CHING READING${ichingReadings.length > 1 ? 'S' : ''} CONTEXT:
 
-The user has cast ${oracle.readings.length} I Ching reading${oracle.readings.length > 1 ? 's' : ''} for this session.
+The user has cast ${ichingReadings.length} I Ching reading${ichingReadings.length > 1 ? 's' : ''} for this session.
 
 ${readingsText}
 
-When discussing the I Ching reading${oracle.readings.length > 1 ? 's' : ''}:
+When discussing the I Ching reading${ichingReadings.length > 1 ? 's' : ''}:
 - Connect the hexagram's wisdom to the user's question and journal content
 - Explain symbolism in accessible terms
 - The changing lines show where transformation is occurring
 - Be supportive but honest - I Ching readings can contain warnings
 - Encourage the user's own insight rather than prescriptive advice
-${oracle.readings.length > 1 ? '- Consider how multiple readings might relate to each other or show evolution of thought' : ''}
----`;
+${ichingReadings.length > 1 ? '- Consider how multiple readings might relate to each other or show evolution of thought' : ''}
+---`);
   }
 
-  return '';
+  // Handle Tarot readings
+  if (oracle.tarot && oracle.tarot.readings && oracle.tarot.readings.length > 0) {
+    const tarotReadings = oracle.tarot.readings;
+    const readingsText = tarotReadings
+      .map((reading, index) => buildSingleTarotReadingSection(reading, index, tarotReadings.length))
+      .join('\n\n---\n');
+
+    sections.push(`
+---
+TAROT READING${tarotReadings.length > 1 ? 'S' : ''} CONTEXT:
+
+The user has drawn ${tarotReadings.length} Tarot reading${tarotReadings.length > 1 ? 's' : ''} (3-card Past/Present/Future spread) for this session.
+
+${readingsText}
+
+When discussing the Tarot reading${tarotReadings.length > 1 ? 's' : ''}:
+- Connect the card meanings to the user's question and journal content
+- Reversed cards suggest blocked energy, internalized qualities, or inverted meanings
+- Past cards show influences, Present cards show current state, Future cards show potential
+- Major Arcana cards represent significant life themes and spiritual lessons
+- Minor Arcana cards represent everyday situations and practical matters
+- Be supportive but honest - some cards can indicate challenges or warnings
+- Encourage the user's own intuitive understanding of the cards
+${tarotReadings.length > 1 ? '- Consider how multiple readings might relate to each other or show evolution of thought' : ''}
+---`);
+  }
+
+  return sections.join('\n');
 }
 
 export async function POST(request: NextRequest) {
