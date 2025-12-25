@@ -71,7 +71,7 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <div className="text-center mb-4">
             <p className="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">
-              → Transforms Into →
+              → Trending Toward →
             </p>
             <div className="text-3xl mb-1">{transformedHexagram.unicode}</div>
             <h3 className="font-serif text-lg text-gray-900 dark:text-white">

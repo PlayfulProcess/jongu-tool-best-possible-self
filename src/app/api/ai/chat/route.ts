@@ -100,9 +100,9 @@ function buildSingleTarotReadingSection(reading: TarotReading, index: number, to
   const prefix = total > 1 ? `\n### Reading ${index + 1} of ${total}\n` : '';
 
   const positionLabels = {
-    past: 'Past (influences from the past)',
-    present: 'Present (current situation)',
-    future: 'Future (potential outcome)'
+    past: 'Structures (patterns, beliefs, foundations)',
+    present: 'Process (current experience, unfolding)',
+    future: 'Possibilities (resources, perspectives to consider)'
   };
 
   let section = `${prefix}
@@ -161,21 +161,26 @@ ${ichingReadings.length > 1 ? '- Consider how multiple readings might relate to 
 
     sections.push(`
 ---
-TAROT READING${tarotReadings.length > 1 ? 'S' : ''} CONTEXT:
+TAROT READING${tarotReadings.length > 1 ? 'S' : ''} CONTEXT (CBT/Self-Reflection Approach):
 
-The user has drawn ${tarotReadings.length} Tarot reading${tarotReadings.length > 1 ? 's' : ''} (3-card Past/Present/Future spread) for this session.
+The user has drawn ${tarotReadings.length} Tarot reading${tarotReadings.length > 1 ? 's' : ''} (3-card spread) for this session.
 
 ${readingsText}
 
-When discussing the Tarot reading${tarotReadings.length > 1 ? 's' : ''}:
-- Connect the card meanings to the user's question and journal content
-- Reversed cards suggest blocked energy, internalized qualities, or inverted meanings
-- Past cards show influences, Present cards show current state, Future cards show potential
-- Major Arcana cards represent significant life themes and spiritual lessons
-- Minor Arcana cards represent everyday situations and practical matters
-- Be supportive but honest - some cards can indicate challenges or warnings
-- Encourage the user's own intuitive understanding of the cards
-${tarotReadings.length > 1 ? '- Consider how multiple readings might relate to each other or show evolution of thought' : ''}
+IMPORTANT: Use the Tarot as a CBT-style REFRAMING and SELF-KNOWLEDGE tool, NOT for prediction:
+- The cards are MIRRORS for self-reflection, not fortune-telling
+- Use card imagery and symbolism to help the user explore their own thoughts, feelings, and beliefs
+- Structures position: "What underlying patterns, beliefs, or foundations might be shaping this situation?"
+- Process position: "What does this card reflect about how you're experiencing or navigating things right now?"
+- Possibilities position: "What resources, perspectives, or options might be worth considering?" (NOT prediction)
+- Reversed cards: Invite exploration of blocked energy, resistance, or internalized beliefs worth examining
+- Use Socratic questioning: "What stands out to you about this card? What might it be reflecting?"
+- Help identify cognitive distortions or limiting beliefs the cards might symbolize
+- Encourage the user to find their OWN meaning - you're a guide, not an oracle
+- Focus on agency, choice, and what the user can influence
+- Major Arcana: archetypal patterns in human experience worth reflecting on
+- Minor Arcana: everyday situations and practical aspects of life
+${tarotReadings.length > 1 ? '- Consider how multiple readings show evolution in the user\'s thinking or different facets of a situation' : ''}
 ---`);
   }
 
@@ -211,7 +216,7 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     });
 
-    const { message, content, history = [], oracleContext } = await request.json();
+    const { message, content, templatePrompt, history = [], oracleContext } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -274,6 +279,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Build template context section
+    const templateSection = templatePrompt ? `
+---
+JOURNALING EXERCISE:
+The user is working on this reflective writing exercise:
+"${templatePrompt}"
+
+Use this context to understand what the user is exploring and provide relevant support.
+---` : '';
+
     const systemPrompt = `You are a compassionate empathy buddy with a thorough understanding of psychology, mythology, religion, and sociology.
 
 Core Principles:
@@ -282,8 +297,9 @@ Core Principles:
 - **Insight**: Draw from psychology, mythology, religion, and spiritual wisdom
 - **Support**: Help process emotions and gain clarity
 - **Non-judgmental**: Accept all feelings and experiences as valid
+${templateSection}
 
-Current journal context: "${content || 'The user is beginning their self-reflection journey'}"
+Current journal content: "${content || 'The user is beginning their self-reflection journey'}"
 ${oracleSection}
 
 Be warm, conversational, and insightful. Ask thoughtful questions that promote self-reflection. Help users explore their inner world with curiosity and compassion.
