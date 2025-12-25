@@ -962,6 +962,7 @@ export default function BestPossibleSelfPage() {
                   <AIAssistant
                     key={`chat-${currentEntryId || 'new'}`}
                     content={content}
+                    templatePrompt={selectedTemplate?.ui_prompt || selectedEntry?.template_snapshot?.ui_prompt}
                     researchConsent={researchConsent}
                     entryId={currentEntryId}
                     onMessage={onChatMessage}

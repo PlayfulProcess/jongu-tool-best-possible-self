@@ -10,6 +10,7 @@ import { TarotReading } from '@/types/tarot.types';
 
 interface AIAssistantProps {
   content: string;
+  templatePrompt?: string;  // The journaling exercise prompt
   researchConsent?: boolean;
   entryId?: string | null;
   onMessage?: () => void;
@@ -136,7 +137,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReadings = [], tarotReadings = [] }: AIAssistantProps) {
+export function AIAssistant({ content, templatePrompt, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReadings = [], tarotReadings = [] }: AIAssistantProps) {
   // Always start collapsed
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -423,6 +424,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
         body: JSON.stringify({
           message: input,
           content: content,
+          templatePrompt: templatePrompt,  // The journaling exercise instructions
           history: messages,  // Send full conversation history
           oracleContext: hasOracleContext ? oracleContext : undefined,      // Include oracle readings if available
         }),
