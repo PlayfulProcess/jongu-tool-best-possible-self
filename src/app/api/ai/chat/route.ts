@@ -100,9 +100,9 @@ function buildSingleTarotReadingSection(reading: TarotReading, index: number, to
   const prefix = total > 1 ? `\n### Reading ${index + 1} of ${total}\n` : '';
 
   const positionLabels = {
-    past: 'Past (influences from the past)',
-    present: 'Present (current situation)',
-    future: 'Future (potential outcome)'
+    past: 'Structures (patterns, beliefs, foundations)',
+    present: 'Process (current experience, unfolding)',
+    future: 'Possibilities (resources, perspectives to consider)'
   };
 
   let section = `${prefix}
@@ -170,9 +170,9 @@ ${readingsText}
 IMPORTANT: Use the Tarot as a CBT-style REFRAMING and SELF-KNOWLEDGE tool, NOT for prediction:
 - The cards are MIRRORS for self-reflection, not fortune-telling
 - Use card imagery and symbolism to help the user explore their own thoughts, feelings, and beliefs
-- Past position: "What patterns or experiences might be influencing your current perspective?"
-- Present position: "What does this card reflect about how you're seeing the situation right now?"
-- Future position: "What possibilities or resources might you consider?" (NOT prediction)
+- Structures position: "What underlying patterns, beliefs, or foundations might be shaping this situation?"
+- Process position: "What does this card reflect about how you're experiencing or navigating things right now?"
+- Possibilities position: "What resources, perspectives, or options might be worth considering?" (NOT prediction)
 - Reversed cards: Invite exploration of blocked energy, resistance, or internalized beliefs worth examining
 - Use Socratic questioning: "What stands out to you about this card? What might it be reflecting?"
 - Help identify cognitive distortions or limiting beliefs the cards might symbolize

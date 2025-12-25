@@ -97,25 +97,25 @@ export async function getCardByName(name: string): Promise<TarotCard | null> {
 }
 
 /**
- * Format card position for display
+ * Format card position for display (CBT-focused labels)
  */
 export function formatPosition(position: 'past' | 'present' | 'future'): string {
   const labels = {
-    past: 'Past',
-    present: 'Present',
-    future: 'Future',
+    past: 'Structures',
+    present: 'Process',
+    future: 'Possibilities',
   };
   return labels[position];
 }
 
 /**
- * Get position description for AI context
+ * Get position description for AI context (CBT-focused)
  */
 export function getPositionDescription(position: 'past' | 'present' | 'future'): string {
   const descriptions = {
-    past: 'influences from the past that affect the situation',
-    present: 'the current state of the situation',
-    future: 'potential outcome or direction if current path continues',
+    past: 'underlying structures, patterns, or beliefs shaping the situation',
+    present: 'current process, how things are unfolding or being experienced',
+    future: 'possibilities, resources, or perspectives to consider',
   };
   return descriptions[position];
 }
