@@ -11,25 +11,28 @@ import {
 interface IChingOracleProps {
   onReadingComplete?: (reading: HexagramReading) => void
   onReadingClear?: () => void
-  currentReading?: HexagramReading | null
+  readings?: HexagramReading[]
 }
 
 export function IChingOracle({
   onReadingComplete,
   onReadingClear,
-  currentReading: externalReading
+  readings: externalReadings = []
 }: IChingOracleProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [reading, setReading] = useState<HexagramReading | null>(externalReading || null)
+  const [readings, setReadings] = useState<HexagramReading[]>(externalReadings)
   const [isCasting, setIsCasting] = useState(false)
+  const [expandedReadings, setExpandedReadings] = useState<Set<number>>(new Set())
 
-  // Sync with external reading (including when cleared)
+  // Sync with external readings (including when cleared)
   useEffect(() => {
-    setReading(externalReading || null)
-    if (externalReading) {
-      setIsOpen(true) // Auto-open when there's a reading
+    setReadings(externalReadings)
+    if (externalReadings.length > 0) {
+      setIsOpen(true) // Auto-open when there are readings
+      // Expand the most recent reading
+      setExpandedReadings(new Set([externalReadings.length - 1]))
     }
-  }, [externalReading])
+  }, [externalReadings])
 
   const handleCast = async (question: string) => {
     if (!question.trim()) return
@@ -38,8 +41,10 @@ export function IChingOracle({
 
     try {
       const newReading = await castHexagram(question)
-      setReading(newReading)
+      setReadings(prev => [...prev, newReading])
       setIsOpen(true)
+      // Expand the new reading
+      setExpandedReadings(new Set([readings.length]))
 
       if (onReadingComplete) {
         onReadingComplete(newReading)
@@ -51,10 +56,23 @@ export function IChingOracle({
     }
   }
 
-  const handleClearReading = () => {
-    setReading(null)
+  const handleClearReadings = () => {
+    setReadings([])
+    setExpandedReadings(new Set())
     setIsOpen(false)
     onReadingClear?.()
+  }
+
+  const toggleReading = (index: number) => {
+    setExpandedReadings(prev => {
+      const next = new Set(prev)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
+      return next
+    })
   }
 
   return (
@@ -69,9 +87,10 @@ export function IChingOracle({
         </button>
 
         {/* Quick status indicator when collapsed */}
-        {!isOpen && reading && (
+        {!isOpen && readings.length > 0 && (
           <span className="text-sm text-amber-600 dark:text-amber-400">
-            {reading.primaryHexagram.unicode} {reading.primaryHexagram.english_name}
+            {readings.length} reading{readings.length !== 1 ? 's' : ''} •
+            {readings[readings.length - 1].primaryHexagram.unicode} {readings[readings.length - 1].primaryHexagram.english_name}
           </span>
         )}
       </div>
@@ -82,15 +101,15 @@ export function IChingOracle({
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b border-amber-200 dark:border-amber-700 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
             <h3 className="font-semibold text-amber-800 dark:text-amber-200">
-              {reading ? `${reading.primaryHexagram.unicode} ${reading.primaryHexagram.english_name}` : 'I Ching Oracle'}
+              I Ching Oracle {readings.length > 0 && `(${readings.length} reading${readings.length !== 1 ? 's' : ''})`}
             </h3>
             <div className="flex items-center gap-2">
-              {reading && (
+              {readings.length > 0 && (
                 <button
-                  onClick={handleClearReading}
+                  onClick={handleClearReadings}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Clear
+                  Clear All
                 </button>
               )}
               <button
@@ -103,41 +122,61 @@ export function IChingOracle({
           </div>
 
           {/* Content */}
-          <div className="p-4">
-            {!reading ? (
-              // Question Input when no reading
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                  Focus on your question, then cast the hexagram.
-                </p>
-                <QuestionInput
-                  onCast={handleCast}
-                  isLoading={isCasting}
-                />
-              </div>
-            ) : (
-              // Full Reading Display
-              <div className="space-y-4">
-                {/* Question */}
-                <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your question:</p>
-                  <p className="text-gray-800 dark:text-gray-200 italic">&ldquo;{reading.question}&rdquo;</p>
-                </div>
+          <div className="p-4 space-y-4">
+            {/* Previous Readings as Collapsible Cards */}
+            {readings.map((reading, index) => (
+              <div
+                key={`${reading.primaryHexagram.number}-${index}`}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+              >
+                {/* Reading Header - Always Visible */}
+                <button
+                  onClick={() => toggleReading(index)}
+                  className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{reading.primaryHexagram.unicode}</span>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {reading.primaryHexagram.english_name}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                        &ldquo;{reading.question}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-gray-400">
+                    {expandedReadings.has(index) ? '▼' : '▶'}
+                  </span>
+                </button>
 
-                {/* Full Interpretation */}
-                <ReadingInterpretation reading={reading} />
-
-                {/* Actions */}
-                <div className="flex justify-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={handleClearReading}
-                    className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Cast New Reading
-                  </button>
-                </div>
+                {/* Expanded Reading Content */}
+                {expandedReadings.has(index) && (
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your question:</p>
+                      <p className="text-gray-800 dark:text-gray-200 italic">&ldquo;{reading.question}&rdquo;</p>
+                    </div>
+                    <div className="mt-4">
+                      <ReadingInterpretation reading={reading} />
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            ))}
+
+            {/* Cast New Reading Input */}
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+                {readings.length === 0
+                  ? 'Focus on your question, then cast the hexagram.'
+                  : 'Cast another reading for a new question.'}
+              </p>
+              <QuestionInput
+                onCast={handleCast}
+                isLoading={isCasting}
+              />
+            </div>
           </div>
         </div>
       )}

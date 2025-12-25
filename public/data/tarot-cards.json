@@ -1,0 +1,584 @@
+{
+  "cards": [
+    {
+      "name": "The Fool",
+      "arcana": "major",
+      "keywords": ["beginnings", "innocence", "spontaneity", "free spirit"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg"
+    },
+    {
+      "name": "The Magician",
+      "arcana": "major",
+      "keywords": ["manifestation", "resourcefulness", "power", "inspired action"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg"
+    },
+    {
+      "name": "The High Priestess",
+      "arcana": "major",
+      "keywords": ["intuition", "sacred knowledge", "divine feminine", "subconscious"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg"
+    },
+    {
+      "name": "The Empress",
+      "arcana": "major",
+      "keywords": ["femininity", "beauty", "nature", "abundance"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg"
+    },
+    {
+      "name": "The Emperor",
+      "arcana": "major",
+      "keywords": ["authority", "structure", "control", "fatherhood"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg"
+    },
+    {
+      "name": "The Hierophant",
+      "arcana": "major",
+      "keywords": ["tradition", "conformity", "morality", "ethics"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg"
+    },
+    {
+      "name": "The Lovers",
+      "arcana": "major",
+      "keywords": ["love", "harmony", "relationships", "values alignment"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg"
+    },
+    {
+      "name": "The Chariot",
+      "arcana": "major",
+      "keywords": ["control", "willpower", "success", "determination"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg"
+    },
+    {
+      "name": "Strength",
+      "arcana": "major",
+      "keywords": ["courage", "persuasion", "influence", "compassion"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg"
+    },
+    {
+      "name": "The Hermit",
+      "arcana": "major",
+      "keywords": ["soul-searching", "introspection", "inner guidance", "solitude"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg"
+    },
+    {
+      "name": "Wheel of Fortune",
+      "arcana": "major",
+      "keywords": ["change", "cycles", "fate", "decisive moments"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg"
+    },
+    {
+      "name": "Justice",
+      "arcana": "major",
+      "keywords": ["fairness", "truth", "cause and effect", "law"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg"
+    },
+    {
+      "name": "The Hanged Man",
+      "arcana": "major",
+      "keywords": ["pause", "surrender", "letting go", "new perspectives"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg"
+    },
+    {
+      "name": "Death",
+      "arcana": "major",
+      "keywords": ["endings", "change", "transformation", "transition"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg"
+    },
+    {
+      "name": "Temperance",
+      "arcana": "major",
+      "keywords": ["balance", "moderation", "patience", "purpose"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg"
+    },
+    {
+      "name": "The Devil",
+      "arcana": "major",
+      "keywords": ["shadow self", "attachment", "addiction", "restriction"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg"
+    },
+    {
+      "name": "The Tower",
+      "arcana": "major",
+      "keywords": ["sudden change", "upheaval", "chaos", "revelation"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg"
+    },
+    {
+      "name": "The Star",
+      "arcana": "major",
+      "keywords": ["hope", "faith", "purpose", "renewal"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg"
+    },
+    {
+      "name": "The Moon",
+      "arcana": "major",
+      "keywords": ["illusion", "fear", "anxiety", "subconscious"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg"
+    },
+    {
+      "name": "The Sun",
+      "arcana": "major",
+      "keywords": ["positivity", "fun", "warmth", "success"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg"
+    },
+    {
+      "name": "Judgement",
+      "arcana": "major",
+      "keywords": ["judgement", "rebirth", "inner calling", "absolution"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg"
+    },
+    {
+      "name": "The World",
+      "arcana": "major",
+      "keywords": ["completion", "integration", "accomplishment", "travel"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/ff/RWS_Tarot_21_World.jpg"
+    },
+    {
+      "name": "Ace of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 1,
+      "keywords": ["inspiration", "new opportunities", "growth", "potential"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/11/Wands01.jpg"
+    },
+    {
+      "name": "Two of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 2,
+      "keywords": ["planning", "decisions", "discovery", "progress"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Wands02.jpg"
+    },
+    {
+      "name": "Three of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 3,
+      "keywords": ["expansion", "foresight", "overseas opportunities"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Wands03.jpg"
+    },
+    {
+      "name": "Four of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 4,
+      "keywords": ["celebration", "harmony", "homecoming", "community"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Wands04.jpg"
+    },
+    {
+      "name": "Five of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 5,
+      "keywords": ["conflict", "disagreements", "competition", "tension"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Wands05.jpg"
+    },
+    {
+      "name": "Six of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 6,
+      "keywords": ["success", "recognition", "progress", "self-confidence"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Wands06.jpg"
+    },
+    {
+      "name": "Seven of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 7,
+      "keywords": ["challenge", "competition", "perseverance"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Wands07.jpg"
+    },
+    {
+      "name": "Eight of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 8,
+      "keywords": ["movement", "speed", "progress", "quick decisions"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wands08.jpg"
+    },
+    {
+      "name": "Nine of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 9,
+      "keywords": ["resilience", "courage", "persistence", "boundaries"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Tarot_Nine_of_Wands.jpg"
+    },
+    {
+      "name": "Ten of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 10,
+      "keywords": ["burden", "responsibility", "hard work", "accomplishment"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Wands10.jpg"
+    },
+    {
+      "name": "Page of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 11,
+      "keywords": ["exploration", "excitement", "freedom"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wands11.jpg"
+    },
+    {
+      "name": "Knight of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 12,
+      "keywords": ["energy", "passion", "adventure", "impulsiveness"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/16/Wands12.jpg"
+    },
+    {
+      "name": "Queen of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 13,
+      "keywords": ["confidence", "independence", "social butterfly", "determination"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wands13.jpg"
+    },
+    {
+      "name": "King of Wands",
+      "arcana": "minor",
+      "suit": "wands",
+      "number": 14,
+      "keywords": ["leadership", "vision", "entrepreneur", "honor"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Wands14.jpg"
+    },
+    {
+      "name": "Ace of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 1,
+      "keywords": ["new feelings", "spirituality", "intuition"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/36/Cups01.jpg"
+    },
+    {
+      "name": "Two of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 2,
+      "keywords": ["partnership", "attraction", "connection"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Cups02.jpg"
+    },
+    {
+      "name": "Three of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 3,
+      "keywords": ["celebration", "friendship", "creativity", "community"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Cups03.jpg"
+    },
+    {
+      "name": "Four of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 4,
+      "keywords": ["apathy", "contemplation", "disconnection"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/Cups04.jpg"
+    },
+    {
+      "name": "Five of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 5,
+      "keywords": ["regret", "failure", "disappointment", "pessimism"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Cups05.jpg"
+    },
+    {
+      "name": "Six of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 6,
+      "keywords": ["revisiting the past", "nostalgia", "innocence"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/Cups06.jpg"
+    },
+    {
+      "name": "Seven of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 7,
+      "keywords": ["fantasy", "illusion", "wishful thinking", "choices"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Cups07.jpg"
+    },
+    {
+      "name": "Eight of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 8,
+      "keywords": ["walking away", "disillusionment", "leaving behind"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/60/Cups08.jpg"
+    },
+    {
+      "name": "Nine of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 9,
+      "keywords": ["contentment", "satisfaction", "gratitude", "wish fulfilled"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/24/Cups09.jpg"
+    },
+    {
+      "name": "Ten of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 10,
+      "keywords": ["divine love", "harmony", "alignment"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/8/84/Cups10.jpg"
+    },
+    {
+      "name": "Page of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 11,
+      "keywords": ["creative opportunities", "curiosity", "possibility"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Cups11.jpg"
+    },
+    {
+      "name": "Knight of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 12,
+      "keywords": ["romance", "charm", "imagination", "beauty"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Cups12.jpg"
+    },
+    {
+      "name": "Queen of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 13,
+      "keywords": ["compassion", "calm", "comfort"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/62/Cups13.jpg"
+    },
+    {
+      "name": "King of Cups",
+      "arcana": "minor",
+      "suit": "cups",
+      "number": 14,
+      "keywords": ["emotionally balanced", "compassionate", "diplomatic"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/04/Cups14.jpg"
+    },
+    {
+      "name": "Ace of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 1,
+      "keywords": ["breakthrough", "clarity", "sharp mind"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Swords01.jpg"
+    },
+    {
+      "name": "Two of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 2,
+      "keywords": ["difficult decisions", "weighing options", "stalemate"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Swords02.jpg"
+    },
+    {
+      "name": "Three of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 3,
+      "keywords": ["heartbreak", "emotional pain", "sorrow", "grief"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/02/Swords03.jpg"
+    },
+    {
+      "name": "Four of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 4,
+      "keywords": ["rest", "relaxation", "meditation", "contemplation"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Swords04.jpg"
+    },
+    {
+      "name": "Five of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 5,
+      "keywords": ["conflict", "disagreements", "competition", "defeat"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/23/Swords05.jpg"
+    },
+    {
+      "name": "Six of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 6,
+      "keywords": ["transition", "change", "rite of passage", "releasing baggage"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Swords06.jpg"
+    },
+    {
+      "name": "Seven of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 7,
+      "keywords": ["betrayal", "deception", "strategy", "sneakiness"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/34/Swords07.jpg"
+    },
+    {
+      "name": "Eight of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 8,
+      "keywords": ["imprisonment", "entrapment", "self-victimization"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Swords08.jpg"
+    },
+    {
+      "name": "Nine of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 9,
+      "keywords": ["anxiety", "worry", "fear", "depression"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Swords09.jpg"
+    },
+    {
+      "name": "Ten of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 10,
+      "keywords": ["painful endings", "deep wounds", "betrayal", "loss"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords10.jpg"
+    },
+    {
+      "name": "Page of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 11,
+      "keywords": ["curiosity", "restlessness", "mental energy"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Swords11.jpg"
+    },
+    {
+      "name": "Knight of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 12,
+      "keywords": ["ambition", "action", "drive", "determination"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Swords12.jpg"
+    },
+    {
+      "name": "Queen of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 13,
+      "keywords": ["independence", "unbiased judgement", "clear boundaries"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords13.jpg"
+    },
+    {
+      "name": "King of Swords",
+      "arcana": "minor",
+      "suit": "swords",
+      "number": 14,
+      "keywords": ["intellectual power", "authority", "truth"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/33/Swords14.jpg"
+    },
+    {
+      "name": "Ace of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 1,
+      "keywords": ["new financial opportunity", "manifestation", "abundance"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Pents01.jpg"
+    },
+    {
+      "name": "Two of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 2,
+      "keywords": ["balance", "adaptability", "time management"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Pents02.jpg"
+    },
+    {
+      "name": "Three of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 3,
+      "keywords": ["teamwork", "collaboration", "learning"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/42/Pents03.jpg"
+    },
+    {
+      "name": "Four of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 4,
+      "keywords": ["saving money", "security", "conservatism", "scarcity"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/Pents04.jpg"
+    },
+    {
+      "name": "Five of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 5,
+      "keywords": ["financial loss", "poverty", "lack mindset", "isolation"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/96/Pents05.jpg"
+    },
+    {
+      "name": "Six of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 6,
+      "keywords": ["giving", "receiving", "sharing wealth"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Pents06.jpg"
+    },
+    {
+      "name": "Seven of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 7,
+      "keywords": ["long-term view", "perseverance", "investment"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Pents07.jpg"
+    },
+    {
+      "name": "Eight of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 8,
+      "keywords": ["apprenticeship", "education", "quality"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/49/Pents08.jpg"
+    },
+    {
+      "name": "Nine of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 9,
+      "keywords": ["abundance", "luxury", "self-sufficiency"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Pents09.jpg"
+    },
+    {
+      "name": "Ten of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 10,
+      "keywords": ["wealth", "inheritance", "family", "establishment"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/42/Pents10.jpg"
+    },
+    {
+      "name": "Page of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 11,
+      "keywords": ["manifestation", "financial opportunity", "skill development"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Pents11.jpg"
+    },
+    {
+      "name": "Knight of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 12,
+      "keywords": ["hard work", "productivity", "routine"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Pents12.jpg"
+    },
+    {
+      "name": "Queen of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 13,
+      "keywords": ["nurturing", "practical", "providing financially"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/8/88/Pents13.jpg"
+    },
+    {
+      "name": "King of Pentacles",
+      "arcana": "minor",
+      "suit": "pentacles",
+      "number": 14,
+      "keywords": ["wealth", "business", "leadership", "security"],
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Pents14.jpg"
+    }
+  ]
+}

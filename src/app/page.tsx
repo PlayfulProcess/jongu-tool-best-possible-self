@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 
 declare global {
@@ -17,8 +17,10 @@ import { DualAuth } from '@/components/DualAuth';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { TemplateCreator } from '@/components/TemplateCreator';
 import { IChingOracle } from '@/components/IChingOracle';
+import { TarotOracle } from '@/components/TarotOracle';
 import { Database } from '@/types/database.types';
 import { HexagramReading } from '@/types/iching.types';
+import { TarotReading } from '@/types/tarot.types';
 
 type JournalTemplate = Database['public']['Tables']['journal_templates']['Row'];
 
@@ -41,7 +43,9 @@ interface JournalEntry {
     is_private: boolean
   } | null
   template_id?: string | null
-  iching_reading?: HexagramReading | null
+  iching_readings?: HexagramReading[] | null  // Array of readings for multiple casts per session
+  tarot_readings?: TarotReading[] | null  // Array of Tarot readings
+  // Note: chat_messages are stored separately in user_documents with document_type='interaction'
 }
 
 const MAX_CHAT_EXCHANGES = 15; // Limit to prevent token overuse
@@ -104,8 +108,9 @@ export default function BestPossibleSelfPage() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
 
-  // Oracle state
-  const [ichingReading, setIchingReading] = useState<HexagramReading | null>(null);
+  // Oracle state - arrays to support multiple readings per session
+  const [ichingReadings, setIchingReadings] = useState<HexagramReading[]>([]);
+  const [tarotReadings, setTarotReadings] = useState<TarotReading[]>([]);
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<JournalTemplate | null>(null);
@@ -116,6 +121,65 @@ export default function BestPossibleSelfPage() {
   const [selectedFilterTemplate, setSelectedFilterTemplate] = useState<string>('all');
   
   const supabase = createClient();
+
+  // Ref to track if this is the initial load (to prevent auto-save on mount)
+  const isInitialLoad = useRef(true);
+  const previousReadingsLength = useRef(0);
+  const previousTarotReadingsLength = useRef(0);
+  const previousMessagesLength = useRef(0);
+  const contentRef = useRef(content); // Track content without causing re-renders
+
+  // Keep contentRef in sync
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
+
+  // Auto-save when oracle readings or chat messages change (after initial load)
+  useEffect(() => {
+    // Skip initial load and when not logged in
+    if (isInitialLoad.current || !user) {
+      // After first render, start tracking
+      if (isInitialLoad.current) {
+        previousReadingsLength.current = ichingReadings.length;
+        previousTarotReadingsLength.current = tarotReadings.length;
+        previousMessagesLength.current = chatMessages.length;
+        isInitialLoad.current = false;
+      }
+      return;
+    }
+
+    // Check if readings were added (not just loaded)
+    const ichingAdded = ichingReadings.length > previousReadingsLength.current;
+    const tarotAdded = tarotReadings.length > previousTarotReadingsLength.current;
+    const messagesAdded = chatMessages.length > previousMessagesLength.current;
+
+    // Update previous lengths
+    previousReadingsLength.current = ichingReadings.length;
+    previousTarotReadingsLength.current = tarotReadings.length;
+    previousMessagesLength.current = chatMessages.length;
+
+    // Trigger auto-save if something was added
+    if (ichingAdded || tarotAdded || messagesAdded) {
+      // Short delay to ensure state is fully updated
+      const saveTimeout = setTimeout(() => {
+        const currentContent = contentRef.current;
+        if (currentContent.trim() || ichingReadings.length > 0 || tarotReadings.length > 0) {
+          setSaveStatus('saving');
+          saveJournalEntry(currentContent);
+        }
+      }, 500);
+
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [ichingReadings.length, tarotReadings.length, chatMessages.length, user]); // Removed content dependency
+
+  // Reset initial load flag when switching entries
+  useEffect(() => {
+    isInitialLoad.current = true;
+    previousReadingsLength.current = ichingReadings.length;
+    previousTarotReadingsLength.current = tarotReadings.length;
+    previousMessagesLength.current = chatMessages.length;
+  }, [currentEntryId]);
 
   // Simple filtering logic
   const filteredEntries = entries.filter(entry => {
@@ -179,8 +243,12 @@ export default function BestPossibleSelfPage() {
         // Add template info for display
         template_snapshot: doc.document_data?.template_snapshot || null,
         template_id: doc.document_data?.template_id || null,
-        // Load I Ching reading from saved data
-        iching_reading: doc.document_data?.iching_reading || null
+        // Load I Ching readings - handle migration from old single reading to new array format
+        iching_readings: doc.document_data?.iching_readings ||
+          (doc.document_data?.iching_reading ? [doc.document_data.iching_reading] : null),
+        // Load Tarot readings
+        tarot_readings: doc.document_data?.tarot_readings || null
+        // Note: chat_messages are loaded separately by AIAssistant from interaction records
       }));
 
       setEntries(transformedEntries);
@@ -236,10 +304,14 @@ export default function BestPossibleSelfPage() {
     setCurrentEntryId(entry.id);
     setResearchConsent(entry.research_consent);
     setHasUnsavedChanges(false);
-    setChatExchangeCount(0); // Reset chat count when switching entries
 
-    // Load I Ching reading if present
-    setIchingReading(entry.iching_reading || null);
+    // Load oracle readings if present
+    setIchingReadings(entry.iching_readings || []);
+    setTarotReadings(entry.tarot_readings || []);
+
+    // Note: Chat messages are loaded by AIAssistant from interaction records
+    // Reset exchange count - AIAssistant will update when it loads messages
+    setChatExchangeCount(0);
   };
 
   const handleNewEntry = () => {
@@ -261,7 +333,8 @@ export default function BestPossibleSelfPage() {
     setChatExchangeCount(0);
     setTimeSpent(0);
     setChatMessages([]);
-    setIchingReading(null); // Clear oracle reading
+    setIchingReadings([]); // Clear oracle readings
+    setTarotReadings([]);
     setClearAIChat(true);
     // Reset the clearAIChat flag after a short delay
     setTimeout(() => setClearAIChat(false), 100);
@@ -301,10 +374,10 @@ export default function BestPossibleSelfPage() {
       return;
     }
     
-    if (!content.trim() && !ichingReading) {
+    if (!content.trim() && ichingReadings.length === 0 && tarotReadings.length === 0) {
       return; // Nothing to save
     }
-    
+
     // Proceed with saving
     setSaveStatus('saving');
     saveJournalEntry(content);
@@ -312,7 +385,7 @@ export default function BestPossibleSelfPage() {
 
 
   const saveJournalEntry = async (contentToSave: string) => {
-    if (!user || (!contentToSave.trim() && !ichingReading)) {
+    if (!user || (!contentToSave.trim() && ichingReadings.length === 0 && tarotReadings.length === 0)) {
       setSaveStatus('idle');
       return;
     }
@@ -344,8 +417,10 @@ export default function BestPossibleSelfPage() {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
               },
-              // Save full I Ching reading for reconstruction
-              iching_reading: ichingReading || null
+              // Save oracle readings arrays
+              iching_readings: ichingReadings.length > 0 ? ichingReadings : null,
+              tarot_readings: tarotReadings.length > 0 ? tarotReadings : null
+              // Note: chat messages are saved separately by AIAssistant to interaction records
             },
             is_public: isPublic,
             updated_at: new Date().toISOString()
@@ -380,8 +455,10 @@ export default function BestPossibleSelfPage() {
                 time_spent: timeSpent,
                 word_count: contentToSave.split(' ').length
               },
-              // Save full I Ching reading for reconstruction
-              iching_reading: ichingReading || null
+              // Save oracle readings arrays
+              iching_readings: ichingReadings.length > 0 ? ichingReadings : null,
+              tarot_readings: tarotReadings.length > 0 ? tarotReadings : null
+              // Note: chat messages are saved separately by AIAssistant to interaction records
             }
           })
           .select()
@@ -839,23 +916,27 @@ export default function BestPossibleSelfPage() {
                 </div>
                 <button
                   onClick={handleManualSave}
-                  disabled={(!content.trim() && !ichingReading) || saveStatus === 'saving'}
+                  disabled={(!content.trim() && ichingReadings.length === 0 && tarotReadings.length === 0) || saveStatus === 'saving'}
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {saveStatus === 'saving' ? '💾 Saving...' : 
+                  {saveStatus === 'saving' ? '💾 Saving...' :
                    currentEntryId ? '💾 Update' : '💾 Save'}
                 </button>
               </div>
             </div>
 
             {/* Oracle Tools */}
-            <div className="mt-6">
+            <div className="mt-6 space-y-4">
               <IChingOracle
-                currentReading={ichingReading}
-                onReadingComplete={setIchingReading}
-                onReadingClear={() => setIchingReading(null)}
+                readings={ichingReadings}
+                onReadingComplete={(reading) => setIchingReadings(prev => [...prev, reading])}
+                onReadingClear={() => setIchingReadings([])}
               />
-              {/* Future: Tarot component will go here */}
+              <TarotOracle
+                readings={tarotReadings}
+                onReadingComplete={(reading) => setTarotReadings(prev => [...prev, reading])}
+                onReadingClear={() => setTarotReadings([])}
+              />
             </div>
 
             {/* AI Assistant */}
@@ -887,7 +968,8 @@ export default function BestPossibleSelfPage() {
                     clearChat={clearAIChat}
                     initialMessages={chatMessages}
                     onMessagesChange={setChatMessages}
-                    ichingReading={ichingReading}
+                    ichingReadings={ichingReadings}
+                    tarotReadings={tarotReadings}
                   />
                 </div>
               )}

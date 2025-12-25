@@ -6,6 +6,7 @@ import { useAuth } from './AuthProvider';
 import { createClient } from '@/lib/supabase-client';
 import ReactMarkdown from 'react-markdown';
 import { HexagramReading } from '@/types/iching.types';
+import { TarotReading } from '@/types/tarot.types';
 
 interface AIAssistantProps {
   content: string;
@@ -15,7 +16,8 @@ interface AIAssistantProps {
   clearChat?: boolean;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
-  ichingReading?: HexagramReading | null;
+  ichingReadings?: HexagramReading[];
+  tarotReadings?: TarotReading[];
 }
 
 interface Message {
@@ -134,7 +136,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReading }: AIAssistantProps) {
+export function AIAssistant({ content, researchConsent = false, entryId, onMessage, clearChat = false, initialMessages = [], onMessagesChange, ichingReadings = [], tarotReadings = [] }: AIAssistantProps) {
   // Always start collapsed
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -357,35 +359,61 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
     await saveChatMessage(input, 'user');
 
     try {
-      // Build oracle context if I Ching reading is available
-      const oracleContext = ichingReading ? {
-        type: 'iching' as const,
-        question: ichingReading.question,
-        primaryHexagram: {
-          number: ichingReading.primaryHexagram.number,
-          english_name: ichingReading.primaryHexagram.english_name,
-          chinese_name: ichingReading.primaryHexagram.chinese_name,
-          pinyin: ichingReading.primaryHexagram.pinyin,
-          judgment: ichingReading.primaryHexagram.judgment,
-          image: ichingReading.primaryHexagram.image,
-          meaning: ichingReading.primaryHexagram.meaning,
-          unicode: ichingReading.primaryHexagram.unicode,
-        },
-        changingLines: ichingReading.changingLines,
-        lineTexts: ichingReading.changingLines.reduce((acc, lineNum) => {
-          acc[lineNum] = ichingReading.primaryHexagram.lines[lineNum as keyof typeof ichingReading.primaryHexagram.lines];
-          return acc;
-        }, {} as Record<number, string>),
-        transformedHexagram: ichingReading.transformedHexagram ? {
-          number: ichingReading.transformedHexagram.number,
-          english_name: ichingReading.transformedHexagram.english_name,
-          chinese_name: ichingReading.transformedHexagram.chinese_name,
-          judgment: ichingReading.transformedHexagram.judgment,
-          meaning: ichingReading.transformedHexagram.meaning,
-        } : null,
-      } : undefined;
+      // Build oracle context if readings are available
+      const oracleContext: { iching?: object; tarot?: object } = {};
 
-      console.log('Sending request to AI API:', { message: input, content: content, hasOracle: !!oracleContext });
+      if (ichingReadings.length > 0) {
+        oracleContext.iching = {
+          type: 'iching',
+          readings: ichingReadings.map(reading => ({
+            question: reading.question,
+            primaryHexagram: {
+              number: reading.primaryHexagram.number,
+              english_name: reading.primaryHexagram.english_name,
+              chinese_name: reading.primaryHexagram.chinese_name,
+              pinyin: reading.primaryHexagram.pinyin,
+              judgment: reading.primaryHexagram.judgment,
+              image: reading.primaryHexagram.image,
+              meaning: reading.primaryHexagram.meaning,
+              unicode: reading.primaryHexagram.unicode,
+            },
+            changingLines: reading.changingLines,
+            lineTexts: reading.changingLines.reduce((acc, lineNum) => {
+              acc[lineNum] = reading.primaryHexagram.lines[lineNum as keyof typeof reading.primaryHexagram.lines];
+              return acc;
+            }, {} as Record<number, string>),
+            transformedHexagram: reading.transformedHexagram ? {
+              number: reading.transformedHexagram.number,
+              english_name: reading.transformedHexagram.english_name,
+              chinese_name: reading.transformedHexagram.chinese_name,
+              judgment: reading.transformedHexagram.judgment,
+              meaning: reading.transformedHexagram.meaning,
+            } : null,
+          })),
+        };
+      }
+
+      if (tarotReadings.length > 0) {
+        oracleContext.tarot = {
+          type: 'tarot',
+          readings: tarotReadings.map(reading => ({
+            question: reading.question,
+            timestamp: reading.timestamp,
+            cards: reading.cards.map(drawnCard => ({
+              name: drawnCard.card.name,
+              position: drawnCard.position,
+              isReversed: drawnCard.isReversed,
+              keywords: drawnCard.card.keywords,
+              arcana: drawnCard.card.arcana,
+              suit: drawnCard.card.suit,
+            })),
+          })),
+        };
+      }
+
+      const hasOracleContext = Object.keys(oracleContext).length > 0;
+
+      console.log('Sending request to AI API:', { message: input, content: content, hasOracle: hasOracleContext });
 
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -396,7 +424,7 @@ export function AIAssistant({ content, researchConsent = false, entryId, onMessa
           message: input,
           content: content,
           history: messages,  // Send full conversation history
-          oracleContext,      // Include oracle reading if available
+          oracleContext: hasOracleContext ? oracleContext : undefined,      // Include oracle readings if available
         }),
       });
 
