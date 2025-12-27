@@ -55,16 +55,18 @@ export async function fetchPublishedDecks(): Promise<DeckOption[]> {
     const data = await res.json();
     const decks = data.decks || data || [];
 
-    deckListCache = decks.map((d: CustomTarotDeck) => ({
+    const mappedDecks: DeckOption[] = decks.map((d: CustomTarotDeck) => ({
       id: d.id,
       name: d.name,
       creator_name: d.creator_name,
       card_count: d.card_count,
       is_custom: true
     }));
+
+    deckListCache = mappedDecks;
     deckListCacheTime = Date.now();
 
-    return deckListCache;
+    return mappedDecks;
   } catch (error) {
     console.error('Failed to fetch decks:', error);
     return [];
