@@ -36,16 +36,21 @@ export async function fetchPublishedDecks(): Promise<DeckOption[]> {
   }
 
   const apiBase = getApiBase();
+  console.log('API base for tarot channel:', apiBase);
 
   // If no API available (server-side without config), return empty
   if (!apiBase) {
+    console.log('No API base available');
     return [];
   }
 
   try {
-    const res = await fetch(`${apiBase}/api/tarot-channel/decks`, {
+    const url = `${apiBase}/api/tarot-channel/decks`;
+    console.log('Fetching decks from:', url);
+    const res = await fetch(url, {
       cache: 'no-store' // Don't cache during development
     });
+    console.log('Response status:', res.status);
 
     if (!res.ok) {
       console.warn('Failed to fetch decks:', res.status);

@@ -31,8 +31,14 @@ export function TarotDeckSelector({
       try {
         setLoading(true);
         setError(null);
+        console.log('Fetching custom decks...');
         const customDecks = await fetchPublishedDecks();
-        setDecks([RIDER_WAITE_OPTION, ...customDecks]);
+        console.log('Fetched decks:', customDecks);
+        if (customDecks.length > 0) {
+          setDecks([RIDER_WAITE_OPTION, ...customDecks]);
+        } else {
+          console.log('No custom decks found, using only Rider-Waite');
+        }
       } catch (err) {
         console.error('Failed to load decks:', err);
         setError('Could not load custom decks');
