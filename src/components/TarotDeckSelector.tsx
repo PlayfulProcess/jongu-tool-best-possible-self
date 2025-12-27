@@ -10,38 +10,28 @@ interface TarotDeckSelectorProps {
   disabled?: boolean;
 }
 
-const RIDER_WAITE_OPTION: DeckOption = {
-  id: 'rider-waite',
-  name: 'Rider-Waite (Classic)',
-  card_count: 78,
-  is_custom: false
-};
+const RIDER_WAITE_ID = 'rider-waite';
 
 export function TarotDeckSelector({
   selectedDeckId,
   onDeckChange,
   disabled = false
 }: TarotDeckSelectorProps) {
-  const [decks, setDecks] = useState<DeckOption[]>([RIDER_WAITE_OPTION]);
+  const [communityDecks, setCommunityDecks] = useState<DeckOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [showCommunityPopup, setShowCommunityPopup] = useState(false);
+
+  const isClassical = selectedDeckId === RIDER_WAITE_ID;
+  const selectedCommunityDeck = communityDecks.find(d => d.id === selectedDeckId);
 
   useEffect(() => {
     async function loadDecks() {
       try {
         setLoading(true);
-        setError(null);
-        console.log('Fetching custom decks...');
         const customDecks = await fetchPublishedDecks();
-        console.log('Fetched decks:', customDecks);
-        if (customDecks.length > 0) {
-          setDecks([RIDER_WAITE_OPTION, ...customDecks]);
-        } else {
-          console.log('No custom decks found, using only Rider-Waite');
-        }
+        setCommunityDecks(customDecks);
       } catch (err) {
-        console.error('Failed to load decks:', err);
-        setError('Could not load custom decks');
+        console.error('Failed to load community decks:', err);
       } finally {
         setLoading(false);
       }
@@ -66,58 +56,120 @@ export function TarotDeckSelector({
     }
   }, []);
 
-  const selectedDeck = decks.find(d => d.id === selectedDeckId);
-  const showPreviewButton = selectedDeck?.is_custom;
+  const handleClassicalClick = () => {
+    onDeckChange(RIDER_WAITE_ID);
+  };
+
+  const handleCommunityClick = () => {
+    if (communityDecks.length === 0) {
+      // No community decks available
+      return;
+    } else if (communityDecks.length === 1) {
+      // Only one community deck, select it directly
+      onDeckChange(communityDecks[0].id);
+    } else {
+      // Multiple decks, show popup (for now just select first one)
+      // TODO: Implement scrollable popup
+      setShowCommunityPopup(true);
+    }
+  };
+
+  const selectCommunityDeck = (deckId: string) => {
+    onDeckChange(deckId);
+    setShowCommunityPopup(false);
+  };
 
   return (
-    <div className="mb-3">
-      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-        Deck
+    <div className="mb-4">
+      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+        Choose Deck
       </label>
-      <div className="flex gap-2">
-        <select
-          value={selectedDeckId}
-          onChange={(e) => onDeckChange(e.target.value)}
-          disabled={disabled || loading}
-          className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
-        >
-          {loading ? (
-            <option>Loading decks...</option>
-          ) : (
-            decks.map(deck => (
-              <option key={deck.id} value={deck.id}>
-                {deck.name}
-                {deck.creator_name ? ` by ${deck.creator_name}` : ''}
-                {' '}({deck.card_count} cards)
-              </option>
-            ))
-          )}
-        </select>
 
-        {showPreviewButton && (
+      <div className="flex gap-2">
+        {/* Classical Button */}
+        <button
+          onClick={handleClassicalClick}
+          disabled={disabled}
+          className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            isClassical
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+          } disabled:opacity-50`}
+        >
+          🎴 Classical
+        </button>
+
+        {/* Community Button */}
+        <button
+          onClick={handleCommunityClick}
+          disabled={disabled || loading || communityDecks.length === 0}
+          className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            !isClassical
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+          } disabled:opacity-50`}
+        >
+          {loading ? '...' : `✨ Community (${communityDecks.length})`}
+        </button>
+
+        {/* Preview Button - show when community deck selected */}
+        {!isClassical && selectedCommunityDeck && (
           <a
             href={getTarotViewerUrl(selectedDeckId)}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors flex items-center gap-1"
-            title="Preview full deck in new tab"
+            className="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition-colors flex items-center"
+            title="Preview full deck"
           >
-            <span>👁</span>
-            <span className="hidden sm:inline">View</span>
+            👁
           </a>
         )}
       </div>
 
-      {error && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-          {error} - Using Rider-Waite only
-        </p>
-      )}
+      {/* Selected deck info */}
+      <p className="text-xs text-purple-400 mt-2">
+        {isClassical ? (
+          'Rider-Waite (78 cards)'
+        ) : selectedCommunityDeck ? (
+          `${selectedCommunityDeck.name} by ${selectedCommunityDeck.creator_name || 'Unknown'} (${selectedCommunityDeck.card_count} cards)`
+        ) : (
+          'Select a deck'
+        )}
+      </p>
 
-      {selectedDeck?.is_custom && (
-        <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-          Custom deck by {selectedDeck.creator_name || 'Unknown'}
-        </p>
+      {/* Community Deck Popup */}
+      {showCommunityPopup && communityDecks.length > 1 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-md w-full max-h-[70vh] overflow-hidden shadow-2xl">
+            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">Community Decks</h3>
+              <button
+                onClick={() => setShowCommunityPopup(false)}
+                className="text-gray-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[50vh] p-2">
+              {communityDecks.map(deck => (
+                <button
+                  key={deck.id}
+                  onClick={() => selectCommunityDeck(deck.id)}
+                  className={`w-full text-left p-3 rounded-lg mb-2 transition-all ${
+                    deck.id === selectedDeckId
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                  }`}
+                >
+                  <div className="font-medium">{deck.name}</div>
+                  <div className="text-sm opacity-75">
+                    by {deck.creator_name || 'Unknown'} • {deck.card_count} cards
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

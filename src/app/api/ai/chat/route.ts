@@ -344,7 +344,7 @@ IMPORTANT: Format your responses with clear paragraph breaks. Use double line br
         ...history,  // Include full conversation history
         { role: 'user', content: message }
       ],
-      max_tokens: 500,
+      max_tokens: 1200,
       temperature: 0.7,
     });
 
