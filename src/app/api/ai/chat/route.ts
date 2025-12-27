@@ -35,7 +35,15 @@ interface TarotCard {
   isReversed: boolean;
   keywords: string[];
   arcana: 'major' | 'minor';
-  suit?: 'wands' | 'cups' | 'swords' | 'pentacles';
+  suit?: string;
+  // Extended fields from custom decks
+  summary?: string;
+  interpretation?: string;
+  reversed_interpretation?: string;
+  symbols?: string[];
+  element?: string;
+  affirmation?: string;
+  questions?: string[];
 }
 
 interface TarotReading {
@@ -112,13 +120,36 @@ THREE-CARD SPREAD:`;
 
   for (const card of reading.cards) {
     const reversedNote = card.isReversed ? ' (REVERSED)' : '';
-    const arcanaInfo = card.arcana === 'major' ? 'Major Arcana' : `Minor Arcana - ${card.suit}`;
+    const arcanaInfo = card.arcana === 'major' ? 'Major Arcana' : `Minor Arcana - ${card.suit || 'custom'}`;
     section += `
 
 ${positionLabels[card.position]}:
 - ${card.name}${reversedNote}
 - ${arcanaInfo}
 - Keywords: ${card.keywords.join(', ')}`;
+
+    // Include extended fields from custom decks
+    if (card.summary) {
+      section += `\n- Summary: ${card.summary}`;
+    }
+    if (card.interpretation) {
+      section += `\n- Interpretation: ${card.interpretation}`;
+    }
+    if (card.isReversed && card.reversed_interpretation) {
+      section += `\n- Reversed meaning: ${card.reversed_interpretation}`;
+    }
+    if (card.symbols && card.symbols.length > 0) {
+      section += `\n- Symbols: ${card.symbols.join(', ')}`;
+    }
+    if (card.element) {
+      section += `\n- Element: ${card.element}`;
+    }
+    if (card.affirmation) {
+      section += `\n- Affirmation: "${card.affirmation}"`;
+    }
+    if (card.questions && card.questions.length > 0) {
+      section += `\n- Reflective questions: ${card.questions.join(' ')}`;
+    }
   }
 
   return section;

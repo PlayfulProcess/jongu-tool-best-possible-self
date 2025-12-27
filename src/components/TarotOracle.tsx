@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { drawThreeCards, formatPosition } from '@/lib/tarot'
+import { drawThreeCards, drawThreeCardsFromCustomDeck, formatPosition } from '@/lib/tarot'
+import { fetchDeckWithCards } from '@/lib/custom-tarot'
 import { TarotReading } from '@/types/tarot.types'
+import { CustomTarotDeck } from '@/types/custom-tarot.types'
+import { TarotDeckSelector } from './TarotDeckSelector'
 
 interface TarotOracleProps {
   onReadingComplete?: (reading: TarotReading) => void
@@ -22,6 +25,11 @@ export function TarotOracle({
   const [expandedReadings, setExpandedReadings] = useState<Set<number>>(new Set())
   const [question, setQuestion] = useState('')
 
+  // Custom deck selection state
+  const [selectedDeckId, setSelectedDeckId] = useState<string>('rider-waite')
+  const [customDeck, setCustomDeck] = useState<CustomTarotDeck | null>(null)
+  const [loadingDeck, setLoadingDeck] = useState(false)
+
   // Sync with external readings (including when cleared)
   useEffect(() => {
     setReadings(externalReadings)
@@ -31,13 +39,56 @@ export function TarotOracle({
     }
   }, [externalReadings])
 
+  // Load custom deck when selection changes
+  useEffect(() => {
+    if (selectedDeckId === 'rider-waite') {
+      setCustomDeck(null)
+      return
+    }
+
+    async function loadDeck() {
+      setLoadingDeck(true)
+      try {
+        const deck = await fetchDeckWithCards(selectedDeckId)
+        setCustomDeck(deck)
+      } catch (error) {
+        console.error('Failed to load custom deck:', error)
+        setCustomDeck(null)
+      } finally {
+        setLoadingDeck(false)
+      }
+    }
+
+    loadDeck()
+  }, [selectedDeckId])
+
   const handleDraw = async () => {
     if (!question.trim()) return
+
+    // Don't allow drawing if loading a custom deck
+    if (loadingDeck) return
+
+    // If custom deck selected but not loaded yet
+    if (selectedDeckId !== 'rider-waite' && !customDeck) {
+      console.error('Custom deck not loaded')
+      return
+    }
 
     setIsDrawing(true)
 
     try {
-      const newReading = await drawThreeCards(question)
+      let newReading: TarotReading
+
+      if (selectedDeckId === 'rider-waite') {
+        // Use standard Rider-Waite deck
+        newReading = await drawThreeCards(question)
+      } else if (customDeck) {
+        // Use custom deck
+        newReading = drawThreeCardsFromCustomDeck(customDeck.cards, question)
+      } else {
+        throw new Error('No deck available')
+      }
+
       setReadings(prev => [...prev, newReading])
       setIsOpen(true)
       setExpandedReadings(new Set([readings.length]))
@@ -198,6 +249,19 @@ export function TarotOracle({
 
             {/* Draw New Reading Input */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              {/* Deck Selector */}
+              <TarotDeckSelector
+                selectedDeckId={selectedDeckId}
+                onDeckChange={setSelectedDeckId}
+                disabled={isDrawing}
+              />
+
+              {loadingDeck && (
+                <p className="text-sm text-purple-600 dark:text-purple-400 text-center mb-2">
+                  Loading deck...
+                </p>
+              )}
+
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
                 {readings.length === 0
                   ? 'Focus on your question, then draw three cards.'
@@ -214,10 +278,10 @@ export function TarotOracle({
                 />
                 <button
                   onClick={handleDraw}
-                  disabled={isDrawing || !question.trim()}
+                  disabled={isDrawing || loadingDeck || !question.trim()}
                   className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isDrawing ? 'Drawing...' : '🃏 Draw Cards'}
+                  {isDrawing ? 'Drawing...' : loadingDeck ? 'Loading deck...' : '🃏 Draw Cards'}
                 </button>
               </div>
             </div>

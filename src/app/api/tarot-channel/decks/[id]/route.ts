@@ -1,0 +1,372 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+// Import mock data - in production this would come from jongu-wellness API
+const MOCK_DECK = {
+  id: 'mock-soul-mirrors-deck-001',
+  name: 'Soul Mirrors Tarot',
+  description: 'A 22-card Major Arcana deck for deep self-reflection and inner exploration.',
+  creator_name: 'Playful Process',
+  cover_image_url: null,
+  card_count: 22,
+  tags: ['major arcana', 'self-reflection', 'soul work'],
+  created_at: '2024-12-27T00:00:00.000Z',
+  cards: [
+    {
+      id: 'sm-0',
+      name: 'The Dreamer',
+      number: 0,
+      arcana: 'major',
+      keywords: ['innocence', 'new beginnings', 'trust', 'leap of faith'],
+      summary: 'The soul before it awakens to its journey, full of potential and wonder.',
+      interpretation: 'The Dreamer represents the part of you that remains eternally innocent, the aspect of your soul that can still be amazed by the world. This card invites you to approach your current situation with beginner\'s mind, releasing expectations and allowing yourself to not-know.',
+      reversed_interpretation: 'When reversed, The Dreamer may indicate fear of the unknown holding you back, or perhaps reckless naivety.',
+      symbols: ['empty hands', 'open sky', 'first step'],
+      element: 'Air',
+      affirmation: 'I trust my soul\'s journey into the unknown.',
+      questions: ['What am I afraid to begin?', 'Where could beginner\'s mind serve me?'],
+      sort_order: 0
+    },
+    {
+      id: 'sm-1',
+      name: 'The Alchemist',
+      number: 1,
+      arcana: 'major',
+      keywords: ['manifestation', 'will', 'creation', 'tools'],
+      summary: 'The creative force that transforms intention into reality.',
+      interpretation: 'The Alchemist reminds you that you have all the tools you need. Your thoughts, emotions, actions, and spirit are the elements you work with to create your reality.',
+      reversed_interpretation: 'Reversed, The Alchemist may indicate scattered energy or manipulation.',
+      symbols: ['four elements', 'infinity', 'focused gaze'],
+      element: 'Air',
+      affirmation: 'I consciously create my reality with wisdom and intention.',
+      questions: ['What am I creating right now?', 'Are my tools aligned with my purpose?'],
+      sort_order: 1
+    },
+    {
+      id: 'sm-2',
+      name: 'The Veil',
+      number: 2,
+      arcana: 'major',
+      keywords: ['intuition', 'mystery', 'the unconscious', 'inner knowing'],
+      summary: 'The wisdom that lives beyond words, in the spaces between thoughts.',
+      interpretation: 'The Veil invites you to trust what you cannot explain. Behind the rational mind lies a vast ocean of knowing.',
+      reversed_interpretation: 'Reversed may indicate blocked intuition or secrets being kept.',
+      symbols: ['moon', 'water', 'hidden doorway'],
+      element: 'Water',
+      affirmation: 'I honor the wisdom that speaks in silence.',
+      questions: ['What does my intuition already know?'],
+      sort_order: 2
+    },
+    {
+      id: 'sm-3',
+      name: 'The Garden',
+      number: 3,
+      arcana: 'major',
+      keywords: ['abundance', 'nurturing', 'creativity', 'growth'],
+      summary: 'The fertile soil where all life flourishes through love and care.',
+      interpretation: 'The Garden represents your capacity to nurture - yourself, others, and creative projects.',
+      reversed_interpretation: 'Reversed may indicate neglect or over-giving.',
+      symbols: ['flowers', 'fruit', 'open arms'],
+      element: 'Earth',
+      affirmation: 'I nurture myself and others with abundant love.',
+      questions: ['What needs my loving attention?'],
+      sort_order: 3
+    },
+    {
+      id: 'sm-4',
+      name: 'The Builder',
+      number: 4,
+      arcana: 'major',
+      keywords: ['structure', 'authority', 'stability', 'boundaries'],
+      summary: 'The part of you that creates order and builds lasting foundations.',
+      interpretation: 'The Builder calls you to examine the structures in your life.',
+      reversed_interpretation: 'Reversed may indicate rigidity or excessive control.',
+      symbols: ['cornerstone', 'throne', 'right angles'],
+      element: 'Fire',
+      affirmation: 'I build structures that support my freedom.',
+      questions: ['What structures no longer serve me?'],
+      sort_order: 4
+    },
+    {
+      id: 'sm-5',
+      name: 'The Bridge',
+      number: 5,
+      arcana: 'major',
+      keywords: ['tradition', 'teaching', 'meaning', 'connection'],
+      summary: 'The wisdom passed down through generations.',
+      interpretation: 'The Bridge represents teachings and traditions that connect you to community.',
+      reversed_interpretation: 'Reversed may indicate dogma or rejected wisdom.',
+      symbols: ['keys', 'arches', 'two pillars'],
+      element: 'Earth',
+      affirmation: 'I honor wisdom while finding my own path.',
+      questions: ['What teachings have shaped me?'],
+      sort_order: 5
+    },
+    {
+      id: 'sm-6',
+      name: 'The Dance',
+      number: 6,
+      arcana: 'major',
+      keywords: ['relationship', 'choice', 'harmony', 'integration'],
+      summary: 'The movement between self and other.',
+      interpretation: 'The Dance is about relationships of all kinds.',
+      reversed_interpretation: 'Reversed may indicate imbalance in relationship.',
+      symbols: ['two figures', 'intertwined hands'],
+      element: 'Air',
+      affirmation: 'I choose my partners with awareness and love.',
+      questions: ['What relationships need attention?'],
+      sort_order: 6
+    },
+    {
+      id: 'sm-7',
+      name: 'The Journey',
+      number: 7,
+      arcana: 'major',
+      keywords: ['willpower', 'direction', 'momentum', 'triumph'],
+      summary: 'The soul moving forward with purpose.',
+      interpretation: 'The Journey represents forward motion through determination.',
+      reversed_interpretation: 'Reversed may indicate scattered direction.',
+      symbols: ['chariot', 'stars', 'reins'],
+      element: 'Water',
+      affirmation: 'I move forward with aligned will.',
+      questions: ['Where am I headed?'],
+      sort_order: 7
+    },
+    {
+      id: 'sm-8',
+      name: 'The Heart',
+      number: 8,
+      arcana: 'major',
+      keywords: ['compassion', 'courage', 'gentle power', 'taming'],
+      summary: 'Strength that comes from the heart.',
+      interpretation: 'The Heart reminds you that true strength is loving presence.',
+      reversed_interpretation: 'Reversed may indicate repressed anger or self-doubt.',
+      symbols: ['lion', 'open hands', 'infinity'],
+      element: 'Fire',
+      affirmation: 'My gentleness is my greatest strength.',
+      questions: ['What wild part of me needs compassion?'],
+      sort_order: 8
+    },
+    {
+      id: 'sm-9',
+      name: 'The Lantern',
+      number: 9,
+      arcana: 'major',
+      keywords: ['solitude', 'introspection', 'wisdom', 'guidance'],
+      summary: 'The inner light that guides through solitude.',
+      interpretation: 'The Lantern invites you into a period of solitary reflection.',
+      reversed_interpretation: 'Reversed may indicate isolation becoming harmful.',
+      symbols: ['lantern', 'mountain', 'walking staff'],
+      element: 'Earth',
+      affirmation: 'I carry my own light into the darkness.',
+      questions: ['What solitude am I being called to?'],
+      sort_order: 9
+    },
+    {
+      id: 'sm-10',
+      name: 'The Wheel',
+      number: 10,
+      arcana: 'major',
+      keywords: ['cycles', 'fate', 'change', 'turning points'],
+      summary: 'The eternal dance of change.',
+      interpretation: 'The Wheel reminds you that you are part of larger cycles.',
+      reversed_interpretation: 'Reversed may indicate resistance to change.',
+      symbols: ['wheel', 'four directions', 'sphinx'],
+      element: 'Fire',
+      affirmation: 'I surrender to life\'s cycles.',
+      questions: ['Where am I in the cycle?'],
+      sort_order: 10
+    },
+    {
+      id: 'sm-11',
+      name: 'The Mirror',
+      number: 11,
+      arcana: 'major',
+      keywords: ['truth', 'balance', 'karma', 'clarity'],
+      summary: 'The unflinching reflection that shows where we stand.',
+      interpretation: 'The Mirror asks you to see clearly, without distortion.',
+      reversed_interpretation: 'Reversed may indicate injustice or dishonesty.',
+      symbols: ['scales', 'sword', 'blindfold removed'],
+      element: 'Air',
+      affirmation: 'I see myself clearly, with compassion.',
+      questions: ['What truth am I avoiding?'],
+      sort_order: 11
+    },
+    {
+      id: 'sm-12',
+      name: 'The Pause',
+      number: 12,
+      arcana: 'major',
+      keywords: ['surrender', 'new perspective', 'waiting', 'sacrifice'],
+      summary: 'The sacred stillness that allows new seeing.',
+      interpretation: 'The Pause invites you to stop trying and simply be.',
+      reversed_interpretation: 'Reversed may indicate stalling or martyrdom.',
+      symbols: ['suspension', 'halo', 'crossed legs'],
+      element: 'Water',
+      affirmation: 'I surrender to the wisdom of not-doing.',
+      questions: ['What if I stopped trying so hard?'],
+      sort_order: 12
+    },
+    {
+      id: 'sm-13',
+      name: 'The Release',
+      number: 13,
+      arcana: 'major',
+      keywords: ['transformation', 'ending', 'letting go', 'rebirth'],
+      summary: 'The necessary endings that make space for new life.',
+      interpretation: 'The Release is about the deaths we experience - of identities, relationships, beliefs.',
+      reversed_interpretation: 'Reversed may indicate resistance to necessary endings.',
+      symbols: ['skeleton', 'sunrise', 'fallen petals'],
+      element: 'Water',
+      affirmation: 'I release what has ended so new life can begin.',
+      questions: ['What is ready to die in my life?'],
+      sort_order: 13
+    },
+    {
+      id: 'sm-14',
+      name: 'The Flow',
+      number: 14,
+      arcana: 'major',
+      keywords: ['balance', 'patience', 'alchemy', 'moderation'],
+      summary: 'The art of blending opposites.',
+      interpretation: 'The Flow represents the middle path and integration of extremes.',
+      reversed_interpretation: 'Reversed may indicate imbalance or impatience.',
+      symbols: ['two cups', 'water and fire'],
+      element: 'Fire',
+      affirmation: 'I blend all parts into harmonious flow.',
+      questions: ['Where do I need more balance?'],
+      sort_order: 14
+    },
+    {
+      id: 'sm-15',
+      name: 'The Shadow',
+      number: 15,
+      arcana: 'major',
+      keywords: ['shadow self', 'bondage', 'illusion', 'hidden forces'],
+      summary: 'The parts of ourselves we have exiled.',
+      interpretation: 'The Shadow asks you to look at what you have hidden from yourself.',
+      reversed_interpretation: 'Reversed may indicate breaking free from bondage.',
+      symbols: ['chains', 'mask', 'hidden figure'],
+      element: 'Earth',
+      affirmation: 'I embrace my shadow as a source of power.',
+      questions: ['What have I disowned in myself?'],
+      sort_order: 15
+    },
+    {
+      id: 'sm-16',
+      name: 'The Storm',
+      number: 16,
+      arcana: 'major',
+      keywords: ['breakthrough', 'destruction', 'revelation', 'liberation'],
+      summary: 'The lightning that destroys false structures.',
+      interpretation: 'The Storm represents sudden change that shatters false foundations.',
+      reversed_interpretation: 'Reversed may indicate fear of necessary change.',
+      symbols: ['lightning', 'falling tower', 'open sky'],
+      element: 'Fire',
+      affirmation: 'I welcome storms that set me free.',
+      questions: ['What false structure is ready to fall?'],
+      sort_order: 16
+    },
+    {
+      id: 'sm-17',
+      name: 'The Spring',
+      number: 17,
+      arcana: 'major',
+      keywords: ['hope', 'healing', 'inspiration', 'renewal'],
+      summary: 'The eternal source that replenishes after the storm.',
+      interpretation: 'The Spring appears after crisis, bringing healing and hope.',
+      reversed_interpretation: 'Reversed may indicate blocked hope.',
+      symbols: ['water pouring', 'stars', 'naked vulnerability'],
+      element: 'Air',
+      affirmation: 'I drink from the spring of hope and healing.',
+      questions: ['What replenishes my soul?'],
+      sort_order: 17
+    },
+    {
+      id: 'sm-18',
+      name: 'The Deep',
+      number: 18,
+      arcana: 'major',
+      keywords: ['illusion', 'fear', 'the unconscious', 'dreams'],
+      summary: 'The mysterious depths where fears and gifts swim together.',
+      interpretation: 'The Deep invites you into the unconscious waters.',
+      reversed_interpretation: 'Reversed may indicate emerging clarity.',
+      symbols: ['moon', 'water', 'path between pillars'],
+      element: 'Water',
+      affirmation: 'I navigate the depths with my inner knowing.',
+      questions: ['What fears are distorting my perception?'],
+      sort_order: 18
+    },
+    {
+      id: 'sm-19',
+      name: 'The Radiance',
+      number: 19,
+      arcana: 'major',
+      keywords: ['joy', 'vitality', 'clarity', 'success'],
+      summary: 'The brilliant light of conscious awareness.',
+      interpretation: 'The Radiance brings warmth, clarity, and simple joy.',
+      reversed_interpretation: 'Reversed may indicate dimmed joy or false positivity.',
+      symbols: ['sun', 'child', 'garden wall'],
+      element: 'Fire',
+      affirmation: 'I shine with the joy of being alive.',
+      questions: ['Where is authentic joy available?'],
+      sort_order: 19
+    },
+    {
+      id: 'sm-20',
+      name: 'The Awakening',
+      number: 20,
+      arcana: 'major',
+      keywords: ['calling', 'rebirth', 'judgment', 'purpose'],
+      summary: 'The cosmic call to fulfill your purpose.',
+      interpretation: 'The Awakening represents hearing your calling clearly.',
+      reversed_interpretation: 'Reversed may indicate a call you are ignoring.',
+      symbols: ['trumpet', 'rising figures', 'open coffins'],
+      element: 'Fire',
+      affirmation: 'I hear my soul\'s calling and rise to answer.',
+      questions: ['What is my soul calling me to become?'],
+      sort_order: 20
+    },
+    {
+      id: 'sm-21',
+      name: 'The Completion',
+      number: 21,
+      arcana: 'major',
+      keywords: ['wholeness', 'integration', 'fulfillment', 'the end and beginning'],
+      summary: 'The dance of completed integration.',
+      interpretation: 'The Completion represents the fulfillment of the soul\'s journey.',
+      reversed_interpretation: 'Reversed may indicate unfinished business.',
+      symbols: ['wreath', 'dancing figure', 'four corners'],
+      element: 'Earth',
+      affirmation: 'I celebrate the wholeness of my journey.',
+      questions: ['What cycle is completing?'],
+      sort_order: 21
+    }
+  ]
+};
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { headers: corsHeaders });
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  // For mock, only return the one deck we have
+  if (id === 'mock-soul-mirrors-deck-001') {
+    return NextResponse.json(MOCK_DECK, { headers: corsHeaders });
+  }
+
+  return NextResponse.json(
+    { error: 'Deck not found' },
+    { status: 404, headers: corsHeaders }
+  );
+}

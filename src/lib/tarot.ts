@@ -1,6 +1,7 @@
 // Tarot 3-Card Reading Logic
 
 import { TarotCard, TarotReading, DrawnCard } from '@/types/tarot.types';
+import { CustomTarotCard, ExtendedTarotCard } from '@/types/custom-tarot.types';
 
 // Cache for loaded tarot cards
 let cardCache: TarotCard[] | null = null;
@@ -118,4 +119,49 @@ export function getPositionDescription(position: 'past' | 'present' | 'future'):
     future: 'possibilities, resources, or perspectives to consider',
   };
   return descriptions[position];
+}
+
+/**
+ * Draw a 3-card spread from a custom deck
+ */
+export function drawThreeCardsFromCustomDeck(
+  cards: CustomTarotCard[],
+  question: string
+): TarotReading {
+  const shuffled = shuffleArray([...cards]);
+  const positions: ('past' | 'present' | 'future')[] = ['past', 'present', 'future'];
+
+  const drawnCards: DrawnCard[] = positions.map((position, index) => {
+    const customCard = shuffled[index];
+
+    // Convert custom card to extended tarot card format
+    const card: ExtendedTarotCard = {
+      name: customCard.name,
+      arcana: customCard.arcana === 'major' ? 'major' : 'minor',
+      suit: customCard.suit,
+      number: customCard.number,
+      keywords: customCard.keywords || [],
+      imageUrl: customCard.image_url || '',
+      // Extended fields
+      summary: customCard.summary,
+      interpretation: customCard.interpretation,
+      reversed_interpretation: customCard.reversed_interpretation,
+      symbols: customCard.symbols,
+      element: customCard.element,
+      affirmation: customCard.affirmation,
+      questions: customCard.questions,
+    };
+
+    return {
+      card: card as TarotCard, // Cast to base type for compatibility
+      position,
+      isReversed: Math.random() < 0.3, // 30% chance of reversed
+    };
+  });
+
+  return {
+    question,
+    cards: drawnCards,
+    timestamp: new Date().toISOString(),
+  };
 }
