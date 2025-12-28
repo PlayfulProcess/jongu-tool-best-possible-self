@@ -30,6 +30,26 @@ export function TarotDeckSelector({
         setLoading(true);
         const customDecks = await fetchPublishedDecks();
         setCommunityDecks(customDecks);
+
+        // After loading decks, validate localStorage saved selection
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('selectedTarotDeck');
+          if (saved && saved !== RIDER_WAITE_ID) {
+            // Check if saved community deck still exists
+            const deckExists = customDecks.some(d => d.id === saved);
+            if (deckExists && saved !== selectedDeckId) {
+              onDeckChange(saved);
+            } else if (!deckExists) {
+              // Saved deck no longer exists, clear it and select classical
+              localStorage.removeItem('selectedTarotDeck');
+              if (selectedDeckId !== RIDER_WAITE_ID) {
+                onDeckChange(RIDER_WAITE_ID);
+              }
+            }
+          } else if (saved === RIDER_WAITE_ID && saved !== selectedDeckId) {
+            onDeckChange(saved);
+          }
+        }
       } catch (err) {
         console.error('Failed to load community decks:', err);
       } finally {
@@ -46,15 +66,7 @@ export function TarotDeckSelector({
     }
   }, [selectedDeckId]);
 
-  // Load saved selection on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('selectedTarotDeck');
-      if (saved && saved !== selectedDeckId) {
-        onDeckChange(saved);
-      }
-    }
-  }, []);
+  // Note: localStorage loading is now handled in loadDecks to validate against available decks
 
   const handleClassicalClick = () => {
     onDeckChange(RIDER_WAITE_ID);
