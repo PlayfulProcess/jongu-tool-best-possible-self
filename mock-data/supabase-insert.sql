@@ -15,7 +15,7 @@ CHECK (document_type = ANY (ARRAY[
 ]));
 
 -- Insert the Soul Mirrors Tarot deck as a test deck
--- Replace 'YOUR_USER_ID' with an actual user UUID from your auth.users table
+-- Uses gen_random_uuid() to generate a proper UUID
 
 INSERT INTO user_documents (
   id,
@@ -27,7 +27,7 @@ INSERT INTO user_documents (
   updated_at
 )
 VALUES (
-  'mock-soul-mirrors-deck-001',
+  gen_random_uuid(),  -- Generate a proper UUID
   -- Use your own user ID here, or get the first user from the system
   (SELECT id FROM auth.users LIMIT 1),
   'tarot_deck',
@@ -374,10 +374,10 @@ VALUES (
   }'::jsonb,
   NOW(),
   NOW()
-)
-ON CONFLICT (id) DO UPDATE SET
-  document_data = EXCLUDED.document_data,
-  updated_at = NOW();
+);
+
+-- Note: If you need to update instead of insert, first delete the old deck:
+-- DELETE FROM user_documents WHERE document_type = 'tarot_deck' AND document_data->>'name' = 'Soul Mirrors Tarot';
 
 -- Verify the insert
 SELECT id, document_type, is_public,
