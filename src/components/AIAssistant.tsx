@@ -341,12 +341,13 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
   };
 
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (quickMessage?: string) => {
+    const messageToSend = quickMessage || input.trim();
+    if (!messageToSend || isLoading) return;
 
     const userMessage: Message = {
       role: 'user',
-      content: input
+      content: messageToSend
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -357,7 +358,7 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
     onMessage?.();
 
     // Save user message
-    await saveChatMessage(input, 'user');
+    await saveChatMessage(messageToSend, 'user');
 
     try {
       // Build oracle context if readings are available
@@ -414,7 +415,7 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
 
       const hasOracleContext = Object.keys(oracleContext).length > 0;
 
-      console.log('Sending request to AI API:', { message: input, content: content, hasOracle: hasOracleContext });
+      console.log('Sending request to AI API:', { message: messageToSend, content: content, hasOracle: hasOracleContext });
 
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -422,7 +423,7 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: input,
+          message: messageToSend,
           content: content,
           templatePrompt: templatePrompt,  // The journaling exercise instructions
           history: messages,  // Send full conversation history
@@ -534,9 +535,34 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
                 Loading conversation...
               </div>
             ) : messages.length === 0 ? (
-              <div className="text-center space-y-3">
-                <div className="text-gray-500 dark:text-gray-400 text-sm">
+              <div className="text-center space-y-4 py-8">
+                <div className="text-gray-500 dark:text-gray-400 text-lg">
                   Ask me anything about your journal!
+                </div>
+
+                {/* Quick Action Buttons - Full Screen */}
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <button
+                    onClick={() => sendMessage("Help me interpret my writing and oracle readings")}
+                    disabled={isLoading}
+                    className="px-4 py-2 text-base bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors disabled:opacity-50"
+                  >
+                    ✨ Help me interpret
+                  </button>
+                  <button
+                    onClick={() => sendMessage("What other questions could I explore in my reflection?")}
+                    disabled={isLoading}
+                    className="px-4 py-2 text-base bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors disabled:opacity-50"
+                  >
+                    🤔 What questions could I ask?
+                  </button>
+                  <button
+                    onClick={() => sendMessage("How can you help me with my journaling and self-reflection?")}
+                    disabled={isLoading}
+                    className="px-4 py-2 text-base bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors disabled:opacity-50"
+                  >
+                    💡 How can you help me?
+                  </button>
                 </div>
               </div>
             ) : null}
@@ -688,10 +714,36 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
               </div>
             ) : messages.length === 0 ? (
               <div className="text-center space-y-3">
-                <div className="text-gray-500 dark:text-gray-400 text-sm">
+                <div className="text-gray-500 dark:text-gray-400 text-sm mb-3">
                   Ask me anything about your Best Possible Self exercise!
                 </div>
-                <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700">
+
+                {/* Quick Action Buttons */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <button
+                    onClick={() => sendMessage("Help me interpret my writing and oracle readings")}
+                    disabled={isLoading}
+                    className="px-3 py-1.5 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors disabled:opacity-50"
+                  >
+                    ✨ Help me interpret
+                  </button>
+                  <button
+                    onClick={() => sendMessage("What other questions could I explore in my reflection?")}
+                    disabled={isLoading}
+                    className="px-3 py-1.5 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors disabled:opacity-50"
+                  >
+                    🤔 What questions could I ask?
+                  </button>
+                  <button
+                    onClick={() => sendMessage("How can you help me with my journaling and self-reflection?")}
+                    disabled={isLoading}
+                    className="px-3 py-1.5 text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors disabled:opacity-50"
+                  >
+                    💡 How can you help me?
+                  </button>
+                </div>
+
+                <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded border border-amber-200 dark:border-amber-700 mt-3">
                   ⚠️ <strong>Note:</strong> When you use the AI assistant, both your messages AND your journal content are sent to OpenAI to generate responses.
                 </div>
               </div>

@@ -141,7 +141,6 @@ export default function BestPossibleSelfPage() {
       if (isInitialLoad.current) {
         previousReadingsLength.current = ichingReadings.length;
         previousTarotReadingsLength.current = tarotReadings.length;
-        previousMessagesLength.current = chatMessages.length;
         isInitialLoad.current = false;
       }
       return;
