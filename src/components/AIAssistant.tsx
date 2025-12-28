@@ -620,7 +620,7 @@ export function AIAssistant({ content, templatePrompt, researchConsent = false, 
         {/* Input */}
         <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
           <div className="max-w-4xl mx-auto">
-            <form onSubmit={sendMessage} className="flex gap-2">
+            <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex gap-2">
               <input
                 type="text"
                 value={input}

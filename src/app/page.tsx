@@ -177,7 +177,6 @@ export default function BestPossibleSelfPage() {
     // Reset to 0 to ensure any readings from the new entry don't trigger auto-save immediately
     previousReadingsLength.current = 0;
     previousTarotReadingsLength.current = 0;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEntryId]);
 
   // Simple filtering logic
