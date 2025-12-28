@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { drawThreeCards, drawThreeCardsFromCustomDeck, formatPosition } from '@/lib/tarot'
+import { drawThreeCardsFromCustomDeck, formatPosition } from '@/lib/tarot'
 import { fetchDeckWithCards } from '@/lib/custom-tarot'
 import { TarotReading } from '@/types/tarot.types'
 import { CustomTarotDeck } from '@/types/custom-tarot.types'
@@ -48,10 +48,12 @@ export function TarotOracle({
       return
     }
 
+    const deckIdToLoad = selectedDeckId // Capture for async closure
+
     async function loadDeck() {
       setLoadingDeck(true)
       try {
-        const deck = await fetchDeckWithCards(selectedDeckId)
+        const deck = await fetchDeckWithCards(deckIdToLoad)
         setCurrentDeck(deck)
       } catch (error) {
         console.error('Failed to load deck:', error)
