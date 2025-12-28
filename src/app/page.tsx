@@ -126,7 +126,6 @@ export default function BestPossibleSelfPage() {
   const isInitialLoad = useRef(true);
   const previousReadingsLength = useRef(0);
   const previousTarotReadingsLength = useRef(0);
-  const previousMessagesLength = useRef(0);
   const contentRef = useRef(content); // Track content without causing re-renders
 
   // Keep contentRef in sync
@@ -148,18 +147,17 @@ export default function BestPossibleSelfPage() {
       return;
     }
 
-    // Check if readings were added (not just loaded)
+    // Check if oracle readings were added (not just loaded)
     const ichingAdded = ichingReadings.length > previousReadingsLength.current;
     const tarotAdded = tarotReadings.length > previousTarotReadingsLength.current;
-    const messagesAdded = chatMessages.length > previousMessagesLength.current;
 
     // Update previous lengths
     previousReadingsLength.current = ichingReadings.length;
     previousTarotReadingsLength.current = tarotReadings.length;
-    previousMessagesLength.current = chatMessages.length;
 
-    // Trigger auto-save if something was added
-    if (ichingAdded || tarotAdded || messagesAdded) {
+    // Trigger auto-save ONLY when oracle readings are added (NOT for chat messages)
+    // Chat messages should NOT create new entries - they are saved separately
+    if (ichingAdded || tarotAdded) {
       // Short delay to ensure state is fully updated
       const saveTimeout = setTimeout(() => {
         const currentContent = contentRef.current;
@@ -172,7 +170,7 @@ export default function BestPossibleSelfPage() {
       return () => clearTimeout(saveTimeout);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ichingReadings.length, tarotReadings.length, chatMessages.length, user]); // saveJournalEntry is stable
+  }, [ichingReadings.length, tarotReadings.length, user]); // Removed chatMessages - they don't trigger auto-save
 
   // Reset initial load flag when switching entries
   useEffect(() => {
@@ -180,7 +178,6 @@ export default function BestPossibleSelfPage() {
     // Reset to 0 to ensure any readings from the new entry don't trigger auto-save immediately
     previousReadingsLength.current = 0;
     previousTarotReadingsLength.current = 0;
-    previousMessagesLength.current = 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEntryId]);
 
