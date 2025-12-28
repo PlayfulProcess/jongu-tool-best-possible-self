@@ -122,11 +122,12 @@ export function getPositionDescription(position: 'past' | 'present' | 'future'):
 }
 
 /**
- * Draw a 3-card spread from a custom deck
+ * Draw a 3-card spread from a deck (all decks come from database)
  */
 export function drawThreeCardsFromCustomDeck(
   cards: CustomTarotCard[],
-  question: string
+  question: string,
+  deckId: string
 ): TarotReading {
   const shuffled = shuffleArray([...cards]);
   const positions: ('past' | 'present' | 'future')[] = ['past', 'present', 'future'];
@@ -163,5 +164,6 @@ export function drawThreeCardsFromCustomDeck(
     question,
     cards: drawnCards,
     timestamp: new Date().toISOString(),
+    deckId,
   };
 }

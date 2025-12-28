@@ -28,6 +28,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Fetch list of published decks from the Tarot Channel
+ * Returns decks sorted by created_at ASC (oldest first - Rider-Waite will be first)
  */
 export async function fetchPublishedDecks(): Promise<DeckOption[]> {
   // Return cached list if still valid
@@ -60,13 +61,23 @@ export async function fetchPublishedDecks(): Promise<DeckOption[]> {
     const data = await res.json();
     const decks = data.decks || data || [];
 
-    const mappedDecks: DeckOption[] = decks.map((d: CustomTarotDeck) => ({
+    // Map decks with all fields including cover_image_url
+    const mappedDecks: DeckOption[] = decks.map((d: CustomTarotDeck & { created_at?: string }) => ({
       id: d.id,
       name: d.name,
+      description: d.description,
       creator_name: d.creator_name,
+      cover_image_url: d.cover_image_url,
       card_count: d.card_count,
-      is_custom: true
+      created_at: d.created_at
     }));
+
+    // Sort by created_at ascending (oldest first - Rider-Waite will be first)
+    mappedDecks.sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateA - dateB;
+    });
 
     deckListCache = mappedDecks;
     deckListCacheTime = Date.now();
@@ -111,12 +122,22 @@ export async function fetchDeckWithCards(deckId: string): Promise<CustomTarotDec
 }
 
 /**
- * Get the URL for the tarot viewer (external app)
+ * Get the URL for the tarot viewer (environment-aware)
+ * dev.journal.recursive.eco → dev.recursive.eco
+ * journal.recursive.eco → recursive.eco
  */
 export function getTarotViewerUrl(deckId: string): string {
-  // This will point to the viewer in recursive-creator
-  const viewerBase = process.env.NEXT_PUBLIC_TAROT_VIEWER_URL || 'https://recursive-creator.vercel.app';
-  return `${viewerBase}/tarot-viewer/${deckId}`;
+  if (typeof window === 'undefined') {
+    return `https://recursive.eco/pages/tarot-viewer.html?deckId=${deckId}`;
+  }
+
+  const host = window.location.hostname;
+
+  if (host.includes('dev.') || host.includes('localhost')) {
+    return `https://dev.recursive.eco/pages/tarot-viewer.html?deckId=${deckId}`;
+  }
+
+  return `https://recursive.eco/pages/tarot-viewer.html?deckId=${deckId}`;
 }
 
 /**
@@ -134,4 +155,24 @@ export async function preloadDeck(deckId: string): Promise<void> {
   if (!deckCache.has(deckId)) {
     await fetchDeckWithCards(deckId);
   }
+}
+
+/**
+ * Get the default deck ID for a user
+ * - If user has a last used deck and it still exists, use it
+ * - Otherwise return the oldest deck (first in ASC sorted list = Rider-Waite)
+ */
+export function getDefaultDeckId(
+  decks: DeckOption[],
+  userLastDeckId?: string | null
+): string | null {
+  if (decks.length === 0) return null;
+
+  // If user has a last used deck and it still exists, use it
+  if (userLastDeckId && decks.some(d => d.id === userLastDeckId)) {
+    return userLastDeckId;
+  }
+
+  // Otherwise return the oldest deck (first in ASC sorted list)
+  return decks[0].id;
 }

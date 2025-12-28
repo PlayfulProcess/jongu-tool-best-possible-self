@@ -34,9 +34,11 @@ export interface CustomTarotCard {
 export interface DeckOption {
   id: string;
   name: string;
+  description?: string;
   creator_name?: string;
+  cover_image_url?: string;
   card_count: number;
-  is_custom: boolean;
+  created_at?: string;
 }
 
 // Extended TarotCard that includes custom fields

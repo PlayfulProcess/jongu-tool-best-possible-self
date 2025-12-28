@@ -3,10 +3,10 @@
 export interface TarotCard {
   name: string;
   arcana: 'major' | 'minor';
-  suit?: 'wands' | 'cups' | 'swords' | 'pentacles';
+  suit?: 'wands' | 'cups' | 'swords' | 'pentacles' | string;
   number?: number; // For minor arcana (1-14, where 11-14 are court cards)
   keywords: string[];
-  imageUrl: string; // Wikimedia Commons URL for Rider-Waite image
+  imageUrl: string;
 }
 
 export interface DrawnCard {
@@ -19,6 +19,7 @@ export interface TarotReading {
   question: string;
   cards: DrawnCard[];
   timestamp: string;
+  deckId?: string; // ID of the deck used for this reading
 }
 
 // Major Arcana names for reference
