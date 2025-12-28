@@ -1,4 +1,4 @@
-# Prompt 1: jongu-wellness - Create Tarot Channel API (Simplified)
+# Prompt 1: jongu-wellness - Create Tarot Channel
 
 Use this prompt in the **jongu-wellness** repository.
 
@@ -6,164 +6,46 @@ Use this prompt in the **jongu-wellness** repository.
 
 ## Prompt
 
-I want to add a Tarot Channel feature using the existing `user_documents` table. Instead of creating new tables, we'll use `document_type = 'tarot_deck'` and store everything in `document_data` JSONB.
+I want to add a new Tarot Channel to jongu-wellness. This should follow the existing channel pattern - just adding a new markdown file that defines the channel.
 
-### Schema Approach (No New Tables!)
+### What to Create
 
-Add 'tarot_deck' to the existing document_type check constraint:
+1. **New Channel MD File** at `content/channels/tarot.md` (or wherever other channels are defined):
 
-```sql
--- Update the check constraint to include 'tarot_deck'
-ALTER TABLE user_documents
-DROP CONSTRAINT user_documents_document_type_check;
+```md
+---
+title: Tarot Channel
+slug: tarot
+description: Community-created tarot decks for self-reflection and divination
+icon: 🃏
+tool_type: tarot_deck
+---
 
-ALTER TABLE user_documents
-ADD CONSTRAINT user_documents_document_type_check
-CHECK (document_type = ANY (ARRAY[
-  'tool_session', 'creative_work', 'preference', 'bookmark',
-  'interaction', 'transaction', 'story', 'playlist', 'tarot_deck'
-]));
+Explore tarot decks created by the community. Each deck offers unique imagery and interpretations for your readings.
 ```
 
-### Document Data Structure for Tarot Decks
+2. **Channel Page** should:
+   - Query the `tools` table for submitted tarot decks (where `tool_type = 'tarot_deck'` or similar field)
+   - Display deck cards showing: name, creator, card count, cover image
+   - Link to the deck viewer/detail page
 
-```typescript
-// document_data for document_type = 'tarot_deck'
-interface TarotDeckDocument {
-  name: string;
-  description?: string;
-  creator_name?: string;
-  cover_image_url?: string;
-  tags?: string[];
-  card_count: number;
-  cards: TarotCard[];
-}
+### Important Notes
 
-interface TarotCard {
-  id: string;            // UUID for this card
-  name: string;
-  number?: number;
-  arcana?: 'major' | 'minor' | 'custom';
-  suit?: string;
-  image_url?: string;
-  keywords?: string[];
-  summary?: string;
-  interpretation?: string;
-  reversed_interpretation?: string;
-  symbols?: string[];
-  element?: string;
-  affirmation?: string;
-  questions?: string[];
-  sort_order: number;
-}
-```
+- **Only SUBMITTED decks are visible** - decks must go through the normal tool submission flow to appear in the channel
+- Decks can exist in `user_documents` with `is_public=true` but they're NOT discoverable until submitted to tools table
+- Don't change the existing tool submission flow
+- The channel page just reads from the tools table like other channels
 
-### API Routes
+### Deck Data Location
 
-Create these API routes in `/app/api/tarot-channel/`:
+When a deck is submitted, the tools table entry should reference the `user_documents` record:
+- `tools.document_id` → points to `user_documents.id` where full deck data lives
+- Or `tools.metadata` contains the deck UUID
 
-1. **GET /api/tarot-channel/decks** - List published decks
-   ```typescript
-   // Returns all user_documents where:
-   // - document_type = 'tarot_deck'
-   // - is_public = true
+The channel page fetches the tool entry, then loads full deck data from `user_documents` using that reference.
 
-   const { data } = await supabase
-     .from('user_documents')
-     .select('id, user_id, document_data, created_at')
-     .eq('document_type', 'tarot_deck')
-     .eq('is_public', true)
-     .order('created_at', { ascending: false });
+### Implementation
 
-   // Return mapped to simpler format
-   return decks.map(d => ({
-     id: d.id,
-     ...d.document_data,
-     created_at: d.created_at
-   }));
-   ```
-
-2. **GET /api/tarot-channel/decks/[id]** - Get single deck with cards
-   ```typescript
-   const { data } = await supabase
-     .from('user_documents')
-     .select('*')
-     .eq('id', deckId)
-     .eq('document_type', 'tarot_deck')
-     .single();
-
-   // Check if public or owner
-   if (!data.is_public && data.user_id !== currentUserId) {
-     return { error: 'Not found' };
-   }
-
-   return {
-     id: data.id,
-     ...data.document_data
-   };
-   ```
-
-3. **POST /api/tarot-channel/decks** - Create deck (auth required)
-   ```typescript
-   const deck = await supabase
-     .from('user_documents')
-     .insert({
-       user_id: userId,
-       document_type: 'tarot_deck',
-       is_public: false,  // Draft by default
-       document_data: {
-         name: body.name,
-         description: body.description,
-         creator_name: body.creator_name || userProfile?.display_name,
-         cover_image_url: body.cover_image_url,
-         tags: body.tags,
-         card_count: body.cards?.length || 0,
-         cards: body.cards || []
-       }
-     })
-     .select()
-     .single();
-   ```
-
-4. **PUT /api/tarot-channel/decks/[id]** - Update deck (owner only)
-   ```typescript
-   // Update document_data with new cards/info
-   ```
-
-5. **PUT /api/tarot-channel/decks/[id]/publish** - Publish deck
-   ```typescript
-   await supabase
-     .from('user_documents')
-     .update({ is_public: true })
-     .eq('id', deckId)
-     .eq('user_id', userId);  // Must be owner
-   ```
-
-### CORS Headers
-
-Add CORS for cross-origin access:
-
-```typescript
-// In each route handler
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',  // Or specific domains
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-
-// Handle OPTIONS preflight
-if (request.method === 'OPTIONS') {
-  return new Response(null, { headers: corsHeaders });
-}
-```
-
-### Implementation Steps
-
-1. Update the document_type check constraint in Supabase SQL editor
-2. Create `/app/api/tarot-channel/decks/route.ts` (GET list, POST create)
-3. Create `/app/api/tarot-channel/decks/[id]/route.ts` (GET single, PUT update)
-4. Create `/app/api/tarot-channel/decks/[id]/publish/route.ts` (PUT)
-5. Add CORS headers to all routes
-6. Test with Postman or curl
-
-Start by updating the constraint and creating the list endpoint.
+1. Create the channel markdown file
+2. Ensure the channel page template handles `tool_type: tarot_deck`
+3. Test that submitted decks appear in the channel

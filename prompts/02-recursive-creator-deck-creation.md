@@ -6,15 +6,15 @@ Use this prompt in the **recursive-creator** repository.
 
 ## Prompt
 
-I want to add the ability to create Tarot Decks in addition to Playlists. When creating a new project, users should be able to choose between "Playlist" (existing) or "Tarot Deck" (new).
+I want to add the ability to create Tarot Decks. This should integrate with the existing tool creation flow, not replace it.
 
-### Tarot Deck Creation Flow
+### Deck Creation Flow
 
-1. **Type Selection**
-   - Add a toggle/selector on the creation page: "Playlist" or "Tarot Deck"
-   - When "Tarot Deck" is selected, show tarot-specific fields
+1. **New Project Type**
+   - When creating a new project, add "Tarot Deck" as an option alongside existing types
+   - When selected, show tarot-specific fields
 
-2. **Deck Information**
+2. **Deck Information Form**
    - Deck Name (required)
    - Description (optional)
    - Cover/Back Image URL (optional)
@@ -38,34 +38,14 @@ I want to add the ability to create Tarot Decks in addition to Playlists. When c
    - `image_filename` will be matched to images later
    - All columns except `name` are optional
 
-   **JSON format:**
-   ```json
-   {
-     "cards": [
-       {
-         "number": 0,
-         "name": "The Fool",
-         "arcana": "major",
-         "keywords": ["beginnings", "innocence"],
-         "summary": "A leap into the unknown",
-         "interpretation": "Full interpretation...",
-         "image_filename": "fool.jpg"
-       }
-     ]
-   }
-   ```
-
 4. **Google Drive Image Integration**
 
    Create a `DriveImageMatcher` component that:
    - Takes a Google Drive folder URL input
-   - Lists images in the folder (using Drive API or public folder listing)
+   - Lists images in the folder
    - Matches `image_filename` from CSV to actual files
    - Shows which cards have matched images vs missing
-   - Stores the public image URLs
-
-   **Note:** For MVP, we can use the direct Drive URL format:
-   `https://drive.google.com/uc?export=view&id={FILE_ID}`
+   - Stores the public image URLs using format: `https://drive.google.com/uc?export=view&id={FILE_ID}`
 
 5. **Card Editor**
 
@@ -76,54 +56,35 @@ I want to add the ability to create Tarot Decks in addition to Playlists. When c
    - Delete cards
    - Add new cards manually
 
-6. **Preview Options**
-   - "Preview in Gallery" - Opens current recursive-landing viewer
-   - "Preview in Tarot Viewer" - Opens new tarot viewer (we'll build this)
+6. **Save & Submit Flow**
 
-7. **Publish Options**
-   - "Save Draft" - Saves locally or to user account
-   - "Publish to Tarot Channel" - Calls jongu-wellness API
+   **Important:** Use the existing tool submission flow!
 
-### API Integration
+   - **Save Draft**: Saves deck to `user_documents` with `document_type='tarot_deck'`, `is_public=false`
+   - **Submit to Channel**: Goes through the EXISTING tool submission flow - this adds it to the `tools` table
+   - Only decks in the `tools` table appear in the Tarot Channel
 
-When publishing to Tarot Channel:
+   When saving to user_documents:
+   ```typescript
+   await supabase.from('user_documents').insert({
+     user_id: userId,
+     document_type: 'tarot_deck',
+     is_public: true,  // Public so it can be read, but NOT discoverable until submitted
+     document_data: {
+       name: deck.name,
+       description: deck.description,
+       creator_name: userProfile?.display_name,
+       cover_image_url: deck.coverImage,
+       tags: deck.tags,
+       card_count: deck.cards.length,
+       cards: deck.cards
+     }
+   });
+   ```
 
-```typescript
-async function publishToTarotChannel(deck: DeckData) {
-  const API_URL = process.env.NEXT_PUBLIC_TAROT_CHANNEL_API;
-
-  // 1. Create deck
-  const deckRes = await fetch(`${API_URL}/api/tarot-channel/decks`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${userToken}` // If using shared auth
-    },
-    body: JSON.stringify({
-      name: deck.name,
-      description: deck.description,
-      cover_image_url: deck.coverImage,
-      tags: deck.tags
-    })
-  });
-  const { deck: createdDeck } = await deckRes.json();
-
-  // 2. Add cards
-  await fetch(`${API_URL}/api/tarot-channel/decks/${createdDeck.id}/cards`, {
-    method: 'POST',
-    headers: { /* same */ },
-    body: JSON.stringify({ cards: deck.cards })
-  });
-
-  // 3. Publish
-  await fetch(`${API_URL}/api/tarot-channel/decks/${createdDeck.id}/publish`, {
-    method: 'PUT',
-    headers: { /* same */ }
-  });
-
-  return createdDeck.id;
-}
-```
+   When submitting to channel, use the existing tool submission form/flow, passing:
+   - `tool_type: 'tarot_deck'`
+   - Reference to the `user_documents` record ID
 
 ### Card Type Interface
 
@@ -149,11 +110,10 @@ interface TarotCardInput {
 
 ### Implementation Steps
 
-1. First, add the type selector to the creation page
-2. Create the `TarotDeckImport` component with CSV parsing
-3. Add the `DriveImageMatcher` component
-4. Build the card editor/preview grid
-5. Add the publish functionality
-6. Test the full flow
-
-Start with step 1 and 2 - the type selector and CSV import.
+1. Add "Tarot Deck" as a project type option
+2. Create the deck info form
+3. Create `TarotDeckImport` component with CSV/JSON parsing
+4. Add `DriveImageMatcher` component
+5. Build the card editor/preview grid
+6. Connect to existing tool submission flow
+7. Test the full flow: create → save → submit → appears in channel
