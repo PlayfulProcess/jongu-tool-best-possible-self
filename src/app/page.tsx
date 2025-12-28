@@ -171,14 +171,17 @@ export default function BestPossibleSelfPage() {
 
       return () => clearTimeout(saveTimeout);
     }
-  }, [ichingReadings.length, tarotReadings.length, chatMessages.length, user]); // Removed content dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ichingReadings.length, tarotReadings.length, chatMessages.length, user]); // saveJournalEntry is stable
 
   // Reset initial load flag when switching entries
   useEffect(() => {
     isInitialLoad.current = true;
-    previousReadingsLength.current = ichingReadings.length;
-    previousTarotReadingsLength.current = tarotReadings.length;
-    previousMessagesLength.current = chatMessages.length;
+    // Reset to 0 to ensure any readings from the new entry don't trigger auto-save immediately
+    previousReadingsLength.current = 0;
+    previousTarotReadingsLength.current = 0;
+    previousMessagesLength.current = 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEntryId]);
 
   // Simple filtering logic
@@ -473,9 +476,6 @@ export default function BestPossibleSelfPage() {
           if (typeof window !== 'undefined' && window.savePendingChatMessages && user) {
             window.savePendingChatMessages(user.id, newEntryId, researchConsent);
           }
-          
-          // Refresh entries list to show new entry
-          loadEntries();
         }
       }
 
@@ -483,7 +483,7 @@ export default function BestPossibleSelfPage() {
       setHasUnsavedChanges(false);
       // Clear localStorage since content was successfully saved
       localStorage.removeItem('journalState');
-      // Auto-refresh entries to show updated content
+      // Refresh entries list to show new/updated entry (only once)
       loadEntries();
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
