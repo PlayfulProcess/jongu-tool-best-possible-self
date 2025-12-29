@@ -126,7 +126,6 @@ export default function BestPossibleSelfPage() {
   const isInitialLoad = useRef(true);
   const previousReadingsLength = useRef(0);
   const previousTarotReadingsLength = useRef(0);
-  const previousMessagesLength = useRef(0);
   const contentRef = useRef(content); // Track content without causing re-renders
 
   // Keep contentRef in sync
@@ -142,24 +141,22 @@ export default function BestPossibleSelfPage() {
       if (isInitialLoad.current) {
         previousReadingsLength.current = ichingReadings.length;
         previousTarotReadingsLength.current = tarotReadings.length;
-        previousMessagesLength.current = chatMessages.length;
         isInitialLoad.current = false;
       }
       return;
     }
 
-    // Check if readings were added (not just loaded)
+    // Check if oracle readings were added (not just loaded)
     const ichingAdded = ichingReadings.length > previousReadingsLength.current;
     const tarotAdded = tarotReadings.length > previousTarotReadingsLength.current;
-    const messagesAdded = chatMessages.length > previousMessagesLength.current;
 
     // Update previous lengths
     previousReadingsLength.current = ichingReadings.length;
     previousTarotReadingsLength.current = tarotReadings.length;
-    previousMessagesLength.current = chatMessages.length;
 
-    // Trigger auto-save if something was added
-    if (ichingAdded || tarotAdded || messagesAdded) {
+    // Trigger auto-save ONLY when oracle readings are added (NOT for chat messages)
+    // Chat messages should NOT create new entries - they are saved separately
+    if (ichingAdded || tarotAdded) {
       // Short delay to ensure state is fully updated
       const saveTimeout = setTimeout(() => {
         const currentContent = contentRef.current;
@@ -171,14 +168,15 @@ export default function BestPossibleSelfPage() {
 
       return () => clearTimeout(saveTimeout);
     }
-  }, [ichingReadings.length, tarotReadings.length, chatMessages.length, user]); // Removed content dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ichingReadings.length, tarotReadings.length, user]); // Removed chatMessages - they don't trigger auto-save
 
   // Reset initial load flag when switching entries
   useEffect(() => {
     isInitialLoad.current = true;
-    previousReadingsLength.current = ichingReadings.length;
-    previousTarotReadingsLength.current = tarotReadings.length;
-    previousMessagesLength.current = chatMessages.length;
+    // Reset to 0 to ensure any readings from the new entry don't trigger auto-save immediately
+    previousReadingsLength.current = 0;
+    previousTarotReadingsLength.current = 0;
   }, [currentEntryId]);
 
   // Simple filtering logic
@@ -473,9 +471,6 @@ export default function BestPossibleSelfPage() {
           if (typeof window !== 'undefined' && window.savePendingChatMessages && user) {
             window.savePendingChatMessages(user.id, newEntryId, researchConsent);
           }
-          
-          // Refresh entries list to show new entry
-          loadEntries();
         }
       }
 
@@ -483,7 +478,7 @@ export default function BestPossibleSelfPage() {
       setHasUnsavedChanges(false);
       // Clear localStorage since content was successfully saved
       localStorage.removeItem('journalState');
-      // Auto-refresh entries to show updated content
+      // Refresh entries list to show new/updated entry (only once)
       loadEntries();
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
@@ -972,6 +967,28 @@ export default function BestPossibleSelfPage() {
                     ichingReadings={ichingReadings}
                     tarotReadings={tarotReadings}
                   />
+
+                  {/* Save button below chat - shown when there are unsaved messages */}
+                  {chatMessages.length > 0 && (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        onClick={() => {
+                          setSaveStatus('saving');
+                          saveJournalEntry(content);
+                        }}
+                        disabled={saveStatus === 'saving'}
+                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      >
+                        {saveStatus === 'saving' ? (
+                          <>💾 Saving...</>
+                        ) : currentEntryId ? (
+                          <>💾 Update Session</>
+                        ) : (
+                          <>💾 Save Session</>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

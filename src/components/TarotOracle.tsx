@@ -2,25 +2,35 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { drawThreeCards, formatPosition } from '@/lib/tarot'
+import { drawThreeCardsFromCustomDeck, formatPosition } from '@/lib/tarot'
+import { fetchDeckWithCards } from '@/lib/custom-tarot'
 import { TarotReading } from '@/types/tarot.types'
+import { CustomTarotDeck } from '@/types/custom-tarot.types'
+import { TarotDeckSelector } from './TarotDeckSelector'
 
 interface TarotOracleProps {
   onReadingComplete?: (reading: TarotReading) => void
   onReadingClear?: () => void
   readings?: TarotReading[]
+  userLastDeckId?: string | null // From user's most recent tarot reading in database
 }
 
 export function TarotOracle({
   onReadingComplete,
   onReadingClear,
-  readings: externalReadings = []
+  readings: externalReadings = [],
+  userLastDeckId
 }: TarotOracleProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [readings, setReadings] = useState<TarotReading[]>(externalReadings)
   const [isDrawing, setIsDrawing] = useState(false)
   const [expandedReadings, setExpandedReadings] = useState<Set<number>>(new Set())
   const [question, setQuestion] = useState('')
+
+  // Deck selection state - all decks come from database now
+  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null)
+  const [currentDeck, setCurrentDeck] = useState<CustomTarotDeck | null>(null)
+  const [loadingDeck, setLoadingDeck] = useState(false)
 
   // Sync with external readings (including when cleared)
   useEffect(() => {
@@ -31,13 +41,46 @@ export function TarotOracle({
     }
   }, [externalReadings])
 
+  // Load deck when selection changes - all decks come from database
+  useEffect(() => {
+    if (!selectedDeckId) {
+      setCurrentDeck(null)
+      return
+    }
+
+    const deckIdToLoad = selectedDeckId // Capture for async closure
+
+    async function loadDeck() {
+      setLoadingDeck(true)
+      try {
+        const deck = await fetchDeckWithCards(deckIdToLoad)
+        setCurrentDeck(deck)
+      } catch (error) {
+        console.error('Failed to load deck:', error)
+        setCurrentDeck(null)
+      } finally {
+        setLoadingDeck(false)
+      }
+    }
+
+    loadDeck()
+  }, [selectedDeckId])
+
   const handleDraw = async () => {
     if (!question.trim()) return
+
+    // Don't allow drawing if loading deck or no deck selected
+    if (loadingDeck || !currentDeck) {
+      console.error('Deck not loaded')
+      return
+    }
 
     setIsDrawing(true)
 
     try {
-      const newReading = await drawThreeCards(question)
+      // All decks come from database now
+      const newReading = drawThreeCardsFromCustomDeck(currentDeck.cards, question, selectedDeckId!)
+
       setReadings(prev => [...prev, newReading])
       setIsOpen(true)
       setExpandedReadings(new Set([readings.length]))
@@ -198,6 +241,20 @@ export function TarotOracle({
 
             {/* Draw New Reading Input */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              {/* Deck Selector */}
+              <TarotDeckSelector
+                selectedDeckId={selectedDeckId}
+                onDeckChange={setSelectedDeckId}
+                userLastDeckId={userLastDeckId}
+                disabled={isDrawing}
+              />
+
+              {loadingDeck && (
+                <p className="text-sm text-purple-600 dark:text-purple-400 text-center mb-2">
+                  Loading deck...
+                </p>
+              )}
+
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
                 {readings.length === 0
                   ? 'Focus on your question, then draw three cards.'
@@ -214,10 +271,10 @@ export function TarotOracle({
                 />
                 <button
                   onClick={handleDraw}
-                  disabled={isDrawing || !question.trim()}
+                  disabled={isDrawing || loadingDeck || !question.trim() || !currentDeck}
                   className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isDrawing ? 'Drawing...' : '🃏 Draw Cards'}
+                  {isDrawing ? 'Drawing...' : loadingDeck ? 'Loading deck...' : !currentDeck ? 'Select a deck' : '🃏 Draw Cards'}
                 </button>
               </div>
             </div>
