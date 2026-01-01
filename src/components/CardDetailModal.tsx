@@ -242,7 +242,7 @@ export function CardDetailModal({
               {extendedCard.affirmation && (
                 <div className="p-3 bg-purple-900/30 rounded-lg border border-purple-700/50">
                   <h4 className="text-xs font-medium text-purple-400 uppercase tracking-wider mb-1">Affirmation</h4>
-                  <p className="text-purple-100 italic">"{extendedCard.affirmation}"</p>
+                  <p className="text-purple-100 italic">&ldquo;{extendedCard.affirmation}&rdquo;</p>
                 </div>
               )}
 

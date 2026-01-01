@@ -68,6 +68,7 @@ export function TarotDeckSelector({
       }
     }
     loadDecks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLastDeckId, userId]);
 
   const handleDeckClick = (deck: DeckOption) => {
@@ -111,7 +112,8 @@ export function TarotDeckSelector({
                 : 'hover:ring-2 hover:ring-purple-400 hover:ring-offset-1 hover:ring-offset-gray-800'
             }`}
           >
-            {/* Cover Image */}
+            {/* Cover Image - using img for external URLs with error fallback */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={deck.cover_image_url || DEFAULT_COVER}
               alt={deck.name}
@@ -249,6 +251,7 @@ export function TarotDeckSelector({
                 <div className="flex gap-3">
                   {/* Mini Cover */}
                   <div className="w-16 h-24 rounded-lg overflow-hidden shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewDeck.cover_image_url || DEFAULT_COVER}
                       alt={previewDeck.name}
