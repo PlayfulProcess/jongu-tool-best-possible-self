@@ -492,7 +492,16 @@ export function CardDetailModal({
               Close
             </button>
 
-            {isUserDeck ? (
+            {deckId === 'unknown' ? (
+              // Unknown deck - can't edit, just view
+              <button
+                disabled
+                className="flex-1 px-4 py-2 bg-gray-600 text-gray-400 rounded-lg font-medium cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <span>ℹ️</span>
+                View Only
+              </button>
+            ) : isUserDeck ? (
               // User owns this deck - direct edit
               <button
                 onClick={handleEditInCreator}
@@ -523,7 +532,11 @@ export function CardDetailModal({
             )}
           </div>
 
-          {!isUserDeck && userId && (
+          {deckId === 'unknown' ? (
+            <p className="text-center text-gray-500 text-xs mt-2">
+              Deck info unavailable for older readings
+            </p>
+          ) : !isUserDeck && userId && (
             <p className="text-center text-gray-500 text-xs mt-2">
               Customize this card&apos;s meaning in your own deck
             </p>

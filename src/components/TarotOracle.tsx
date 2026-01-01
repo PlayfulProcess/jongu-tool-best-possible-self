@@ -144,16 +144,17 @@ export function TarotOracle({
   // Handle card click to show detail modal
   const handleCardClick = (drawnCard: DrawnCard, reading: TarotReading) => {
     const deckId = reading.deckId || selectedDeckId
-    if (!deckId) return
 
     // Find deck info from options
-    const deckOption = deckOptions.find(d => d.id === deckId)
+    const deckOption = deckId ? deckOptions.find(d => d.id === deckId) : null
     const isUserDeck = deckOption?.source === 'user' || deckOption?.creator_id === userId
 
+    // Show modal even without deckId - user can still view card details
+    // Edit functionality will be limited if no deckId
     setCardDetail({
       card: drawnCard,
-      deckId,
-      deckName: deckOption?.name || currentDeck?.name,
+      deckId: deckId || 'unknown',
+      deckName: deckOption?.name || currentDeck?.name || 'Unknown Deck',
       isUserDeck: isUserDeck || false
     })
   }
