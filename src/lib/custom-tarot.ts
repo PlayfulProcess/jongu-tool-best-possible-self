@@ -247,6 +247,7 @@ export async function forkDeck(originalDeckId: string, userId: string): Promise<
     }
 
     // Create a new deck document in user_documents
+    // Preserve original card IDs so URL references still work
     const { data: newDeck, error } = await supabase
       .from('user_documents')
       .insert({
@@ -258,11 +259,13 @@ export async function forkDeck(originalDeckId: string, userId: string): Promise<
           name: `${originalDeck.name} (My Version)`,
           description: originalDeck.description,
           cover_image_url: originalDeck.cover_image_url,
+          creator_name: originalDeck.creator_name,
+          // Keep original card IDs so card= URL param still works
           cards: originalDeck.cards.map((card: CustomTarotCard) => ({
-            ...card,
-            id: crypto.randomUUID() // Generate new IDs for cards
+            ...card
           })),
           forked_from: originalDeckId,
+          original_deck_name: originalDeck.name,
           is_published: false
         }
       })
