@@ -296,10 +296,13 @@ export async function addCardToExistingDeck(
   cardToAdd: CustomTarotCard,
   userId: string
 ): Promise<{ success: boolean; cardIndex: number } | null> {
+  console.log('[addCardToExistingDeck] Starting with:', { targetDeckId, cardId: cardToAdd.id, userId });
+
   try {
     const supabase = createClient();
 
     // Fetch the existing deck
+    console.log('[addCardToExistingDeck] Fetching deck from user_documents...');
     const { data: existingDoc, error: fetchError } = await supabase
       .from('user_documents')
       .select('id, user_id, document_data')
@@ -309,9 +312,12 @@ export async function addCardToExistingDeck(
       .single();
 
     if (fetchError || !existingDoc) {
-      console.error('Failed to fetch target deck:', fetchError);
+      console.error('[addCardToExistingDeck] Failed to fetch target deck:', fetchError);
+      console.log('[addCardToExistingDeck] Query params were:', { targetDeckId, userId });
       return null;
     }
+
+    console.log('[addCardToExistingDeck] Found deck:', existingDoc.id);
 
     const deckData = existingDoc.document_data as {
       name?: string;
@@ -332,6 +338,7 @@ export async function addCardToExistingDeck(
 
     // Add the card to the deck
     const updatedCards = [...existingCards, newCard];
+    console.log('[addCardToExistingDeck] Adding card. New card count:', updatedCards.length);
 
     // Update the deck in database
     const { error: updateError } = await supabase
@@ -347,9 +354,11 @@ export async function addCardToExistingDeck(
       .eq('user_id', userId);
 
     if (updateError) {
-      console.error('Failed to update deck:', updateError);
+      console.error('[addCardToExistingDeck] Failed to update deck:', updateError);
       return null;
     }
+
+    console.log('[addCardToExistingDeck] Successfully added card to deck:', targetDeckId);
 
     // Clear cache for this deck
     deckCache.delete(targetDeckId);

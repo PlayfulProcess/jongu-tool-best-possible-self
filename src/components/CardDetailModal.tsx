@@ -161,6 +161,8 @@ export function CardDetailModal({
   };
 
   const handleAddToExistingDeck = async (targetDeckId: string) => {
+    console.log('[CardDetailModal] handleAddToExistingDeck called with targetDeckId:', targetDeckId);
+
     if (!userId) {
       setForkError('Please sign in to add cards');
       return;
@@ -190,18 +192,22 @@ export function CardDetailModal({
         ...('questions' in card && { questions: (card as CustomTarotCard).questions }),
       };
 
+      console.log('[CardDetailModal] Calling addCardToExistingDeck with:', { targetDeckId, cardId: cardToAdd.id, userId });
       const result = await addCardToExistingDeck(targetDeckId, cardToAdd, userId);
+      console.log('[CardDetailModal] addCardToExistingDeck result:', result);
 
       if (result?.success) {
         // Open creator with the deck - the card is now added
         const url = getCreatorEditUrl(targetDeckId, cardId);
+        console.log('[CardDetailModal] Opening Creator URL:', url);
         window.open(url, '_blank');
         onClose();
       } else {
+        console.error('[CardDetailModal] addCardToExistingDeck returned failure or null');
         setForkError('Failed to add card to deck. Please try again.');
       }
     } catch (error) {
-      console.error('Failed to add card:', error);
+      console.error('[CardDetailModal] Failed to add card:', error);
       setForkError('Something went wrong. Please try again.');
     } finally {
       setAddingToDeck(null);
