@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { CustomTarotCard } from '@/types/custom-tarot.types';
+import { CustomTarotCard, DeckOption } from '@/types/custom-tarot.types';
 import { TarotCard } from '@/types/tarot.types';
-import { getCreatorEditUrl, forkDeck } from '@/lib/custom-tarot';
+import { getCreatorEditUrl, forkDeck, fetchAllDecks } from '@/lib/custom-tarot';
 
 // Combined card type that supports both formats
 type CardData = CustomTarotCard | TarotCard;
@@ -61,6 +61,12 @@ export function CardDetailModal({
   const [isForking, setIsForking] = useState(false);
   const [forkError, setForkError] = useState<string | null>(null);
 
+  // Deck selection state
+  const [showDeckSelector, setShowDeckSelector] = useState(false);
+  const [userDecks, setUserDecks] = useState<DeckOption[]>([]);
+  const [loadingDecks, setLoadingDecks] = useState(false);
+  const [selectedTargetDeck, setSelectedTargetDeck] = useState<string | null>(null);
+
   const cardId = getCardId(card);
   const imageUrl = getImageUrl(card);
   const keywords = getKeywords(card);
@@ -69,9 +75,61 @@ export function CardDetailModal({
   const extendedCard = card as CustomTarotCard;
   const hasExtendedData = 'interpretation' in card || 'summary' in card;
 
+  // Load user's decks when deck selector is shown
+  useEffect(() => {
+    if (showDeckSelector && userId) {
+      loadUserDecks();
+    }
+  }, [showDeckSelector, userId]);
+
+  const loadUserDecks = async () => {
+    if (!userId) return;
+
+    setLoadingDecks(true);
+    try {
+      const allDecks = await fetchAllDecks(userId);
+      // Filter to only user's own decks
+      const ownDecks = allDecks.filter(d => d.source === 'user');
+      setUserDecks(ownDecks);
+    } catch (error) {
+      console.error('Failed to load user decks:', error);
+    } finally {
+      setLoadingDecks(false);
+    }
+  };
+
   const handleEditInCreator = () => {
     const url = getCreatorEditUrl(deckId, cardId);
     window.open(url, '_blank');
+  };
+
+  const handleEditMyCopyClick = async () => {
+    if (!userId) {
+      setForkError('Please sign in to create your own copy');
+      return;
+    }
+
+    // Load user's decks to see if they have any
+    setLoadingDecks(true);
+    try {
+      const allDecks = await fetchAllDecks(userId);
+      const ownDecks = allDecks.filter(d => d.source === 'user');
+      setUserDecks(ownDecks);
+
+      if (ownDecks.length === 0) {
+        // No existing decks - fork directly (first time experience)
+        await handleForkAndEdit();
+      } else {
+        // Has existing decks - show selection modal
+        setShowDeckSelector(true);
+      }
+    } catch (error) {
+      console.error('Failed to check user decks:', error);
+      // Fallback to direct fork
+      await handleForkAndEdit();
+    } finally {
+      setLoadingDecks(false);
+    }
   };
 
   const handleForkAndEdit = async () => {
@@ -102,12 +160,112 @@ export function CardDetailModal({
     }
   };
 
+  const handleEditInExistingDeck = (targetDeckId: string) => {
+    // Open creator with the existing deck and this card ID
+    // The creator will need to handle adding/updating this card
+    const url = getCreatorEditUrl(targetDeckId, cardId);
+    window.open(url, '_blank');
+    onClose();
+  };
+
   const positionLabels = {
     past: 'Past',
     present: 'Present',
     future: 'Future'
   };
 
+  // Deck Selection Modal
+  if (showDeckSelector) {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-800 rounded-xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+          {/* Header */}
+          <div className="p-4 border-b border-gray-700 flex justify-between items-center shrink-0">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Choose Destination</h3>
+              <p className="text-sm text-gray-400">Where do you want to edit &ldquo;{card.name}&rdquo;?</p>
+            </div>
+            <button
+              onClick={() => setShowDeckSelector(false)}
+              className="text-gray-400 hover:text-white text-xl p-1"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 p-4 space-y-3">
+            {/* Create New Copy Option */}
+            <button
+              onClick={handleForkAndEdit}
+              disabled={isForking}
+              className="w-full p-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-lg text-left transition-all disabled:opacity-50"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">✨</span>
+                <div>
+                  <p className="text-white font-medium">Create New Deck Copy</p>
+                  <p className="text-purple-200 text-sm">
+                    {isForking ? 'Creating...' : `Fork "${deckName}" and edit this card`}
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* Divider */}
+            {userDecks.length > 0 && (
+              <div className="flex items-center gap-3 py-2">
+                <div className="flex-1 border-t border-gray-700"></div>
+                <span className="text-gray-500 text-sm">or edit in existing deck</span>
+                <div className="flex-1 border-t border-gray-700"></div>
+              </div>
+            )}
+
+            {/* Existing Decks */}
+            {loadingDecks ? (
+              <div className="text-center py-4 text-gray-400">Loading your decks...</div>
+            ) : (
+              userDecks.map(deck => (
+                <button
+                  key={deck.id}
+                  onClick={() => handleEditInExistingDeck(deck.id)}
+                  className={`w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left transition-colors border-2 ${
+                    selectedTargetDeck === deck.id ? 'border-purple-500' : 'border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-14 bg-purple-900/50 rounded flex items-center justify-center text-lg">
+                      🃏
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate">{deck.name}</p>
+                      <p className="text-gray-400 text-sm">
+                        {deck.card_count} cards
+                        {deck.forked_from && <span className="ml-2 text-purple-400">(forked)</span>}
+                      </p>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-700 shrink-0">
+            <button
+              onClick={() => setShowDeckSelector(false)}
+              className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Card Detail Modal
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
@@ -288,16 +446,16 @@ export function CardDetailModal({
                 Edit in Creator
               </button>
             ) : (
-              // Community deck - fork and edit
+              // Community deck - show deck selector or fork
               <button
-                onClick={handleForkAndEdit}
-                disabled={isForking || !userId}
+                onClick={handleEditMyCopyClick}
+                disabled={isForking || loadingDecks || !userId}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isForking ? (
+                {isForking || loadingDecks ? (
                   <>
                     <span className="animate-spin">⏳</span>
-                    Creating Copy...
+                    {isForking ? 'Creating Copy...' : 'Loading...'}
                   </>
                 ) : (
                   <>
@@ -311,7 +469,7 @@ export function CardDetailModal({
 
           {!isUserDeck && userId && (
             <p className="text-center text-gray-500 text-xs mt-2">
-              Creates your own copy of this deck so you can customize the meaning
+              Customize this card&apos;s meaning in your own deck
             </p>
           )}
         </div>
