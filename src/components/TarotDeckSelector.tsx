@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchPublishedDecks, getTarotViewerUrl, getDefaultDeckId } from '@/lib/custom-tarot';
+import { fetchAllDecks, getTarotViewerUrl, getDefaultDeckId, getCreatorNewDeckUrl } from '@/lib/custom-tarot';
 import { DeckOption } from '@/types/custom-tarot.types';
 
 interface TarotDeckSelectorProps {
   selectedDeckId: string | null;
   onDeckChange: (deckId: string) => void;
   userLastDeckId?: string | null; // From user's most recent tarot reading
+  userId?: string | null; // Current user ID for fetching their decks
   disabled?: boolean;
 }
 
@@ -25,6 +26,7 @@ export function TarotDeckSelector({
   selectedDeckId,
   onDeckChange,
   userLastDeckId,
+  userId,
   disabled = false
 }: TarotDeckSelectorProps) {
   const [decks, setDecks] = useState<DeckOption[]>([]);
@@ -34,12 +36,16 @@ export function TarotDeckSelector({
 
   const selectedDeck = decks.find(d => d.id === selectedDeckId);
 
+  // Separate user decks from community decks
+  const userDecks = decks.filter(d => d.source === 'user');
+  const communityDecks = decks.filter(d => d.source === 'community');
+
   // Load decks and set default selection
   useEffect(() => {
     async function loadDecks() {
       try {
         setLoading(true);
-        const loadedDecks = await fetchPublishedDecks();
+        const loadedDecks = await fetchAllDecks(userId);
         setDecks(loadedDecks);
 
         // Set default selection if none selected
@@ -62,7 +68,8 @@ export function TarotDeckSelector({
       }
     }
     loadDecks();
-  }, [userLastDeckId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLastDeckId, userId]);
 
   const handleDeckClick = (deck: DeckOption) => {
     // If clicking the same deck that's in preview, select it
@@ -82,6 +89,70 @@ export function TarotDeckSelector({
   const handleViewDetails = (deckId: string) => {
     window.open(getTarotViewerUrl(deckId), '_blank');
   };
+
+  const handleCreateNewDeck = () => {
+    window.open(getCreatorNewDeckUrl(), '_blank');
+  };
+
+  const renderDeckGrid = (deckList: DeckOption[], title?: string) => (
+    <>
+      {title && (
+        <h4 className="text-sm font-medium text-gray-400 mb-2 mt-4 first:mt-0">
+          {title}
+        </h4>
+      )}
+      <div className="grid grid-cols-3 gap-3">
+        {deckList.map(deck => (
+          <button
+            key={deck.id}
+            onClick={() => handleDeckClick(deck)}
+            className={`relative aspect-[2/3] rounded-lg overflow-hidden transition-all ${
+              previewDeck?.id === deck.id
+                ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-800'
+                : 'hover:ring-2 hover:ring-purple-400 hover:ring-offset-1 hover:ring-offset-gray-800'
+            }`}
+          >
+            {/* Cover Image - using img for external URLs with error fallback */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={deck.cover_image_url || DEFAULT_COVER}
+              alt={deck.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = DEFAULT_COVER;
+              }}
+            />
+
+            {/* Selected Checkmark */}
+            {deck.id === selectedDeckId && (
+              <div className="absolute top-1 right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
+            )}
+
+            {/* User deck badge */}
+            {deck.source === 'user' && (
+              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-purple-600 text-white text-[10px] font-medium rounded">
+                Your Deck
+              </div>
+            )}
+
+            {/* Forked badge */}
+            {deck.forked_from && (
+              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-indigo-600 text-white text-[10px] font-medium rounded">
+                Forked
+              </div>
+            )}
+
+            {/* Deck Name Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+              <p className="text-white text-xs font-medium truncate">{deck.name}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </>
+  );
 
   return (
     <div className="mb-4">
@@ -119,6 +190,7 @@ export function TarotDeckSelector({
       {selectedDeck && (
         <p className="text-xs text-purple-400 mt-2">
           {selectedDeck.name} by {selectedDeck.creator_name || 'Unknown'} ({selectedDeck.card_count} cards)
+          {selectedDeck.source === 'user' && <span className="ml-1 text-purple-300">(Your deck)</span>}
         </p>
       )}
 
@@ -137,43 +209,40 @@ export function TarotDeckSelector({
               </button>
             </div>
 
+            {/* Create Your Own Button - Prominent at top */}
+            <div className="p-4 border-b border-gray-700 shrink-0">
+              <button
+                onClick={handleCreateNewDeck}
+                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                <span className="text-lg">✨</span>
+                <span>Create Your Own Deck</span>
+              </button>
+              <p className="text-center text-gray-400 text-xs mt-2">
+                Design your own tarot deck in the Creator Studio
+              </p>
+            </div>
+
             {/* Deck Grid */}
             <div className="overflow-y-auto flex-1 p-4">
-              <div className="grid grid-cols-3 gap-3">
-                {decks.map(deck => (
+              {/* User's Decks Section */}
+              {userDecks.length > 0 && renderDeckGrid(userDecks, '📚 Your Decks')}
+
+              {/* Community Decks Section */}
+              {communityDecks.length > 0 && renderDeckGrid(communityDecks, userDecks.length > 0 ? '🌍 Community Decks' : undefined)}
+
+              {/* Empty State */}
+              {decks.length === 0 && !loading && (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 mb-4">No decks available yet.</p>
                   <button
-                    key={deck.id}
-                    onClick={() => handleDeckClick(deck)}
-                    className={`relative aspect-[2/3] rounded-lg overflow-hidden transition-all ${
-                      previewDeck?.id === deck.id
-                        ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-800'
-                        : 'hover:ring-2 hover:ring-purple-400 hover:ring-offset-1 hover:ring-offset-gray-800'
-                    }`}
+                    onClick={handleCreateNewDeck}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
                   >
-                    {/* Cover Image */}
-                    <img
-                      src={deck.cover_image_url || DEFAULT_COVER}
-                      alt={deck.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = DEFAULT_COVER;
-                      }}
-                    />
-
-                    {/* Selected Checkmark */}
-                    {deck.id === selectedDeckId && (
-                      <div className="absolute top-1 right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm">✓</span>
-                      </div>
-                    )}
-
-                    {/* Deck Name Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                      <p className="text-white text-xs font-medium truncate">{deck.name}</p>
-                    </div>
+                    Create Your First Deck
                   </button>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Preview Panel - shows when a deck is clicked */}
@@ -182,6 +251,7 @@ export function TarotDeckSelector({
                 <div className="flex gap-3">
                   {/* Mini Cover */}
                   <div className="w-16 h-24 rounded-lg overflow-hidden shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewDeck.cover_image_url || DEFAULT_COVER}
                       alt={previewDeck.name}
@@ -198,6 +268,11 @@ export function TarotDeckSelector({
                     <p className="text-gray-400 text-sm">
                       by {previewDeck.creator_name || 'Unknown'} • {previewDeck.card_count} cards
                     </p>
+                    {previewDeck.source === 'user' && (
+                      <span className="inline-block mt-1 px-2 py-0.5 bg-purple-600/50 text-purple-200 text-xs rounded">
+                        Your deck
+                      </span>
+                    )}
                     {previewDeck.description && (
                       <p className="text-gray-500 text-xs mt-1 line-clamp-2">{previewDeck.description}</p>
                     )}

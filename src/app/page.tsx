@@ -931,6 +931,7 @@ export default function BestPossibleSelfPage() {
                 readings={tarotReadings}
                 onReadingComplete={(reading) => setTarotReadings(prev => [...prev, reading])}
                 onReadingClear={() => setTarotReadings([])}
+                userId={user?.id}
               />
             </div>
 

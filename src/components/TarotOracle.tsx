@@ -3,23 +3,34 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { drawThreeCardsFromCustomDeck, formatPosition } from '@/lib/tarot'
-import { fetchDeckWithCards } from '@/lib/custom-tarot'
-import { TarotReading } from '@/types/tarot.types'
-import { CustomTarotDeck } from '@/types/custom-tarot.types'
+import { fetchDeckWithCards, fetchAllDecks } from '@/lib/custom-tarot'
+import { TarotReading, DrawnCard } from '@/types/tarot.types'
+import { CustomTarotDeck, DeckOption } from '@/types/custom-tarot.types'
 import { TarotDeckSelector } from './TarotDeckSelector'
+import { CardDetailModal } from './CardDetailModal'
 
 interface TarotOracleProps {
   onReadingComplete?: (reading: TarotReading) => void
   onReadingClear?: () => void
   readings?: TarotReading[]
   userLastDeckId?: string | null // From user's most recent tarot reading in database
+  userId?: string | null // Current user ID for deck ownership
+}
+
+// State for showing card detail modal
+interface CardDetailState {
+  card: DrawnCard
+  deckId: string
+  deckName?: string
+  isUserDeck: boolean
 }
 
 export function TarotOracle({
   onReadingComplete,
   onReadingClear,
   readings: externalReadings = [],
-  userLastDeckId
+  userLastDeckId,
+  userId
 }: TarotOracleProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [readings, setReadings] = useState<TarotReading[]>(externalReadings)
@@ -32,6 +43,12 @@ export function TarotOracle({
   const [currentDeck, setCurrentDeck] = useState<CustomTarotDeck | null>(null)
   const [loadingDeck, setLoadingDeck] = useState(false)
 
+  // Deck metadata for ownership tracking
+  const [deckOptions, setDeckOptions] = useState<DeckOption[]>([])
+
+  // Card detail modal state
+  const [cardDetail, setCardDetail] = useState<CardDetailState | null>(null)
+
   // Sync with external readings (including when cleared)
   useEffect(() => {
     setReadings(externalReadings)
@@ -40,6 +57,15 @@ export function TarotOracle({
       setExpandedReadings(new Set([externalReadings.length - 1]))
     }
   }, [externalReadings])
+
+  // Load deck options for ownership tracking
+  useEffect(() => {
+    async function loadDeckOptions() {
+      const options = await fetchAllDecks(userId)
+      setDeckOptions(options)
+    }
+    loadDeckOptions()
+  }, [userId])
 
   // Load deck when selection changes - all decks come from database
   useEffect(() => {
@@ -112,6 +138,24 @@ export function TarotOracle({
         next.add(index)
       }
       return next
+    })
+  }
+
+  // Handle card click to show detail modal
+  const handleCardClick = (drawnCard: DrawnCard, reading: TarotReading) => {
+    const deckId = reading.deckId || selectedDeckId
+
+    // Find deck info from options
+    const deckOption = deckId ? deckOptions.find(d => d.id === deckId) : null
+    const isUserDeck = deckOption?.source === 'user' || deckOption?.creator_id === userId
+
+    // Show modal even without deckId - user can still view card details
+    // Edit functionality will be limited if no deckId
+    setCardDetail({
+      card: drawnCard,
+      deckId: deckId || 'unknown',
+      deckName: deckOption?.name || currentDeck?.name || 'Unknown Deck',
+      isUserDeck: isUserDeck || false
     })
   }
 
@@ -206,14 +250,18 @@ export function TarotOracle({
                       <p className="text-gray-800 dark:text-gray-200 italic">&ldquo;{reading.question}&rdquo;</p>
                     </div>
 
-                    {/* Cards Display */}
+                    {/* Cards Display - Now Clickable */}
                     <div className="mt-4 grid grid-cols-3 gap-4">
                       {reading.cards.map((drawnCard, cardIndex) => (
-                        <div key={cardIndex} className="text-center">
+                        <button
+                          key={cardIndex}
+                          onClick={() => handleCardClick(drawnCard, reading)}
+                          className="text-center group cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg p-2 transition-colors"
+                        >
                           <div className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2">
                             {formatPosition(drawnCard.position)}
                           </div>
-                          <div className="relative mx-auto w-24 h-36 mb-2">
+                          <div className="relative mx-auto w-24 h-36 mb-2 group-hover:scale-105 transition-transform">
                             <Image
                               src={drawnCard.card.imageUrl}
                               alt={drawnCard.card.name}
@@ -221,6 +269,12 @@ export function TarotOracle({
                               className={`object-contain rounded shadow-md ${drawnCard.isReversed ? 'rotate-180' : ''}`}
                               unoptimized // Wikimedia images
                             />
+                            {/* Hover indicator */}
+                            <div className="absolute inset-0 bg-purple-600/0 group-hover:bg-purple-600/10 rounded transition-colors flex items-center justify-center">
+                              <span className="opacity-0 group-hover:opacity-100 text-purple-600 dark:text-purple-300 text-xs font-medium bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded shadow-sm transition-opacity">
+                                View Details
+                              </span>
+                            </div>
                           </div>
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {drawnCard.card.name}
@@ -231,9 +285,14 @@ export function TarotOracle({
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {drawnCard.card.keywords.slice(0, 3).join(', ')}
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
+
+                    {/* Tip for editing */}
+                    <p className="text-center text-gray-400 text-xs mt-4">
+                      Click any card to see details and customize its meaning
+                    </p>
                   </div>
                 )}
               </div>
@@ -246,6 +305,7 @@ export function TarotOracle({
                 selectedDeckId={selectedDeckId}
                 onDeckChange={setSelectedDeckId}
                 userLastDeckId={userLastDeckId}
+                userId={userId}
                 disabled={isDrawing}
               />
 
@@ -280,6 +340,20 @@ export function TarotOracle({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Card Detail Modal */}
+      {cardDetail && (
+        <CardDetailModal
+          card={cardDetail.card.card}
+          isReversed={cardDetail.card.isReversed}
+          position={cardDetail.card.position}
+          deckId={cardDetail.deckId}
+          deckName={cardDetail.deckName}
+          isUserDeck={cardDetail.isUserDeck}
+          userId={userId}
+          onClose={() => setCardDetail(null)}
+        />
       )}
     </div>
   )
