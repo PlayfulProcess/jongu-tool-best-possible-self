@@ -288,6 +288,81 @@ export async function forkDeck(originalDeckId: string, userId: string): Promise<
 }
 
 /**
+ * Add a card from another deck to an existing user deck
+ * Returns the updated card count, or null on failure
+ */
+export async function addCardToExistingDeck(
+  targetDeckId: string,
+  cardToAdd: CustomTarotCard,
+  userId: string
+): Promise<{ success: boolean; cardIndex: number } | null> {
+  try {
+    const supabase = createClient();
+
+    // Fetch the existing deck
+    const { data: existingDoc, error: fetchError } = await supabase
+      .from('user_documents')
+      .select('id, user_id, document_data')
+      .eq('id', targetDeckId)
+      .eq('document_type', 'tarot_deck')
+      .eq('user_id', userId) // Ensure user owns this deck
+      .single();
+
+    if (fetchError || !existingDoc) {
+      console.error('Failed to fetch target deck:', fetchError);
+      return null;
+    }
+
+    const deckData = existingDoc.document_data as {
+      name?: string;
+      cards?: CustomTarotCard[];
+      [key: string]: unknown;
+    };
+
+    const existingCards = deckData.cards || [];
+
+    // Create new card with updated sort_order (add to end)
+    const newCardIndex = existingCards.length;
+    const newCard: CustomTarotCard = {
+      ...cardToAdd,
+      sort_order: newCardIndex,
+      // Keep the original ID so we can track where it came from
+      // But add metadata about the source
+    };
+
+    // Add the card to the deck
+    const updatedCards = [...existingCards, newCard];
+
+    // Update the deck in database
+    const { error: updateError } = await supabase
+      .from('user_documents')
+      .update({
+        document_data: {
+          ...deckData,
+          cards: updatedCards
+        },
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', targetDeckId)
+      .eq('user_id', userId);
+
+    if (updateError) {
+      console.error('Failed to update deck:', updateError);
+      return null;
+    }
+
+    // Clear cache for this deck
+    deckCache.delete(targetDeckId);
+    deckListCache.delete(userId);
+
+    return { success: true, cardIndex: newCardIndex };
+  } catch (error) {
+    console.error('Failed to add card to deck:', error);
+    return null;
+  }
+}
+
+/**
  * Fetch a specific deck with all its cards
  * Supports both API decks and user_documents decks
  */

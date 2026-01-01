@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CustomTarotCard, DeckOption } from '@/types/custom-tarot.types';
 import { TarotCard } from '@/types/tarot.types';
-import { getCreatorEditUrl, forkDeck, fetchAllDecks } from '@/lib/custom-tarot';
+import { getCreatorEditUrl, forkDeck, fetchAllDecks, addCardToExistingDeck } from '@/lib/custom-tarot';
 
 // Combined card type that supports both formats
 type CardData = CustomTarotCard | TarotCard;
@@ -65,7 +65,7 @@ export function CardDetailModal({
   const [showDeckSelector, setShowDeckSelector] = useState(false);
   const [userDecks, setUserDecks] = useState<DeckOption[]>([]);
   const [loadingDecks, setLoadingDecks] = useState(false);
-  const [selectedTargetDeck, setSelectedTargetDeck] = useState<string | null>(null);
+  const [addingToDeck, setAddingToDeck] = useState<string | null>(null); // ID of deck being added to
 
   const cardId = getCardId(card);
   const imageUrl = getImageUrl(card);
@@ -160,12 +160,52 @@ export function CardDetailModal({
     }
   };
 
-  const handleEditInExistingDeck = (targetDeckId: string) => {
-    // Open creator with the existing deck and this card ID
-    // The creator will need to handle adding/updating this card
-    const url = getCreatorEditUrl(targetDeckId, cardId);
-    window.open(url, '_blank');
-    onClose();
+  const handleAddToExistingDeck = async (targetDeckId: string) => {
+    if (!userId) {
+      setForkError('Please sign in to add cards');
+      return;
+    }
+
+    setAddingToDeck(targetDeckId);
+    setForkError(null);
+
+    try {
+      // Convert the card to CustomTarotCard format for adding
+      const cardToAdd: CustomTarotCard = {
+        id: cardId,
+        name: card.name,
+        keywords: keywords,
+        image_url: imageUrl,
+        sort_order: 0, // Will be updated by addCardToExistingDeck
+        // Copy extended fields if available
+        ...('arcana' in card && { arcana: card.arcana }),
+        ...('suit' in card && { suit: card.suit }),
+        ...('number' in card && { number: card.number }),
+        ...('summary' in card && { summary: (card as CustomTarotCard).summary }),
+        ...('interpretation' in card && { interpretation: (card as CustomTarotCard).interpretation }),
+        ...('reversed_interpretation' in card && { reversed_interpretation: (card as CustomTarotCard).reversed_interpretation }),
+        ...('symbols' in card && { symbols: (card as CustomTarotCard).symbols }),
+        ...('element' in card && { element: (card as CustomTarotCard).element }),
+        ...('affirmation' in card && { affirmation: (card as CustomTarotCard).affirmation }),
+        ...('questions' in card && { questions: (card as CustomTarotCard).questions }),
+      };
+
+      const result = await addCardToExistingDeck(targetDeckId, cardToAdd, userId);
+
+      if (result?.success) {
+        // Open creator with the deck - the card is now added
+        const url = getCreatorEditUrl(targetDeckId, cardId);
+        window.open(url, '_blank');
+        onClose();
+      } else {
+        setForkError('Failed to add card to deck. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to add card:', error);
+      setForkError('Something went wrong. Please try again.');
+    } finally {
+      setAddingToDeck(null);
+    }
   };
 
   const positionLabels = {
@@ -216,7 +256,7 @@ export function CardDetailModal({
             {userDecks.length > 0 && (
               <div className="flex items-center gap-3 py-2">
                 <div className="flex-1 border-t border-gray-700"></div>
-                <span className="text-gray-500 text-sm">or edit in existing deck</span>
+                <span className="text-gray-500 text-sm">or add to existing deck</span>
                 <div className="flex-1 border-t border-gray-700"></div>
               </div>
             )}
@@ -228,26 +268,42 @@ export function CardDetailModal({
               userDecks.map(deck => (
                 <button
                   key={deck.id}
-                  onClick={() => handleEditInExistingDeck(deck.id)}
-                  className={`w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left transition-colors border-2 ${
-                    selectedTargetDeck === deck.id ? 'border-purple-500' : 'border-transparent'
+                  onClick={() => handleAddToExistingDeck(deck.id)}
+                  disabled={addingToDeck !== null}
+                  className={`w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left transition-colors border-2 disabled:opacity-50 ${
+                    addingToDeck === deck.id ? 'border-purple-500' : 'border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-14 bg-purple-900/50 rounded flex items-center justify-center text-lg">
-                      🃏
+                      {addingToDeck === deck.id ? (
+                        <span className="animate-spin">⏳</span>
+                      ) : (
+                        '🃏'
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-medium truncate">{deck.name}</p>
                       <p className="text-gray-400 text-sm">
-                        {deck.card_count} cards
-                        {deck.forked_from && <span className="ml-2 text-purple-400">(forked)</span>}
+                        {addingToDeck === deck.id ? (
+                          'Adding card...'
+                        ) : (
+                          <>
+                            {deck.card_count} cards → {deck.card_count + 1}
+                            {deck.forked_from && <span className="ml-2 text-purple-400">(forked)</span>}
+                          </>
+                        )}
                       </p>
                     </div>
-                    <span className="text-gray-400">→</span>
+                    <span className="text-green-400">+</span>
                   </div>
                 </button>
               ))
+            )}
+
+            {/* Error message in deck selector */}
+            {forkError && (
+              <p className="text-red-400 text-sm text-center py-2">{forkError}</p>
             )}
           </div>
 
