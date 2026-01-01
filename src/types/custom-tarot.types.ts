@@ -30,15 +30,21 @@ export interface CustomTarotCard {
   sort_order: number;
 }
 
+// Deck source types
+export type DeckSource = 'community' | 'user';
+
 // For the deck selector dropdown
 export interface DeckOption {
   id: string;
   name: string;
   description?: string;
   creator_name?: string;
+  creator_id?: string; // User ID of the creator (for ownership check)
   cover_image_url?: string;
   card_count: number;
   created_at?: string;
+  source: DeckSource; // Where the deck came from
+  forked_from?: string; // Original deck ID if this is a fork
 }
 
 // Extended TarotCard that includes custom fields

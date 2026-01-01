@@ -1,6 +1,7 @@
 // Custom Tarot Deck API Library
 
-import { CustomTarotDeck, DeckOption } from '@/types/custom-tarot.types';
+import { CustomTarotDeck, CustomTarotCard, DeckOption } from '@/types/custom-tarot.types';
+import { createClient } from '@/lib/supabase-client';
 
 // Use local mock API if no external API is configured
 // Set NEXT_PUBLIC_TAROT_CHANNEL_API to point to jongu-wellness when ready
@@ -21,37 +22,178 @@ const getApiBase = () => {
 // Cache for loaded decks
 const deckCache = new Map<string, CustomTarotDeck>();
 
-// Cache for deck list
-let deckListCache: DeckOption[] | null = null;
-let deckListCacheTime = 0;
+// Cache for deck list (keyed by userId for user-specific caching)
+const deckListCache = new Map<string, { decks: DeckOption[]; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Fetch list of published decks from the Tarot Channel
- * Returns decks sorted by created_at ASC (oldest first - Rider-Waite will be first)
+ * Get the Creator URL for editing a deck/card
  */
-export async function fetchPublishedDecks(): Promise<DeckOption[]> {
-  // Return cached list if still valid
-  if (deckListCache && Date.now() - deckListCacheTime < CACHE_TTL) {
-    return deckListCache;
+export function getCreatorEditUrl(deckId: string, cardId?: string): string {
+  const baseUrl = 'https://creator.recursive.eco/dashboard/tarot/new';
+  const params = new URLSearchParams({ id: deckId });
+  if (cardId) {
+    params.append('card', cardId);
   }
+  return `${baseUrl}?${params.toString()}`;
+}
 
+/**
+ * Get the Creator URL for creating a new deck
+ */
+export function getCreatorNewDeckUrl(): string {
+  return 'https://creator.recursive.eco/dashboard/tarot/new';
+}
+
+/**
+ * Fetch community decks from the tarot channel API
+ */
+async function fetchCommunityDecks(): Promise<DeckOption[]> {
   const apiBase = getApiBase();
-  console.log('API base for tarot channel:', apiBase);
 
-  // If no API available (server-side without config), return empty
   if (!apiBase) {
-    console.log('No API base available');
     return [];
   }
 
   try {
     const url = `${apiBase}/api/tarot-channel/decks`;
-    console.log('Fetching decks from:', url);
+    const res = await fetch(url, { cache: 'no-store' });
+
+    if (!res.ok) {
+      console.warn('Failed to fetch community decks:', res.status);
+      return [];
+    }
+
+    const data = await res.json();
+    const decks = data.decks || data || [];
+
+    return decks.map((d: CustomTarotDeck & { created_at?: string; user_id?: string }) => ({
+      id: d.id,
+      name: d.name,
+      description: d.description,
+      creator_name: d.creator_name,
+      creator_id: d.user_id,
+      cover_image_url: d.cover_image_url,
+      card_count: d.card_count,
+      created_at: d.created_at,
+      source: 'community' as const
+    }));
+  } catch (error) {
+    console.error('Failed to fetch community decks:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch user's own decks from user_documents table
+ */
+async function fetchUserDecks(userId: string): Promise<DeckOption[]> {
+  if (!userId) return [];
+
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('user_documents')
+      .select('id, document_data, created_at')
+      .eq('user_id', userId)
+      .eq('document_type', 'tarot_deck');
+
+    if (error) {
+      console.error('Failed to fetch user decks:', error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    return data.map((doc: { id: string; document_data: Record<string, unknown>; created_at: string }) => {
+      const deckData = doc.document_data as {
+        name?: string;
+        description?: string;
+        cover_image_url?: string;
+        cards?: unknown[];
+        forked_from?: string;
+      };
+
+      return {
+        id: doc.id,
+        name: deckData.name || 'Untitled Deck',
+        description: deckData.description,
+        creator_name: 'You',
+        creator_id: userId,
+        cover_image_url: deckData.cover_image_url,
+        card_count: Array.isArray(deckData.cards) ? deckData.cards.length : 0,
+        created_at: doc.created_at,
+        source: 'user' as const,
+        forked_from: deckData.forked_from
+      };
+    });
+  } catch (error) {
+    console.error('Failed to fetch user decks:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch all decks from multiple sources
+ * Returns: user's own decks first, then community decks
+ */
+export async function fetchAllDecks(userId?: string | null): Promise<DeckOption[]> {
+  const cacheKey = userId || 'anonymous';
+  const cached = deckListCache.get(cacheKey);
+
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.decks;
+  }
+
+  // Fetch from both sources in parallel
+  const [communityDecks, userDecks] = await Promise.all([
+    fetchCommunityDecks(),
+    userId ? fetchUserDecks(userId) : Promise.resolve([])
+  ]);
+
+  // Combine decks: user's decks first, then community decks
+  const allDecks = [...userDecks, ...communityDecks];
+
+  // Sort: user decks first (newest first), then community decks (oldest first)
+  allDecks.sort((a, b) => {
+    // User decks always come first
+    if (a.source !== b.source) {
+      return a.source === 'user' ? -1 : 1;
+    }
+    // User decks: newest first; Community decks: oldest first (Rider-Waite)
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return a.source === 'user' ? dateB - dateA : dateA - dateB;
+  });
+
+  deckListCache.set(cacheKey, { decks: allDecks, timestamp: Date.now() });
+  return allDecks;
+}
+
+/**
+ * Fetch list of published decks from the Tarot Channel (legacy - for backwards compatibility)
+ * Returns decks sorted by created_at ASC (oldest first - Rider-Waite will be first)
+ */
+export async function fetchPublishedDecks(): Promise<DeckOption[]> {
+  // Return cached list if still valid
+  const cached = deckListCache.get('anonymous');
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.decks;
+  }
+
+  const apiBase = getApiBase();
+
+  // If no API available (server-side without config), return empty
+  if (!apiBase) {
+    return [];
+  }
+
+  try {
+    const url = `${apiBase}/api/tarot-channel/decks`;
     const res = await fetch(url, {
       cache: 'no-store' // Don't cache during development
     });
-    console.log('Response status:', res.status);
 
     if (!res.ok) {
       console.warn('Failed to fetch decks:', res.status);
@@ -62,14 +204,16 @@ export async function fetchPublishedDecks(): Promise<DeckOption[]> {
     const decks = data.decks || data || [];
 
     // Map decks with all fields including cover_image_url
-    const mappedDecks: DeckOption[] = decks.map((d: CustomTarotDeck & { created_at?: string }) => ({
+    const mappedDecks: DeckOption[] = decks.map((d: CustomTarotDeck & { created_at?: string; user_id?: string }) => ({
       id: d.id,
       name: d.name,
       description: d.description,
       creator_name: d.creator_name,
+      creator_id: d.user_id,
       cover_image_url: d.cover_image_url,
       card_count: d.card_count,
-      created_at: d.created_at
+      created_at: d.created_at,
+      source: 'community' as const
     }));
 
     // Sort by created_at ascending (oldest first - Rider-Waite will be first)
@@ -79,9 +223,7 @@ export async function fetchPublishedDecks(): Promise<DeckOption[]> {
       return dateA - dateB;
     });
 
-    deckListCache = mappedDecks;
-    deckListCacheTime = Date.now();
-
+    deckListCache.set('anonymous', { decks: mappedDecks, timestamp: Date.now() });
     return mappedDecks;
   } catch (error) {
     console.error('Failed to fetch decks:', error);
@@ -90,7 +232,61 @@ export async function fetchPublishedDecks(): Promise<DeckOption[]> {
 }
 
 /**
+ * Fork a community deck to user's personal collection
+ * Returns the new deck ID
+ */
+export async function forkDeck(originalDeckId: string, userId: string): Promise<string | null> {
+  try {
+    const supabase = createClient();
+
+    // First, fetch the original deck with all its cards
+    const originalDeck = await fetchDeckWithCards(originalDeckId);
+    if (!originalDeck) {
+      console.error('Original deck not found:', originalDeckId);
+      return null;
+    }
+
+    // Create a new deck document in user_documents
+    const { data: newDeck, error } = await supabase
+      .from('user_documents')
+      .insert({
+        user_id: userId,
+        document_type: 'tarot_deck',
+        tool_slug: 'tarot-deck',
+        is_public: false,
+        document_data: {
+          name: `${originalDeck.name} (My Version)`,
+          description: originalDeck.description,
+          cover_image_url: originalDeck.cover_image_url,
+          cards: originalDeck.cards.map((card: CustomTarotCard) => ({
+            ...card,
+            id: crypto.randomUUID() // Generate new IDs for cards
+          })),
+          forked_from: originalDeckId,
+          is_published: false
+        }
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Failed to fork deck:', error);
+      return null;
+    }
+
+    // Clear cache to include the new deck
+    deckListCache.delete(userId);
+
+    return newDeck?.id || null;
+  } catch (error) {
+    console.error('Failed to fork deck:', error);
+    return null;
+  }
+}
+
+/**
  * Fetch a specific deck with all its cards
+ * Supports both API decks and user_documents decks
  */
 export async function fetchDeckWithCards(deckId: string): Promise<CustomTarotDeck | null> {
   // Check cache first
@@ -98,21 +294,56 @@ export async function fetchDeckWithCards(deckId: string): Promise<CustomTarotDec
     return deckCache.get(deckId)!;
   }
 
+  // Try API first
   const apiBase = getApiBase();
+  if (apiBase) {
+    try {
+      const res = await fetch(`${apiBase}/api/tarot-channel/decks/${deckId}`);
 
-  if (!apiBase) {
-    return null;
+      if (res.ok) {
+        const deck = await res.json();
+        deckCache.set(deckId, deck);
+        return deck;
+      }
+    } catch (error) {
+      console.warn('API fetch failed, trying user_documents:', error);
+    }
   }
 
+  // Try user_documents table for user decks
   try {
-    const res = await fetch(`${apiBase}/api/tarot-channel/decks/${deckId}`);
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('user_documents')
+      .select('id, user_id, document_data, created_at')
+      .eq('id', deckId)
+      .eq('document_type', 'tarot_deck')
+      .single();
 
-    if (!res.ok) {
-      console.warn('Failed to fetch deck:', deckId, res.status);
+    if (error || !data) {
+      console.warn('Failed to fetch deck from user_documents:', deckId, error);
       return null;
     }
 
-    const deck = await res.json();
+    const deckData = data.document_data as {
+      name?: string;
+      description?: string;
+      cover_image_url?: string;
+      cards?: CustomTarotCard[];
+      forked_from?: string;
+    };
+
+    const deck: CustomTarotDeck = {
+      id: data.id,
+      name: deckData.name || 'Untitled Deck',
+      description: deckData.description,
+      creator_name: 'You',
+      cover_image_url: deckData.cover_image_url,
+      card_count: deckData.cards?.length || 0,
+      cards: deckData.cards || [],
+      created_at: data.created_at
+    };
+
     deckCache.set(deckId, deck);
     return deck;
   } catch (error) {
@@ -145,7 +376,7 @@ export function getTarotViewerUrl(deckId: string): string {
  */
 export function clearDeckCache(): void {
   deckCache.clear();
-  deckListCache = null;
+  deckListCache.clear();
 }
 
 /**
@@ -173,6 +404,8 @@ export function getDefaultDeckId(
     return userLastDeckId;
   }
 
-  // Otherwise return the oldest deck (first in ASC sorted list)
-  return decks[0].id;
+  // Otherwise return the first deck (community decks start with Rider-Waite)
+  // Skip user decks to default to a full community deck
+  const communityDeck = decks.find(d => d.source === 'community');
+  return communityDeck?.id || decks[0].id;
 }
