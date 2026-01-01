@@ -28,12 +28,19 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Get the Creator URL for editing a deck/card
+ * @param deckId - The deck ID to edit
+ * @param cardId - Optional card ID to focus on
+ * @param mode - 'edit' for existing decks, 'fork' for newly forked decks (default: 'fork')
  */
-export function getCreatorEditUrl(deckId: string, cardId?: string): string {
+export function getCreatorEditUrl(deckId: string, cardId?: string, mode: 'edit' | 'fork' = 'fork'): string {
   const baseUrl = 'https://creator.recursive.eco/dashboard/tarot/new';
   const params = new URLSearchParams({ id: deckId });
   if (cardId) {
     params.append('card', cardId);
+  }
+  // Add mode parameter so Creator knows whether to edit in place or expect a new fork
+  if (mode === 'edit') {
+    params.append('mode', 'edit');
   }
   return `${baseUrl}?${params.toString()}`;
 }
