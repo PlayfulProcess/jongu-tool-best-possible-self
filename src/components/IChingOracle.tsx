@@ -3,26 +3,93 @@
 import { useState, useEffect } from 'react'
 import { castHexagram } from '@/lib/iching'
 import { HexagramReading } from '@/types/iching.types'
+import { BookOption } from '@/types/custom-iching.types'
+import { setActiveBook, getActiveBookMeta } from '@/lib/hexagram-lookup'
+import { fetchAllBooks, fetchBookWithHexagrams, getSavedBookId, saveBookId, getDefaultBookId } from '@/lib/custom-iching'
 import {
   QuestionInput,
   ReadingInterpretation
 } from '@/components/iching'
+import { IChingBookSelector } from './IChingBookSelector'
+
+// Extended reading type with book attribution
+export interface HexagramReadingWithAttribution extends HexagramReading {
+  bookId?: string
+  bookName?: string
+  creatorName?: string
+}
 
 interface IChingOracleProps {
-  onReadingComplete?: (reading: HexagramReading) => void
+  onReadingComplete?: (reading: HexagramReadingWithAttribution) => void
   onReadingClear?: () => void
-  readings?: HexagramReading[]
+  readings?: HexagramReadingWithAttribution[]
+  userId?: string | null
 }
 
 export function IChingOracle({
   onReadingComplete,
   onReadingClear,
-  readings: externalReadings = []
+  readings: externalReadings = [],
+  userId
 }: IChingOracleProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [readings, setReadings] = useState<HexagramReading[]>(externalReadings)
+  const [readings, setReadings] = useState<HexagramReadingWithAttribution[]>(externalReadings)
   const [isCasting, setIsCasting] = useState(false)
   const [expandedReadings, setExpandedReadings] = useState<Set<number>>(new Set())
+
+  // Book selection state
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
+  const [loadingBook, setLoadingBook] = useState(false)
+  const [bookOptions, setBookOptions] = useState<BookOption[]>([])
+
+  // Load book options on mount
+  useEffect(() => {
+    async function loadBooks() {
+      const books = await fetchAllBooks(userId)
+      setBookOptions(books)
+
+      // Set default book if none selected
+      if (!selectedBookId && books.length > 0) {
+        const savedId = getSavedBookId()
+        const defaultId = getDefaultBookId(books, savedId)
+        if (defaultId) {
+          setSelectedBookId(defaultId)
+        }
+      }
+    }
+    loadBooks()
+  }, [userId, selectedBookId])
+
+  // Load book and set active when selection changes
+  useEffect(() => {
+    if (!selectedBookId) return
+
+    async function loadAndSetBook() {
+      setLoadingBook(true)
+      try {
+        const book = await fetchBookWithHexagrams(selectedBookId!)
+        if (book) {
+          setActiveBook(selectedBookId, {
+            name: book.name,
+            creator_name: book.creator_name || 'Unknown'
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load book:', error)
+        setActiveBook('classic', { name: 'Classic I Ching', creator_name: 'Traditional' })
+      } finally {
+        setLoadingBook(false)
+      }
+    }
+
+    loadAndSetBook()
+  }, [selectedBookId])
+
+  // Handle book change
+  const handleBookChange = (bookId: string) => {
+    setSelectedBookId(bookId)
+    saveBookId(bookId)
+  }
 
   // Sync with external readings (including when cleared)
   useEffect(() => {
@@ -37,10 +104,23 @@ export function IChingOracle({
   const handleCast = async (question: string) => {
     if (!question.trim()) return
 
+    // Don't allow casting if book is still loading
+    if (loadingBook) return
+
     setIsCasting(true)
 
     try {
-      const newReading = await castHexagram(question)
+      const baseReading = await castHexagram(question)
+      const bookMeta = getActiveBookMeta()
+
+      // Add book attribution to reading
+      const newReading: HexagramReadingWithAttribution = {
+        ...baseReading,
+        bookId: selectedBookId || 'classic',
+        bookName: bookMeta?.name || 'Classic I Ching',
+        creatorName: bookMeta?.creator_name || 'Traditional'
+      }
+
       setReadings(prev => [...prev, newReading])
       setIsOpen(true)
       // Expand the new reading
@@ -167,6 +247,20 @@ export function IChingOracle({
 
             {/* Cast New Reading Input */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              {/* Book Selector */}
+              <IChingBookSelector
+                selectedBookId={selectedBookId}
+                onBookChange={handleBookChange}
+                userId={userId}
+                disabled={isCasting}
+              />
+
+              {loadingBook && (
+                <p className="text-sm text-amber-600 dark:text-amber-400 text-center mb-2">
+                  Loading book...
+                </p>
+              )}
+
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
                 {readings.length === 0
                   ? 'Focus on your question, then cast the hexagram.'
@@ -174,7 +268,7 @@ export function IChingOracle({
               </p>
               <QuestionInput
                 onCast={handleCast}
-                isLoading={isCasting}
+                isLoading={isCasting || loadingBook}
               />
             </div>
           </div>

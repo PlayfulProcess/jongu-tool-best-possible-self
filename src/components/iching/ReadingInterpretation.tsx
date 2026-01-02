@@ -3,12 +3,22 @@
 import { HexagramReading } from '@/types/iching.types';
 import { getLinePositionName } from '@/lib/iching';
 
+// Extended reading type with book attribution
+interface HexagramReadingWithAttribution extends HexagramReading {
+  bookId?: string;
+  bookName?: string;
+  creatorName?: string;
+}
+
 interface ReadingInterpretationProps {
-  reading: HexagramReading;
+  reading: HexagramReadingWithAttribution;
 }
 
 export default function ReadingInterpretation({ reading }: ReadingInterpretationProps) {
-  const { primaryHexagram, changingLines, transformedHexagram, lines } = reading;
+  const { primaryHexagram, changingLines, transformedHexagram, lines, bookId, bookName, creatorName } = reading;
+
+  // Determine if we should show attribution (not for classic/fallback)
+  const showAttribution = bookId && bookId !== 'classic' && bookName;
 
   return (
     <div className="space-y-6 text-gray-700 dark:text-gray-300">
@@ -98,6 +108,27 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
               <p>{transformedHexagram.meaning}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Attribution */}
+      {showAttribution && (
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            Interpretation from <span className="font-medium text-amber-600 dark:text-amber-400">{bookName}</span>
+            {creatorName && creatorName !== 'Unknown' && (
+              <span> by {creatorName}</span>
+            )}
+          </p>
+        </div>
+      )}
+
+      {/* Classic attribution for default book */}
+      {(!bookId || bookId === 'classic') && (
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            Classic I Ching interpretation
+          </p>
         </div>
       )}
     </div>

@@ -1,15 +1,64 @@
 // Hexagram Lookup Utility
-// Loads and provides access to hexagram data from JSON
+// Loads and provides access to hexagram data from JSON or custom I Ching books
 
 import { HexagramData } from '@/types/iching.types';
+import { HexagramWithAttribution } from '@/types/custom-iching.types';
+import { fetchBookWithHexagrams } from './custom-iching';
 
-// Cache for loaded hexagram data
+// Cache for loaded hexagram data (classic/fallback)
 let hexagramCache: HexagramData[] | null = null;
 
+// Cache for book-specific hexagrams
+const bookHexagramCache = new Map<string, HexagramData[]>();
+
+// Current active book ID (null means use classic)
+let activeBookId: string | null = null;
+
+// Current active book metadata for attribution
+let activeBookMeta: { name: string; creator_name: string } | null = null;
+
 /**
- * Load all hexagrams from the JSON data file
+ * Set the active book ID for hexagram lookups
+ */
+export function setActiveBook(bookId: string | null, meta?: { name: string; creator_name: string }): void {
+  activeBookId = bookId;
+  activeBookMeta = meta || null;
+}
+
+/**
+ * Get the current active book ID
+ */
+export function getActiveBookId(): string | null {
+  return activeBookId;
+}
+
+/**
+ * Get the current active book metadata
+ */
+export function getActiveBookMeta(): { name: string; creator_name: string } | null {
+  return activeBookMeta;
+}
+
+/**
+ * Load hexagrams from the active book or fallback to classic JSON
  */
 export async function loadHexagrams(): Promise<HexagramData[]> {
+  // If an active book is set, try to load from it
+  if (activeBookId && activeBookId !== 'classic') {
+    const bookHexagrams = await loadHexagramsFromBook(activeBookId);
+    if (bookHexagrams.length > 0) {
+      return bookHexagrams;
+    }
+    // Fall through to classic if book fails
+  }
+
+  return loadClassicHexagrams();
+}
+
+/**
+ * Load hexagrams from the classic JSON data file
+ */
+export async function loadClassicHexagrams(): Promise<HexagramData[]> {
   if (hexagramCache) {
     return hexagramCache;
   }
@@ -29,6 +78,28 @@ export async function loadHexagrams(): Promise<HexagramData[]> {
     // Return placeholder data if loading fails
     return getPlaceholderHexagrams();
   }
+}
+
+/**
+ * Load hexagrams from a specific book
+ */
+export async function loadHexagramsFromBook(bookId: string): Promise<HexagramData[]> {
+  // Check cache first
+  if (bookHexagramCache.has(bookId)) {
+    return bookHexagramCache.get(bookId)!;
+  }
+
+  try {
+    const book = await fetchBookWithHexagrams(bookId);
+    if (book && book.hexagrams.length > 0) {
+      bookHexagramCache.set(bookId, book.hexagrams);
+      return book.hexagrams;
+    }
+  } catch (error) {
+    console.error(`Error loading hexagrams from book ${bookId}:`, error);
+  }
+
+  return [];
 }
 
 /**
@@ -91,6 +162,44 @@ export async function getAllHexagrams(): Promise<HexagramData[]> {
  */
 export function clearHexagramCache(): void {
   hexagramCache = null;
+  bookHexagramCache.clear();
+}
+
+/**
+ * Get a hexagram with attribution information
+ */
+export async function getHexagramWithAttribution(number: number): Promise<HexagramWithAttribution> {
+  const hexagram = await getHexagramByNumber(number);
+  const meta = getActiveBookMeta();
+
+  return {
+    ...hexagram,
+    book_id: activeBookId || 'classic',
+    book_name: meta?.name || 'Classic I Ching',
+    creator_name: meta?.creator_name || 'Traditional',
+  };
+}
+
+/**
+ * Get a hexagram from a specific book by number
+ */
+export async function getHexagramFromBook(
+  bookId: string,
+  number: number
+): Promise<HexagramData> {
+  if (number < 1 || number > 64) {
+    throw new Error(`Invalid hexagram number: ${number}. Must be between 1 and 64.`);
+  }
+
+  const hexagrams = await loadHexagramsFromBook(bookId);
+  const hexagram = hexagrams.find((h) => h.number === number);
+
+  if (!hexagram) {
+    // Fallback to classic if not found in book
+    return getHexagramByNumber(number);
+  }
+
+  return hexagram;
 }
 
 // Trigram data for reference
