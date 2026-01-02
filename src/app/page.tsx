@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
 declare global {
@@ -90,6 +91,9 @@ function FormattedText({ text }: { text: string }) {
 
 export default function BestPossibleSelfPage() {
   const { user, status, signOut } = useAuth();
+  const searchParams = useSearchParams();
+  const initialDeckId = searchParams.get('deckId');
+
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [entriesLoading, setEntriesLoading] = useState(true);
@@ -932,6 +936,7 @@ export default function BestPossibleSelfPage() {
                 onReadingComplete={(reading) => setTarotReadings(prev => [...prev, reading])}
                 onReadingClear={() => setTarotReadings([])}
                 userId={user?.id}
+                initialDeckId={initialDeckId}
               />
             </div>
 
