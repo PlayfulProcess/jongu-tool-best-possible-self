@@ -15,6 +15,7 @@ interface TarotOracleProps {
   readings?: TarotReading[]
   userLastDeckId?: string | null // From user's most recent tarot reading in database
   userId?: string | null // Current user ID for deck ownership
+  initialDeckId?: string | null // Pre-select deck from URL parameter
 }
 
 // State for showing card detail modal
@@ -30,16 +31,18 @@ export function TarotOracle({
   onReadingClear,
   readings: externalReadings = [],
   userLastDeckId,
-  userId
+  userId,
+  initialDeckId
 }: TarotOracleProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  // Auto-open when initialDeckId is provided from URL
+  const [isOpen, setIsOpen] = useState(!!initialDeckId)
   const [readings, setReadings] = useState<TarotReading[]>(externalReadings)
   const [isDrawing, setIsDrawing] = useState(false)
   const [expandedReadings, setExpandedReadings] = useState<Set<number>>(new Set())
   const [question, setQuestion] = useState('')
 
-  // Deck selection state - all decks come from database now
-  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null)
+  // Deck selection state - pre-select from URL param if provided
+  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(initialDeckId || null)
   const [currentDeck, setCurrentDeck] = useState<CustomTarotDeck | null>(null)
   const [loadingDeck, setLoadingDeck] = useState(false)
 
