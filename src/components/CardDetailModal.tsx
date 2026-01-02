@@ -99,8 +99,7 @@ export function CardDetailModal({
   };
 
   const handleEditInCreator = () => {
-    // User owns this deck - open in edit mode (not fork mode)
-    const url = getCreatorEditUrl(deckId, cardId, 'edit');
+    const url = getCreatorEditUrl(deckId, cardId);
     window.open(url, '_blank');
   };
 
@@ -198,10 +197,9 @@ export function CardDetailModal({
       console.log('[CardDetailModal] addCardToExistingDeck result:', result);
 
       if (result?.success) {
-        // Open creator with the deck in EDIT mode - the card is now added
-        // Using 'edit' mode tells Creator this is an existing deck, not a new fork
-        const url = getCreatorEditUrl(targetDeckId, cardId, 'edit');
-        console.log('[CardDetailModal] Opening Creator URL (edit mode):', url);
+        // Open creator with the deck - the card is now added
+        const url = getCreatorEditUrl(targetDeckId, cardId);
+        console.log('[CardDetailModal] Opening Creator URL:', url);
         window.open(url, '_blank');
         onClose();
       } else {
