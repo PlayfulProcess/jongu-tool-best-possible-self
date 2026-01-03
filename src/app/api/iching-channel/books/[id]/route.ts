@@ -2,6 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { HexagramData } from '@/types/iching.types';
 
+// Trigram lookup for converting names to Chinese symbols
+const TRIGRAM_LOOKUP: Record<string, { name: string; chinese: string }> = {
+  'heaven': { name: 'Heaven', chinese: '☰ 乾' },
+  'earth': { name: 'Earth', chinese: '☷ 坤' },
+  'thunder': { name: 'Thunder', chinese: '☳ 震' },
+  'water': { name: 'Water', chinese: '☵ 坎' },
+  'mountain': { name: 'Mountain', chinese: '☶ 艮' },
+  'wind': { name: 'Wind', chinese: '☴ 巽' },
+  'fire': { name: 'Fire', chinese: '☲ 離' },
+  'lake': { name: 'Lake', chinese: '☱ 兌' },
+  // Alternative names
+  'wood': { name: 'Wind/Wood', chinese: '☴ 巽' },
+  'marsh': { name: 'Lake/Marsh', chinese: '☱ 兌' },
+  'abyss': { name: 'Water', chinese: '☵ 坎' },
+  'the creative': { name: 'Heaven', chinese: '☰ 乾' },
+  'the receptive': { name: 'Earth', chinese: '☷ 坤' },
+  'the arousing': { name: 'Thunder', chinese: '☳ 震' },
+  'the abysmal': { name: 'Water', chinese: '☵ 坎' },
+  'keeping still': { name: 'Mountain', chinese: '☶ 艮' },
+  'the gentle': { name: 'Wind', chinese: '☴ 巽' },
+  'the clinging': { name: 'Fire', chinese: '☲ 離' },
+  'the joyous': { name: 'Lake', chinese: '☱ 兌' },
+};
+
 // CORS headers for cross-origin access
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -127,15 +151,30 @@ function normalizeTrigram(trigram: unknown): { name: string; chinese: string } {
   }
 
   if (typeof trigram === 'string') {
+    // Look up trigram by name
+    const lookup = TRIGRAM_LOOKUP[trigram.toLowerCase()];
+    if (lookup) {
+      return lookup;
+    }
     return { name: trigram, chinese: '?' };
   }
 
   if (typeof trigram === 'object') {
     const t = trigram as Record<string, unknown>;
-    return {
-      name: (t.name || 'Unknown') as string,
-      chinese: (t.chinese || '?') as string
-    };
+    const name = (t.name || 'Unknown') as string;
+    let chinese = (t.chinese || '') as string;
+
+    // If chinese is empty or just "?", try to look up by name
+    if (!chinese || chinese === '?') {
+      const lookup = TRIGRAM_LOOKUP[name.toLowerCase()];
+      if (lookup) {
+        chinese = lookup.chinese;
+      } else {
+        chinese = '?';
+      }
+    }
+
+    return { name, chinese };
   }
 
   return { name: 'Unknown', chinese: '?' };
