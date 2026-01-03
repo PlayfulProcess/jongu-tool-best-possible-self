@@ -46,13 +46,27 @@ export function saveDeckId(deckId: string): void {
 }
 
 /**
+ * Get the Creator base URL based on environment
+ * Uses dev.creator for dev/localhost, creator for production
+ */
+function getCreatorBase(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('dev.') || host.includes('localhost')) {
+      return 'https://dev.creator.recursive.eco';
+    }
+  }
+  return 'https://creator.recursive.eco';
+}
+
+/**
  * Get the Creator URL for editing a deck/card
  * Uses clean URL format: /dashboard/tarot/{deckId}?card={cardSlug}
  * @param deckId - The deck ID to edit
  * @param cardId - Optional card ID (slug format) to focus on
  */
 export function getCreatorEditUrl(deckId: string, cardId?: string): string {
-  const baseUrl = `https://creator.recursive.eco/dashboard/tarot/${deckId}`;
+  const baseUrl = `${getCreatorBase()}/dashboard/tarot/${deckId}`;
   if (cardId) {
     return `${baseUrl}?card=${encodeURIComponent(cardId)}`;
   }
@@ -63,7 +77,7 @@ export function getCreatorEditUrl(deckId: string, cardId?: string): string {
  * Get the Creator URL for creating a new deck
  */
 export function getCreatorNewDeckUrl(): string {
-  return 'https://creator.recursive.eco/dashboard/tarot/new';
+  return `${getCreatorBase()}/dashboard/tarot/new`;
 }
 
 /**

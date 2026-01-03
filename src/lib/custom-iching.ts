@@ -39,21 +39,28 @@ export function saveBookId(bookId: string): void {
 }
 
 /**
+ * Get the base URL based on environment
+ * Uses dev subdomain for dev/localhost, production otherwise
+ */
+function getEnvironmentBase(subdomain: string): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('dev.') || host.includes('localhost')) {
+      return `https://dev.${subdomain}.recursive.eco`;
+    }
+  }
+  return `https://${subdomain}.recursive.eco`;
+}
+
+/**
  * Get the I Ching viewer URL (environment-aware)
- * Similar to getTarotViewerUrl in custom-tarot.ts
  */
 export function getIChingViewerUrl(bookId: string): string {
-  if (typeof window === 'undefined') {
-    return `https://recursive.eco/pages/iching-viewer.html?bookId=${bookId}`;
-  }
-
-  const host = window.location.hostname;
-
-  if (host.includes('dev.') || host.includes('localhost')) {
-    return `https://dev.recursive.eco/pages/iching-viewer.html?bookId=${bookId}`;
-  }
-
-  return `https://recursive.eco/pages/iching-viewer.html?bookId=${bookId}`;
+  const base = typeof window !== 'undefined' &&
+    (window.location.hostname.includes('dev.') || window.location.hostname.includes('localhost'))
+    ? 'https://dev.recursive.eco'
+    : 'https://recursive.eco';
+  return `${base}/pages/iching-viewer.html?bookId=${bookId}`;
 }
 
 /**
@@ -61,7 +68,8 @@ export function getIChingViewerUrl(bookId: string): string {
  * Uses clean URL format: /dashboard/iching/{bookId}?hexagram={hexagramNumber}
  */
 export function getCreatorEditUrl(bookId: string, hexagramNumber?: number): string {
-  const baseUrl = `https://creator.recursive.eco/dashboard/iching/${bookId}`;
+  const creatorBase = getEnvironmentBase('creator');
+  const baseUrl = `${creatorBase}/dashboard/iching/${bookId}`;
   if (hexagramNumber) {
     return `${baseUrl}?hexagram=${hexagramNumber}`;
   }
@@ -72,7 +80,7 @@ export function getCreatorEditUrl(bookId: string, hexagramNumber?: number): stri
  * Get the Creator URL for creating a new I Ching book
  */
 export function getCreatorNewBookUrl(): string {
-  return 'https://creator.recursive.eco/dashboard/iching/new';
+  return `${getEnvironmentBase('creator')}/dashboard/iching/new`;
 }
 
 /**

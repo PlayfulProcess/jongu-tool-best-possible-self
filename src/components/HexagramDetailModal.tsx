@@ -157,7 +157,7 @@ export function HexagramDetailModal({
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
               >
                 <span>✏️</span>
-                {isUserBook ? 'Edit in Creator' : 'Edit My Copy'}
+                Edit in Creator
               </button>
             )}
           </div>
