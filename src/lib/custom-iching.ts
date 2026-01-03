@@ -39,6 +39,43 @@ export function saveBookId(bookId: string): void {
 }
 
 /**
+ * Get the I Ching viewer URL (environment-aware)
+ * Similar to getTarotViewerUrl in custom-tarot.ts
+ */
+export function getIChingViewerUrl(bookId: string): string {
+  if (typeof window === 'undefined') {
+    return `https://recursive.eco/pages/iching-viewer.html?bookId=${bookId}`;
+  }
+
+  const host = window.location.hostname;
+
+  if (host.includes('dev.') || host.includes('localhost')) {
+    return `https://dev.recursive.eco/pages/iching-viewer.html?bookId=${bookId}`;
+  }
+
+  return `https://recursive.eco/pages/iching-viewer.html?bookId=${bookId}`;
+}
+
+/**
+ * Get the Creator URL for editing a book/hexagram
+ * Uses clean URL format: /dashboard/iching/{bookId}?hexagram={hexagramNumber}
+ */
+export function getCreatorEditUrl(bookId: string, hexagramNumber?: number): string {
+  const baseUrl = `https://creator.recursive.eco/dashboard/iching/${bookId}`;
+  if (hexagramNumber) {
+    return `${baseUrl}?hexagram=${hexagramNumber}`;
+  }
+  return baseUrl;
+}
+
+/**
+ * Get the Creator URL for creating a new I Ching book
+ */
+export function getCreatorNewBookUrl(): string {
+  return 'https://creator.recursive.eco/dashboard/iching/new';
+}
+
+/**
  * Fetch community books from the I Ching channel API
  */
 async function fetchCommunityBooks(): Promise<BookOption[]> {

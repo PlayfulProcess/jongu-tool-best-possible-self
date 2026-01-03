@@ -1,6 +1,6 @@
 'use client';
 
-import { HexagramReading } from '@/types/iching.types';
+import { HexagramReading, HexagramData } from '@/types/iching.types';
 import { getLinePositionName } from '@/lib/iching';
 
 // Extended reading type with book attribution
@@ -12,9 +12,10 @@ interface HexagramReadingWithAttribution extends HexagramReading {
 
 interface ReadingInterpretationProps {
   reading: HexagramReadingWithAttribution;
+  onHexagramClick?: (hexagram: HexagramData) => void;
 }
 
-export default function ReadingInterpretation({ reading }: ReadingInterpretationProps) {
+export default function ReadingInterpretation({ reading, onHexagramClick }: ReadingInterpretationProps) {
   const { primaryHexagram, changingLines, transformedHexagram, lines, bookId, bookName, creatorName } = reading;
 
   // Determine if we should show attribution (not for classic/fallback)
@@ -39,7 +40,10 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
   return (
     <div className="space-y-6 text-gray-700 dark:text-gray-300">
       {/* Primary Hexagram Header */}
-      <div className="text-center">
+      <div
+        className={`text-center ${onHexagramClick ? 'cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg p-3 -m-3 transition-colors' : ''}`}
+        onClick={() => onHexagramClick?.(primaryHexagram)}
+      >
         <div className="text-4xl mb-2">{primaryHexagram.unicode}</div>
         <h3 className="font-serif text-xl text-gray-900 dark:text-white">
           Hexagram {primaryHexagram.number}: {primaryHexagram.english_name}
@@ -47,6 +51,9 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {primaryHexagram.chinese_name} ({primaryHexagram.pinyin})
         </p>
+        {onHexagramClick && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Click for details</p>
+        )}
       </div>
 
       {/* The Judgment */}
@@ -96,7 +103,10 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
       {/* Transformed Hexagram */}
       {transformedHexagram && (
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <div className="text-center mb-4">
+          <div
+            className={`text-center mb-4 ${onHexagramClick ? 'cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg p-3 -m-3 transition-colors' : ''}`}
+            onClick={() => onHexagramClick?.(transformedHexagram)}
+          >
             <p className="text-xs text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">
               → Trending Toward →
             </p>
@@ -107,6 +117,9 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {transformedHexagram.chinese_name} ({transformedHexagram.pinyin})
             </p>
+            {onHexagramClick && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Click for details</p>
+            )}
           </div>
 
           <div className="space-y-4">

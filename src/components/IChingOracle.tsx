@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { castHexagram } from '@/lib/iching'
-import { HexagramReading } from '@/types/iching.types'
+import { HexagramReading, HexagramData } from '@/types/iching.types'
 import { setActiveBook, getActiveBookMeta } from '@/lib/hexagram-lookup'
 import { fetchAllBooks, fetchBookWithHexagrams, getSavedBookId, saveBookId, getDefaultBookId } from '@/lib/custom-iching'
 import {
@@ -10,6 +10,8 @@ import {
   ReadingInterpretation
 } from '@/components/iching'
 import { IChingBookSelector } from './IChingBookSelector'
+import { HexagramDetailModal } from './HexagramDetailModal'
+import { BookOption } from '@/types/custom-iching.types'
 
 // Extended reading type with book attribution
 export interface HexagramReadingWithAttribution extends HexagramReading {
@@ -39,11 +41,16 @@ export function IChingOracle({
   // Book selection state
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
   const [loadingBook, setLoadingBook] = useState(false)
+  const [bookOptions, setBookOptions] = useState<BookOption[]>([])
+
+  // Modal state for hexagram details
+  const [selectedHexagram, setSelectedHexagram] = useState<HexagramData | null>(null)
 
   // Set default book on mount
   useEffect(() => {
     async function setDefaultBook() {
       const books = await fetchAllBooks(userId)
+      setBookOptions(books)
 
       // Set default book if none selected
       if (!selectedBookId && books.length > 0) {
@@ -152,6 +159,24 @@ export function IChingOracle({
     })
   }
 
+  // Check if current book is owned by the user
+  const isCurrentBookUserOwned = (): boolean => {
+    if (!userId || !selectedBookId) return false
+    const currentBook = bookOptions.find(b => b.id === selectedBookId)
+    return currentBook?.source === 'user' || currentBook?.creator_id === userId
+  }
+
+  // Get current book name
+  const getCurrentBookName = (): string | undefined => {
+    const currentBook = bookOptions.find(b => b.id === selectedBookId)
+    return currentBook?.name
+  }
+
+  // Handle hexagram click for modal
+  const handleHexagramClick = (hexagram: HexagramData) => {
+    setSelectedHexagram(hexagram)
+  }
+
   return (
     <div>
       {/* Toggle Button */}
@@ -235,7 +260,10 @@ export function IChingOracle({
                       <p className="text-gray-800 dark:text-gray-200 italic">&ldquo;{reading.question}&rdquo;</p>
                     </div>
                     <div className="mt-4">
-                      <ReadingInterpretation reading={reading} />
+                      <ReadingInterpretation
+                        reading={reading}
+                        onHexagramClick={handleHexagramClick}
+                      />
                     </div>
                   </div>
                 )}
@@ -270,6 +298,18 @@ export function IChingOracle({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Hexagram Detail Modal */}
+      {selectedHexagram && selectedBookId && (
+        <HexagramDetailModal
+          hexagram={selectedHexagram}
+          bookId={selectedBookId}
+          bookName={getCurrentBookName()}
+          isUserBook={isCurrentBookUserOwned()}
+          userId={userId}
+          onClose={() => setSelectedHexagram(null)}
+        />
       )}
     </div>
   )
