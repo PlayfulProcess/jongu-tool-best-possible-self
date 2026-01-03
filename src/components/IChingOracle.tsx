@@ -5,12 +5,10 @@ import { castHexagram } from '@/lib/iching'
 import { HexagramReading, HexagramData } from '@/types/iching.types'
 import { setActiveBook, getActiveBookMeta } from '@/lib/hexagram-lookup'
 import { fetchAllBooks, fetchBookWithHexagrams, getSavedBookId, saveBookId, getDefaultBookId } from '@/lib/custom-iching'
-import {
-  QuestionInput,
-  ReadingInterpretation
-} from '@/components/iching'
+import { ReadingInterpretation } from '@/components/iching'
 import { IChingBookSelector } from './IChingBookSelector'
 import { HexagramDetailModal } from './HexagramDetailModal'
+import { OracleQuestionInput } from './OracleQuestionInput'
 import { BookOption } from '@/types/custom-iching.types'
 
 // Extended reading type with book attribution
@@ -286,14 +284,11 @@ export function IChingOracle({
                 </p>
               )}
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
-                {readings.length === 0
-                  ? 'Focus on your question, then cast the hexagram.'
-                  : 'Cast another reading for a new question.'}
-              </p>
-              <QuestionInput
-                onCast={handleCast}
-                isLoading={isCasting || loadingBook}
+              <OracleQuestionInput
+                oracleType="iching"
+                onSubmit={handleCast}
+                isLoading={isCasting}
+                disabled={loadingBook}
               />
             </div>
           </div>
