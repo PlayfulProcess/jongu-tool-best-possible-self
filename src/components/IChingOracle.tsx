@@ -301,11 +301,11 @@ export function IChingOracle({
       )}
 
       {/* Hexagram Detail Modal */}
-      {selectedHexagram && selectedBookId && (
+      {selectedHexagram && (
         <HexagramDetailModal
           hexagram={selectedHexagram}
-          bookId={selectedBookId}
-          bookName={getCurrentBookName()}
+          bookId={selectedBookId || 'classic'}
+          bookName={getCurrentBookName() || 'Classic I Ching'}
           isUserBook={isCurrentBookUserOwned()}
           userId={userId}
           onClose={() => setSelectedHexagram(null)}
