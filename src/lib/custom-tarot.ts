@@ -26,6 +26,25 @@ const deckCache = new Map<string, CustomTarotDeck>();
 const deckListCache = new Map<string, { decks: DeckOption[]; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// localStorage key for selected deck
+const SELECTED_DECK_KEY = 'tarot_selected_deck_id';
+
+/**
+ * Get the saved deck ID from localStorage
+ */
+export function getSavedDeckId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(SELECTED_DECK_KEY);
+}
+
+/**
+ * Save the selected deck ID to localStorage
+ */
+export function saveDeckId(deckId: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SELECTED_DECK_KEY, deckId);
+}
+
 /**
  * Get the Creator URL for editing a deck/card
  * Uses clean URL format: /dashboard/tarot/{deckId}?card={cardSlug}
