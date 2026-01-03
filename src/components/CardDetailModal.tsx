@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CustomTarotCard, DeckOption } from '@/types/custom-tarot.types';
 import { TarotCard } from '@/types/tarot.types';
-import { getCreatorEditUrl, forkDeck, fetchAllDecks, addCardToExistingDeck } from '@/lib/custom-tarot';
+import { getCreatorEditUrl, forkDeck, fetchAllDecks, addCardToExistingDeck, getTarotViewerUrl } from '@/lib/custom-tarot';
 
 // Combined card type that supports both formats
 type CardData = CustomTarotCard | TarotCard;
@@ -100,6 +100,11 @@ export function CardDetailModal({
 
   const handleEditInCreator = () => {
     const url = getCreatorEditUrl(deckId, cardId);
+    window.open(url, '_blank');
+  };
+
+  const handleViewFullDeck = () => {
+    const url = getTarotViewerUrl(deckId);
     window.open(url, '_blank');
   };
 
@@ -484,7 +489,7 @@ export function CardDetailModal({
           </div>
         </div>
 
-        {/* Footer with Edit Actions */}
+        {/* Footer with View/Edit Actions */}
         <div className="p-4 border-t border-gray-700 shrink-0 bg-gray-800/80">
           {forkError && (
             <p className="text-red-400 text-sm mb-3 text-center">{forkError}</p>
@@ -493,10 +498,21 @@ export function CardDetailModal({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
             >
               Close
             </button>
+
+            {/* View Full Deck - always available if deck is known */}
+            {deckId !== 'unknown' && (
+              <button
+                onClick={handleViewFullDeck}
+                className="px-4 py-2 bg-indigo-600/50 hover:bg-indigo-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <span>👁</span>
+                View Deck
+              </button>
+            )}
 
             {deckId === 'unknown' ? (
               // Unknown deck - can't edit, just view

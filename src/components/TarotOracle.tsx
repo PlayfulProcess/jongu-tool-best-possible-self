@@ -8,6 +8,7 @@ import { TarotReading, DrawnCard } from '@/types/tarot.types'
 import { CustomTarotDeck, DeckOption } from '@/types/custom-tarot.types'
 import { TarotDeckSelector } from './TarotDeckSelector'
 import { CardDetailModal } from './CardDetailModal'
+import { OracleQuestionInput } from './OracleQuestionInput'
 
 interface TarotOracleProps {
   onReadingComplete?: (reading: TarotReading) => void
@@ -39,7 +40,6 @@ export function TarotOracle({
   const [readings, setReadings] = useState<TarotReading[]>(externalReadings)
   const [isDrawing, setIsDrawing] = useState(false)
   const [expandedReadings, setExpandedReadings] = useState<Set<number>>(new Set())
-  const [question, setQuestion] = useState('')
 
   // Deck selection state - pre-select from URL param if provided
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(initialDeckId || null)
@@ -95,7 +95,7 @@ export function TarotOracle({
     loadDeck()
   }, [selectedDeckId])
 
-  const handleDraw = async () => {
+  const handleDraw = async (question: string) => {
     if (!question.trim()) return
 
     // Don't allow drawing if loading deck or no deck selected
@@ -113,7 +113,6 @@ export function TarotOracle({
       setReadings(prev => [...prev, newReading])
       setIsOpen(true)
       setExpandedReadings(new Set([readings.length]))
-      setQuestion('')
 
       if (onReadingComplete) {
         onReadingComplete(newReading)
@@ -318,28 +317,13 @@ export function TarotOracle({
                 </p>
               )}
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
-                {readings.length === 0
-                  ? 'Focus on your question, then draw three cards.'
-                  : 'Draw another reading for a new question.'}
-              </p>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !isDrawing && question.trim() && handleDraw()}
-                  placeholder="What guidance do you seek?"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                />
-                <button
-                  onClick={handleDraw}
-                  disabled={isDrawing || loadingDeck || !question.trim() || !currentDeck}
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isDrawing ? 'Drawing...' : loadingDeck ? 'Loading deck...' : !currentDeck ? 'Select a deck' : '🃏 Draw Cards'}
-                </button>
-              </div>
+              <OracleQuestionInput
+                oracleType="tarot"
+                onSubmit={handleDraw}
+                isLoading={isDrawing}
+                disabled={loadingDeck || !currentDeck}
+                buttonLabel={!currentDeck ? 'Select a deck' : undefined}
+              />
             </div>
           </div>
         </div>

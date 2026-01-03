@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchAllDecks, getTarotViewerUrl, getDefaultDeckId, getCreatorNewDeckUrl } from '@/lib/custom-tarot';
+import { fetchAllDecks, getTarotViewerUrl, getDefaultDeckId, getCreatorNewDeckUrl, getSavedDeckId, saveDeckId } from '@/lib/custom-tarot';
 import { DeckOption } from '@/types/custom-tarot.types';
 
 interface TarotDeckSelectorProps {
@@ -50,13 +50,18 @@ export function TarotDeckSelector({
 
         // Set default selection if none selected
         if (!selectedDeckId && loadedDecks.length > 0) {
-          const defaultId = getDefaultDeckId(loadedDecks, userLastDeckId);
+          // Priority: 1) localStorage saved deck, 2) userLastDeckId from DB, 3) default
+          const savedDeckId = getSavedDeckId();
+          const preferredId = savedDeckId || userLastDeckId;
+          const defaultId = getDefaultDeckId(loadedDecks, preferredId);
           if (defaultId) {
             onDeckChange(defaultId);
           }
         } else if (selectedDeckId && !loadedDecks.some(d => d.id === selectedDeckId)) {
           // Selected deck no longer exists, reset to default
-          const defaultId = getDefaultDeckId(loadedDecks, userLastDeckId);
+          const savedDeckId = getSavedDeckId();
+          const preferredId = savedDeckId || userLastDeckId;
+          const defaultId = getDefaultDeckId(loadedDecks, preferredId);
           if (defaultId) {
             onDeckChange(defaultId);
           }
@@ -82,6 +87,7 @@ export function TarotDeckSelector({
 
   const handleSelectDeck = (deckId: string) => {
     onDeckChange(deckId);
+    saveDeckId(deckId); // Persist to localStorage
     setShowPopup(false);
     setPreviewDeck(null);
   };
