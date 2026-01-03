@@ -150,31 +150,17 @@ export function HexagramDetailModal({
               </button>
             )}
 
-            {/* Edit in Creator - only for user's own books */}
-            {isUserBook && !isClassicBook ? (
+            {/* Edit in Creator - available for all non-classic books */}
+            {!isClassicBook && (
               <button
                 onClick={handleEditInCreator}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
               >
                 <span>✏️</span>
-                Edit in Creator
+                {isUserBook ? 'Edit in Creator' : 'Edit My Copy'}
               </button>
-            ) : !isClassicBook && userId ? (
-              <button
-                onClick={handleEditInCreator}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
-              >
-                <span>📝</span>
-                Edit My Copy
-              </button>
-            ) : null}
+            )}
           </div>
-
-          {!isClassicBook && !isUserBook && userId && (
-            <p className="text-center text-gray-500 text-xs mt-2">
-              Customize this hexagram&apos;s meaning in your own book
-            </p>
-          )}
 
           {isClassicBook && (
             <p className="text-center text-gray-500 text-xs mt-2">
