@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { castHexagram } from '@/lib/iching'
 import { HexagramReading } from '@/types/iching.types'
-import { BookOption } from '@/types/custom-iching.types'
 import { setActiveBook, getActiveBookMeta } from '@/lib/hexagram-lookup'
 import { fetchAllBooks, fetchBookWithHexagrams, getSavedBookId, saveBookId, getDefaultBookId } from '@/lib/custom-iching'
 import {
@@ -40,13 +39,11 @@ export function IChingOracle({
   // Book selection state
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
   const [loadingBook, setLoadingBook] = useState(false)
-  const [bookOptions, setBookOptions] = useState<BookOption[]>([])
 
-  // Load book options on mount
+  // Set default book on mount
   useEffect(() => {
-    async function loadBooks() {
+    async function setDefaultBook() {
       const books = await fetchAllBooks(userId)
-      setBookOptions(books)
 
       // Set default book if none selected
       if (!selectedBookId && books.length > 0) {
@@ -57,7 +54,7 @@ export function IChingOracle({
         }
       }
     }
-    loadBooks()
+    setDefaultBook()
   }, [userId, selectedBookId])
 
   // Load book and set active when selection changes

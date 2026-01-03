@@ -100,7 +100,7 @@ async function fetchUserBooks(userId: string): Promise<BookOption[]> {
     if (!data) return [];
 
     return data.map((doc: { id: string; document_data: Record<string, unknown>; created_at: string }) => {
-      const bookData = doc.document_data as IChingBookDocumentData;
+      const bookData = doc.document_data as unknown as IChingBookDocumentData;
 
       return {
         id: doc.id,
