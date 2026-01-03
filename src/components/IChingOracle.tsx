@@ -157,13 +157,6 @@ export function IChingOracle({
     })
   }
 
-  // Check if current book is owned by the user
-  const isCurrentBookUserOwned = (): boolean => {
-    if (!userId || !selectedBookId) return false
-    const currentBook = bookOptions.find(b => b.id === selectedBookId)
-    return currentBook?.source === 'user' || currentBook?.creator_id === userId
-  }
-
   // Get current book name
   const getCurrentBookName = (): string | undefined => {
     const currentBook = bookOptions.find(b => b.id === selectedBookId)
@@ -301,8 +294,6 @@ export function IChingOracle({
           hexagram={selectedHexagram}
           bookId={selectedBookId || 'classic'}
           bookName={getCurrentBookName() || 'Classic I Ching'}
-          isUserBook={isCurrentBookUserOwned()}
-          userId={userId}
           onClose={() => setSelectedHexagram(null)}
         />
       )}

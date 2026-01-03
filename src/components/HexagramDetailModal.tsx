@@ -7,8 +7,6 @@ interface HexagramDetailModalProps {
   hexagram: HexagramData;
   bookId: string;
   bookName?: string;
-  isUserBook: boolean;
-  userId?: string | null;
   onClose: () => void;
 }
 
@@ -16,8 +14,6 @@ export function HexagramDetailModal({
   hexagram,
   bookId,
   bookName,
-  isUserBook,
-  userId,
   onClose
 }: HexagramDetailModalProps) {
 
