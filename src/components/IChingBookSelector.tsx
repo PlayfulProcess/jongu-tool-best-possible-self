@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchAllBooks, getDefaultBookId, getSavedBookId, saveBookId } from '@/lib/custom-iching';
+import { fetchAllBooks, getDefaultBookId, getSavedBookId, saveBookId, getIChingViewerUrl } from '@/lib/custom-iching';
 import { BookOption } from '@/types/custom-iching.types';
 
 interface IChingBookSelectorProps {
@@ -87,6 +87,13 @@ export function IChingBookSelector({
     setPreviewBook(null);
   };
 
+  const handleViewDetails = (bookId: string) => {
+    // Don't open viewer for classic/fallback books
+    const book = books.find(b => b.id === bookId);
+    if (book?.source === 'fallback') return;
+    window.open(getIChingViewerUrl(bookId), '_blank');
+  };
+
   const getSourceLabel = (source: BookOption['source']): string => {
     switch (source) {
       case 'user': return 'Your Book';
@@ -169,6 +176,18 @@ export function IChingBookSelector({
           </span>
           <span className="ml-2">▼</span>
         </button>
+
+        {/* Eye Button - View current book (not for classic) */}
+        {selectedBook && selectedBook.source !== 'fallback' && (
+          <button
+            onClick={() => handleViewDetails(selectedBookId!)}
+            disabled={disabled}
+            className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm transition-colors"
+            title="View full book"
+          >
+            👁
+          </button>
+        )}
       </div>
 
       {/* Selected book info */}
@@ -254,6 +273,15 @@ export function IChingBookSelector({
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-3">
+                  {/* View Details - not for classic books */}
+                  {previewBook.source !== 'fallback' && (
+                    <button
+                      onClick={() => handleViewDetails(previewBook.id)}
+                      className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
+                    >
+                      View Details
+                    </button>
+                  )}
                   <button
                     onClick={() => handleSelectBook(previewBook.id)}
                     className="flex-1 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm transition-colors flex items-center justify-center gap-1"
