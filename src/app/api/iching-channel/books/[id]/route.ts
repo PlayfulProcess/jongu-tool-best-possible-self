@@ -142,6 +142,25 @@ function normalizeTrigram(trigram: unknown): { name: string; chinese: string } {
 }
 
 /**
+ * Extract text from a line value that might be a string or object
+ */
+function extractLineText(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    // Try common field names for line text
+    if (typeof obj.text === 'string') return obj.text;
+    if (typeof obj.interpretation === 'string') return obj.interpretation;
+    if (typeof obj.meaning === 'string') return obj.meaning;
+    if (typeof obj.content === 'string') return obj.content;
+    if (typeof obj.description === 'string') return obj.description;
+  }
+  return '';
+}
+
+/**
  * Normalize lines from various formats (object with "1", "2", etc. or array)
  */
 function normalizeLines(lines: unknown): Record<1 | 2 | 3 | 4 | 5 | 6, string> {
@@ -156,7 +175,7 @@ function normalizeLines(lines: unknown): Record<1 | 2 | 3 | 4 | 5 | 6, string> {
     lines.forEach((line, index) => {
       const key = (index + 1) as 1 | 2 | 3 | 4 | 5 | 6;
       if (key >= 1 && key <= 6) {
-        defaultLines[key] = String(line || '');
+        defaultLines[key] = extractLineText(line);
       }
     });
     return defaultLines;
@@ -169,7 +188,7 @@ function normalizeLines(lines: unknown): Record<1 | 2 | 3 | 4 | 5 | 6, string> {
       const key = i as 1 | 2 | 3 | 4 | 5 | 6;
       const value = linesObj[String(i)] || linesObj[i];
       if (value) {
-        defaultLines[key] = String(value);
+        defaultLines[key] = extractLineText(value);
       }
     }
     return defaultLines;

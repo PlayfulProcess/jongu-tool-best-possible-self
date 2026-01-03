@@ -20,6 +20,22 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
   // Determine if we should show attribution (not for classic/fallback)
   const showAttribution = bookId && bookId !== 'classic' && bookName;
 
+  // Helper to safely extract line text (handles string, object with text field, or other formats)
+  const getLineText = (lineData: unknown): string => {
+    if (typeof lineData === 'string') {
+      return lineData;
+    }
+    if (lineData && typeof lineData === 'object') {
+      const obj = lineData as Record<string, unknown>;
+      // Try common field names for line text
+      if (typeof obj.text === 'string') return obj.text;
+      if (typeof obj.interpretation === 'string') return obj.interpretation;
+      if (typeof obj.meaning === 'string') return obj.meaning;
+      if (typeof obj.content === 'string') return obj.content;
+    }
+    return '';
+  };
+
   return (
     <div className="space-y-6 text-gray-700 dark:text-gray-300">
       {/* Primary Hexagram Header */}
@@ -61,14 +77,15 @@ export default function ReadingInterpretation({ reading }: ReadingInterpretation
             {changingLines.map((lineNum) => {
               const line = lines[lineNum - 1];
               const positionName = getLinePositionName(lineNum, line.type);
-              const lineText = primaryHexagram.lines[lineNum as keyof typeof primaryHexagram.lines];
+              const rawLineText = primaryHexagram.lines[lineNum as keyof typeof primaryHexagram.lines];
+              const lineText = getLineText(rawLineText);
 
               return (
                 <div key={lineNum}>
                   <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">
                     Line {lineNum} ({positionName}) — {line.type === 'yang' ? 'Yang → Yin' : 'Yin → Yang'}
                   </p>
-                  <p className="text-gray-700 dark:text-gray-300">{lineText}</p>
+                  {lineText && <p className="text-gray-700 dark:text-gray-300">{lineText}</p>}
                 </div>
               );
             })}
